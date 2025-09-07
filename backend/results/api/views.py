@@ -70,10 +70,10 @@ class ConstructorStandingsView(APIView):
             .values(
                 "driver_season__team_season_id",
                 "driver_season__team_season__team__id",
-                "driver_season__team_season__team__name",
+                "driver_season__team_season__team__team_name",
             )
             .annotate(points=Sum("points_row"))
-            .order_by("-points", "driver_season__team_season__team__name")
+            .order_by("-points", "driver_season__team_season__team__team_name")
         )
 
         data = [
@@ -81,7 +81,7 @@ class ConstructorStandingsView(APIView):
                 "team_season_id": row["driver_season__team_season_id"],
                 "team": {
                     "id": row["driver_season__team_season__team__id"],
-                    "name": row["driver_season__team_season__team__name"],
+                    "name": row["driver_season__team_season__team__team_name"],
                 },
                 "points": row["points"] or 0,
             }
@@ -118,6 +118,7 @@ class SeasonStandingsView(APIView):
                     "first_name": getattr(drv, "first_name", "") or "",
                     "last_name": getattr(drv, "last_name", "") or "",
                     "display_name": (f"{getattr(drv, 'first_name', '') or ''} {getattr(drv, 'last_name', '') or ''}").strip() or getattr(drv, "name", ""),
+                    "profile_image": getattr(drv, "profile_image", None),
                 },
                 "team": {
                     "id": team_id,
