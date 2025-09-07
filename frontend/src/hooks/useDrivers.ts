@@ -5,29 +5,29 @@ import { useApiMutation } from "./useApiMutation";
 import { type Driver } from "../api/drivers";
 
 export function useDrivers() {
+  console.log("useDrivers hook called");
   // Query drivers
-  const { data, isLoading, error, refetch } = useApiQuery<{ drivers: Driver[] }>(`/api/drivers/`);
+  const { data, isLoading, error, refetch } = useApiQuery<{ drivers: Driver[] }>(`api/drivers/`);
 
   // Mutation to add driver
   const { mutate: add, isLoading: adding, error: addError } = useApiMutation<Driver, { name: string; team?: string }>(
-    `/api/drivers/`,
+    `api/drivers/`,
     { method: "POST" }
   );
 
   const addDriver = useCallback(
     async (name: string, team?: string) => {
       const created = await add({ name, team });
-      // simple optimistic update: re-fetch list after create
-      refetch();
+      // Let the calling component decide when to refresh
       return created;
     },
-    [add, refetch]
+    [add]
   );
 
   return {
     drivers: data?.drivers ?? [],
     loading: isLoading || adding,
-    error: error || addError,
+    error: (error || addError)?.message || (error || addError),
     refresh: refetch,
     addDriver,
   };

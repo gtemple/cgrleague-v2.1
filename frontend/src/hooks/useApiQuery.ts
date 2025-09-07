@@ -26,6 +26,9 @@ export function useApiQuery<T = unknown>(path: string, { params, enabled = true,
     setLoading(true);
   }, []);
 
+  // Extract paramsString for dependency
+  const paramsString = JSON.stringify(params);
+
   useEffect(() => {
     if (!enabled) return;
 
@@ -55,7 +58,7 @@ export function useApiQuery<T = unknown>(path: string, { params, enabled = true,
     return () => {
       cancelled = true;
     };
-  }, [path, JSON.stringify(params), enabled, transform]);
+  }, [path, params, paramsString, enabled, transform]);
 
   return { data, isLoading, error, refetch };
 }

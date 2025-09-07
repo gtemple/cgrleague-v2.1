@@ -12,7 +12,7 @@ export class ApiError extends Error {
 
 function getApiBase() {
   return (
-    import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_API_BASE_URL_DEV ||
     "" // same-origin for dev proxy
   );
 }
