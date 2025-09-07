@@ -22,6 +22,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "api",
     "drivers",
+    "tracks",
+    "seasons",
+    "teams",
+    "entries",
+    "results"
 ]
 
 MIDDLEWARE = [
