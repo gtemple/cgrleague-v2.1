@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q
+from .scoring import points_for_result
 
 class Race(models.Model):
     season = models.ForeignKey(
@@ -103,6 +104,9 @@ class RaceResult(models.Model):
                 name="uniq_pole_per_race",
             ),
         ]
+    @property
+    def points(self) -> int:
+      return points_for_result(self)
 
     def __str__(self):
         drv = getattr(self.driver_season.driver, "last_name", "Driver")

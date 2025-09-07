@@ -1,0 +1,423 @@
+-- SEASON 2 --
+-- Giordano Temple Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (7, 361, 1, 3, 1, false, false, true, 2, false, 18, 1),
+                          (7, 362, 1, 25, 10, false, false, false, 2, false, 17, 2),
+                          (7, 363, 1, 10, 6, false, false, false, 2, false, 18, 3),  
+                          (7, 364, 1, 11, 3, false, false, true, 2, false, 18, 4),  
+                          (7, 365, 1, 20, 15, false, false, false, 2, false, 18, 5),
+                          (7, 366, 1, 13, 5, false, false, false, 2, false, 11, 6),  
+                          (7, 367, 1, 23, 4, false, false, false, 2,false, 14, 7),
+                          (7, 368, 1, 22, 5, false, false, false, 2, false, 15, 8),
+                          (7, 369, 1, 14, 5, false, false, false, 2, false, 18, 9),
+                          (7, 370, 1, 26, 6, false, false, false, 2, false, 13, 10),
+                          (7, 371, 1, 1, 1, false, true, false, 2, false, 13, 11),
+                          (7, 372, 1, 7, 4, false, false, false, 2, false, 16, 12),
+                          (7, 373, 1, 15, 6, false, false, true, 2, false, 13, 13),
+                          (7, 374, 1, 12, 12, false, false, false, 2, false, 18, 13),
+                          (7, 375, 1, 4, 19, false, false, false, 2, false, 14, 14),
+                          (7, 376, 1, 9, 18, false, false, false, 2, false, 14, 16),
+                          (7, 377, 1, 24, 10, false, false, false, 2, false, 14, 17),
+                          (7, 378, 1, 2, 5, false, false, false, 2, false, 13, 18);
+
+-- Ryan Reynolds Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (7, 379, 3, 3, 20, false, false, false, 2, false, 18, 1),
+                          (7, 380, 3, 25, 16, false, true, false, 2, false, 17, 2),
+                          (7, 381, 3, 10, 16, false, false, false, 2, false, 18, 3),  
+                          (7, 382, 3, 11, 9, false, false, false, 2, false, 18, 4),  
+                          (7, 383, 3, 20, 4, false, false, true, 2, false, 18, 5),
+                          (7, 384, 3, 13, 19, false, true, false, 2, false, 11, 6),  
+                          (7, 385, 3, 23, 10, false, true, false, 2,false, 14, 7),
+                          (7, 386, 3, 22, 20, false, false, false, 2, false, 15, 8),
+                          (7, 387, 3, 14, 18, false, true, false, 2, false, 18, 9),
+                          (7, 388, 3, 26, 5, false, true, false, 2, false, 13, 10),
+                          (7, 389, 3, 1, 7, false, false, false, 2, false, 13, 11),
+                          (7, 390, 3, 7, 12, false, false, true, 2, false, 16, 12),
+                          (7, 391, 3, 15, 2, false, false, false, 2, false, 13, 13),
+                          (7, 392, 3, 12, 16, false, false, false, 2, false, 18, 13),
+                          (7, 393, 3, 4, 13, false, false, false, 2, false, 14, 14),
+                          (7, 394, 3, 9, 7, false, false, false, 2, false, 14, 16),
+                          (7, 395, 3, 24, 20, false, false, false, 2, false, 14, 17),
+                          (7, 396, 3, 2, 4, false, false, false, 2, false, 13, 18);  
+
+-- Cole Reynolds Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (8, 397, 2, 3, 18, false, true, false, 2, false, 18, 1),
+                          (8, 398, 2, 25, 4, false, false, false, 2, false, 17, 2),
+                          (8, 399, 2, 10, 10, false, false, true, 2, false, 18, 3),  
+                          (8, 400, 2, 11, 19, false, false, false, 2, false, 18, 4),  
+                          (8, 401, 2, 20, 6, false, false, false, 2, false, 18, 5),
+                          (8, 402, 2, 13, 12, false, false, false, 2, false, 11, 6),  
+                          (8, 403, 2, 23, 5, false, false, true, 2,false, 14, 7),
+                          (8, 404, 2, 22, 12, false, false, true, 2, false, 15, 8),
+                          (8, 405, 2, 14, 12, false, false, true, 2, false, 18, 9),
+                          (8, 406, 2, 26, 10, false, false, true, 2, false, 13, 10),
+                          (8, 407, 2, 1, 9, false,false, true, 2, false, 13, 11),
+                          (8, 408, 2, 7, 19, false, false, false, 2, false, 16, 12),
+                          (8, 409, 2, 15, 14, false, false, false, 2, false, 13, 13),
+                          (8, 410, 2, 12, 4, false, false, true, 2, false, 18, 13),
+                          (8, 411, 2, 4, 5, false, false, true, 2, false, 14, 14),
+                          (8, 412, 2, 9, 2, false, false, true, 2, false, 14, 16),
+                          (8, 413, 2, 24, 5, false, false, false, 2, false, 14, 17),
+                          (8, 414, 2, 2, 20, false, false, false, 2, false, 13, 18);
+
+-- Kimi Raikonnen Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (8, 415, 17, 3, 14, false, false, false, 2, false, 18, 1),
+                          (8, 416, 17, 25, 15, false, false, false, 2, false, 17, 2),
+                          (8, 417, 17, 10, 13, false, false, false, 2, false, 18, 3),  
+                          (8, 418, 17, 11, 11, false, false, false, 2, false, 18, 4),  
+                          (8, 419, 17, 20, 19, false, false, false, 2, false, 18, 5),
+                          (8, 420, 17, 13, 12, false, false, false, 2, false, 11, 6),  
+                          (8, 421, 17, 23, 16, false, false, false, 2,false, 14, 7),
+                          (8, 422, 17, 22, 17, false, false, false, 2, false, 15, 8),
+                          (8, 423, 17, 14, 14, false, false, false, 2, false, 18, 9),
+                          (8, 424, 17, 26, 14, false, false, false, 2, false, 13, 10),
+                          (8, 425, 17, 1, 12, false, false, false, 2, false, 13, 11),
+                          (8, 426, 17, 7, 15, false, false, false, 2, false, 16, 12),
+                          (8, 427, 17, 15, 18, false, false, false, 2, false, 13, 13),
+                          (8, 428, 17, 12, 14, false, false, false, 2, false, 18, 13),
+                          (8, 429, 17, 4, 14, false, false, false, 2, false, 14, 14),
+                          (8, 430, 17, 9, 16, false, false, false, 2, false, 14, 16),
+                          (8, 431, 17, 24, 13, false, false, false, 2, false, 14, 17),
+                          (8, 432, 17, 2, 17, false, false, false, 2, false, 13, 18);   
+
+-- Daniel Ricciardo Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (2, 433, 23, 3, 9, false, false, false, 2, false, 18, 1),
+                          (2, 434, 23, 25, 14, false, false, false, 2, false, 17, 2),
+                          (2, 435, 23, 10, 18, false, false, false, 2, false, 18, 3),  
+                          (2, 436, 23, 11, 5, false, false, false, 2, false, 18, 4),  
+                          (2, 437, 23, 20, 7, false, false, false, 2, false, 18, 5),
+                          (2, 438, 23, 13, 7, false, false, true, 2, false, 11, 6),  
+                          (2, 439, 23, 23, 9, false, false, false, 2,false, 14, 7),
+                          (2, 440, 23, 22, 6, false, false, false, 2, false, 15, 8),
+                          (2, 441, 23, 14, 8, false, false, false, 2, false, 18, 9),
+                          (2, 442, 23, 26, 12, false, false, false, 2, false, 13, 10),
+                          (2, 443, 23, 1, 8, false, false, false, 2, false, 13, 11),
+                          (2, 444, 23, 7, 10, false, false, false, 2, false, 16, 12),
+                          (2, 445, 23, 15, 9, false, false, false, 2, false, 13, 13),
+                          (2, 446, 23, 12, 7, false, false, false, 2, false, 18, 13),
+                          (2, 447, 23, 4, 10, false, false, false, 2, false, 14, 14),
+                          (2, 448, 23, 9, 6, false, false, false, 2, false, 14, 16),
+                          (2, 449, 23, 24, 11, false, false, false, 2, false, 14, 17),
+                          (2, 450, 23, 2, 6, false, false, false, 2, false, 13, 18);
+
+-- Lando Norris Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (2, 451, 5, 3, 6, false, false, false, 2, false, 18, 1),
+                          (2, 452, 5, 25, 9, false, false, false, 2, false, 17, 2),
+                          (2, 453, 5, 10, 5, false, false, false, 2, false, 18, 3),  
+                          (2, 454, 5, 11, 4, false, false, false, 2, false, 18, 4),  
+                          (2, 455, 5, 20, 5, false, false, false, 2, false, 18, 5),
+                          (2, 456, 5, 13, 6, false, false, false, 2, false, 11, 6),  
+                          (2, 457, 5, 23, 6, false, false, false, 2,false, 14, 7),
+                          (2, 458, 5, 22, 13, false, false, false, 2, false, 15, 8),
+                          (2, 459, 5, 14, 11, false, false, false, 2, false, 18, 9),
+                          (2, 460, 5, 26, 8, false, false, false, 2, false, 13, 10),
+                          (2, 461, 5, 1, 6, false, false, false, 2, false, 13, 11),
+                          (2, 462, 5, 7, 6, false, false, false, 2, false, 16, 12),
+                          (2, 463, 5, 15, 3, false, false, false, 2, false, 13, 13),
+                          (2, 464, 5, 12, 5, false, false, false, 2, false, 18, 13),
+                          (2, 465, 5, 4, 6, false, false, false, 2, false, 14, 14),
+                          (2, 466, 5, 9, 3, false, false, false, 2, false, 14, 16),
+                          (2, 467, 5, 24, 6, false, false, false, 2, false, 14, 17),
+                          (2, 468, 5, 2, 8, false, false, false, 2, false, 13, 18);   
+
+
+-- Max Verstappen Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (4, 469, 13, 3, 4, false, false, false, 2, false, 18, 1),
+                          (4, 470, 13, 25, 2, false, false, false, 2, false, 17, 2),
+                          (4, 471, 13, 10, 4, false, true, false, 2, false, 18, 3),  
+                          (4, 472, 13, 11, 1, false, true, false, 2, false, 18, 4),  
+                          (4, 473, 13, 20, 8, false, true, false, 2, false, 18, 5),
+                          (4, 474, 13, 13, 1, false, false, false, 2, false, 11, 6),  
+                          (4, 475, 13, 23, 2, false, false, false, 2,false, 14, 7),
+                          (4, 476, 13, 22, 1, false, false, false, 2, false, 15, 8),
+                          (4, 477, 13, 14, 2, false, false, false, 2, false, 18, 9),
+                          (4, 478, 13, 26, 2, false, false, false, 2, false, 13, 10),
+                          (4, 479, 13, 1, 3, false, false, false, 2, false, 13, 11),
+                          (4, 480, 13, 7, 1, false, false, false, 2, false, 16, 12),
+                          (4, 481, 13, 15, 8, false, false, false, 2, false, 13, 13),
+                          (4, 482, 13, 12, 2, false, false, false, 2, false, 18, 13),
+                          (4, 483, 13, 4, 2, false, false, false, 2, false, 14, 14),
+                          (4, 484, 13, 9, 5, false, true, false, 2, false, 14, 16),
+                          (4, 485, 13, 24, 2, false, false, false, 2, false, 14, 17),
+                          (4, 486, 13, 2, 3, false, false, false, 2, false, 13, 18);  
+
+-- Sergio Perez Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (4, 505, 14, 3, 3, false, false, false, 2, false, 18, 1),
+                          (4, 506, 14, 25, 3, false, false, false, 2, false, 17, 2),
+                          (4, 507, 14, 10, 2, false, false, false, 2, false, 18, 3),  
+                          (4, 508, 14, 11, 2, false, false, false, 2, false, 18, 4),  
+                          (4, 509, 14, 20, 1, false, false, false, 2, false, 18, 5),
+                          (4, 510, 14, 13, 2, false, false, false, 2, false, 11, 6),  
+                          (4, 511, 14, 23, 20, false, false, false, 2,false, 14, 7),
+                          (4, 512, 14, 22, 3, false, false, false, 2, false, 15, 8),
+                          (4, 513, 14, 14, 3, false, false, false, 2, false, 18, 9),
+                          (4, 514, 14, 26, 4, false, false, false, 2, false, 13, 10),
+                          (4, 516, 14, 1, 4, false, false, false, 2, false, 13, 11),
+                          (4, 517, 14, 7, 3, false, false, false, 2, false, 16, 12),
+                          (4, 518, 14, 15, 4, false, false, false, 2, false, 13, 13),
+                          (4, 519, 14, 12, 1, false, true, false, 2, false, 18, 13),
+                          (4, 520, 14, 4, 1, false, true, false, 2, false, 14, 14),
+                          (4, 521, 14, 9, 1, false, false, false, 2, false, 14, 16),
+                          (4, 522, 14, 24, 1, false, true, false, 2, false, 14, 17),
+                          (4, 523, 14, 2, 2, false, true, false, 2, false, 13, 18);
+
+-- Lewis Hamilton Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (5, 487, 11, 3, 5, false, false, false, 2, false, 18, 1),
+                          (5, 488, 11, 25, 1, false, false, false, 2, false, 17, 2),
+                          (5, 489, 11, 10, 1, false, false, false, 2, false, 18, 3),  
+                          (5, 490, 11, 11, 8, false, false, false, 2, false, 18, 4),  
+                          (5, 491, 11, 20, 2, false, false, false, 2, false, 18, 5),
+                          (5, 492, 11, 13, 3, false, false, false, 2, false, 11, 6),  
+                          (5, 493, 11, 23, 1, false, false, false, 2,false, 14, 7),
+                          (5, 494, 11, 22, 2, false, true, false, 2, false, 15, 8),
+                          (5, 495, 11, 14, 1, false, false, false, 2, false, 18, 9),
+                          (5, 496, 11, 26, 3, false, false, false, 2, false, 13, 10),
+                          (5, 497, 11, 1, 2, false, false, false, 2, false, 13, 11),
+                          (5, 498, 11, 7, 2, false, true, false, 2, false, 16, 12),
+                          (5, 499, 11, 15, 7, false, false, false, 2, false, 13, 13),
+                          (5, 500, 11, 12, 3, false, false, false, 2, false, 18, 13),
+                          (5, 501, 11, 4, 3, false, false, false, 2, false, 14, 14),
+                          (5, 502, 11, 9, 20, false, false, false, 2, false, 14, 16),
+                          (5, 503, 11, 24, 3, false, false, false, 2, false, 14, 17),
+                          (5, 504, 11, 2, 1, false, false, false, 2, false, 13, 18);
+
+-- Valtteri Bottas Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (5, 524, 15, 3, 2, false, false, false, 2, false, 18, 1),
+                          (5, 525, 15, 25, 7, false, false, false, 2, false, 17, 2),
+                          (5, 526, 15, 10, 3, false, false, false, 2, false, 18, 3),  
+                          (5, 527, 15, 11, 20, false, false, false, 2, false, 18, 4),  
+                          (5, 528, 15, 20, 3, false, false, false, 2, false, 18, 5),
+                          (5, 529, 15, 13, 4, false, false, false, 2, false, 11, 6),  
+                          (5, 530, 15, 23, 3, false, false, false, 2,false, 14, 7),
+                          (5, 531, 15, 22, 4, false, false, false, 2, false, 15, 8),
+                          (5, 532, 15, 14, 4, false, false, false, 2, false, 18, 9),
+                          (5, 533, 15, 26, 1, false, false, false, 2, false, 13, 10),
+                          (5, 534, 15, 1, 5, false, false, false, 2, false, 13, 11),
+                          (5, 535, 15, 7, 5, false, false, false, 2, false, 16, 12),
+                          (5, 536, 15, 15, 1, false, true, false, 2, false, 13, 13),
+                          (5, 537, 15, 12, 17, false, false, false, 2, false, 18, 13),
+                          (5, 538, 15, 4, 4, false, false, false, 2, false, 14, 14),
+                          (5, 539, 15, 9, 17, false, false, false, 2, false, 14, 16),
+                          (5, 540, 15, 24, 4, false, false, false, 2, false, 14, 17),
+                          (5, 541, 15, 2, 7, false, false, true, 2, false, 13, 18);
+
+-- Mick Schumacher Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (6, 542, 25, 3, 17, false, false, false, 2, false, 18, 1),
+                          (6, 543, 25, 25, 20, false, false, false, 2, false, 17, 2),
+                          (6, 544, 25, 10, 17, false, false, false, 2, false, 18, 3),  
+                          (6, 545, 25, 11, 17, false, false, false, 2, false, 18, 4),  
+                          (6, 546, 25, 20, 17, false, false, false, 2, false, 18, 5),
+                          (6, 547, 25, 13, 17, false, false, false, 2, false, 11, 6),  
+                          (6, 548, 25, 23, 18, false, false, false, 2,false, 14, 7),
+                          (6, 549, 25, 22, 18, false, false, false, 2, false, 15, 8),
+                          (6, 550, 25, 14, 20, false, false, false, 2, false, 18, 9),
+                          (6, 551, 25, 26, 19, false, false, false, 2, false, 13, 10),
+                          (6, 552, 25, 1, 15, false, false, false, 2, false, 13, 11),
+                          (6, 553, 25, 7, 18, false, false, false, 2, false, 16, 12),
+                          (6, 554, 25, 15, 16, false, false, false, 2, false, 13, 13),
+                          (6, 555, 25, 12, 18, false, false, false, 2, false, 18, 13),
+                          (6, 556, 25, 4, 18, false, false, false, 2, false, 14, 14),
+                          (6, 557, 25, 9, 12, false, false, false, 2, false, 14, 16),
+                          (6, 558, 25, 24, 19, false, false, false, 2, false, 14, 17),
+                          (6, 559, 25, 2, 19, false, false, false, 2, false, 13, 18);   
+
+-- Nikitak Mazepin Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (6, 560, 25, 3, 19, false, false, false, 2, false, 18, 1),
+                          (6, 561, 25, 25, 19, false, false, false, 2, false, 17, 2),
+                          (6, 562, 25, 10, 18, false, false, false, 2, false, 18, 3),  
+                          (6, 563, 25, 11, 18, false, false, false, 2, false, 18, 4),  
+                          (6, 564, 25, 20, 18, false, false, false, 2, false, 18, 5),
+                          (6, 565, 25, 13, 18, false, false, false, 2, false, 11, 6),  
+                          (6, 566, 25, 23, 17, false, false, false, 2,false, 14, 7),
+                          (6, 567, 25, 22, 19, false, false, false, 2, false, 15, 8),
+                          (6, 568, 25, 14, 19, false, false, false, 2, false, 18, 9),
+                          (6, 569, 25, 26, 18, false, false, false, 2, false, 13, 10),
+                          (6, 570, 25, 1, 19, false, false, false, 2, false, 13, 11),
+                          (6, 571, 25, 7, 20, false, false, false, 2, false, 16, 12),
+                          (6, 572, 25, 15, 13, false, false, false, 2, false, 13, 13),
+                          (6, 573, 25, 12, 19, false, false, false, 2, false, 18, 13),
+                          (6, 574, 25, 4, 16, false, false, false, 2, false, 14, 14),
+                          (6, 575, 25, 9, 19, false, false, false, 2, false, 14, 16),
+                          (6, 578, 25, 24, 20, false, false, false, 2, false, 14, 17),
+                          (6, 579, 25, 2, 18, false, false, false, 2, false, 13, 18); 
+
+-- Carlos Sains Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (1, 580, 29, 3, 15, false, false, false, 2, false, 18, 1),
+                          (1, 581, 29, 25, 5, false, false, true, 2, false, 17, 2),
+                          (1, 582, 29, 10, 14, false, false, false, 2, false, 18, 3),  
+                          (1, 583, 29, 11, 7, false, false, false, 2, false, 18, 4),  
+                          (1, 584, 29, 20, 9, false, false, false, 2, false, 18, 5),
+                          (1, 585, 29, 13, 9, false, false, false, 2, false, 11, 6),  
+                          (1, 586, 29, 23, 7, false, false, false, 2,false, 14, 7),
+                          (1, 587, 29, 22, 7, false, false, false, 2, false, 15, 8),
+                          (1, 588, 29, 14, 7, false, false, false, 2, false, 18, 9),
+                          (1, 589, 29, 26, 20, false, false, false, 2, false, 13, 10),
+                          (1, 590, 29, 1, 10, false, false, false, 2, false, 13, 11),
+                          (1, 591, 29, 7, 8, false, false, false, 2, false, 16, 12),
+                          (1, 592, 29, 15, 6, false, false, false, 2, false, 13, 13),
+                          (1, 593, 29, 12, 11, false, false, false, 2, false, 18, 13),
+                          (1, 594, 29, 4, 9, false, false, false, 2, false, 14, 14),
+                          (1, 595, 29, 9, 11, false, false, false, 2, false, 14, 16),
+                          (1, 596, 29, 24, 7, false, false, false, 2, false, 14, 17),
+                          (1, 597, 29, 2, 11, false, false, false, 2, false, 13, 18); 
+
+-- Charles Leclerc Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (1, 598, 4, 3, 8, false, false, false, 2, false, 18, 1),
+                          (1, 599, 4, 25, 6, false, false, false, 2, false, 17, 2),
+                          (1, 600, 4, 10, 7, false, false, false, 2, false, 18, 3),  
+                          (1, 601, 4, 11, 13, false, false, false, 2, false, 18, 4),  
+                          (1, 602, 4, 20, 20, false, false, false, 2, false, 18, 5),
+                          (1, 603, 4, 13, 20, false, false, false, 2, false, 11, 6),  
+                          (1, 604, 4, 23, 19, false, false, false, 2,false, 14, 7),
+                          (1, 605, 4, 22, 8, false, false, false, 2, false, 15, 8),
+                          (1, 606, 4, 14, 6, false, false, false, 2, false, 18, 9),
+                          (1, 607, 4, 26, 7, false, false, false, 2, false, 13, 10),
+                          (1, 608, 4, 1, 11, false, false, false, 2, false, 13, 11),
+                          (1, 609, 4, 7, 7, false, false, false, 2, false, 16, 12),
+                          (1, 610, 4, 15, 17, false, false, false, 2, false, 13, 13),
+                          (1, 611, 4, 12, 6, false, false, false, 2, false, 18, 13),
+                          (1, 612, 4, 4, 8, false, false, false, 2, false, 14, 14),
+                          (1, 613, 4, 9, 4, false, false, false, 2, false, 14, 16),
+                          (1, 614, 4, 24, 17, false, false, false, 2, false, 14, 17),
+                          (1, 615, 4, 2, 13, false, false, false, 2, false, 13, 18);
+
+-- Sebastian Vettel Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (3, 616, 30, 3, 11, false, false, false, 2, false, 18, 1),
+                          (3, 617, 30, 25, 13, false, false, false, 2, false, 17, 2),
+                          (3, 618, 30, 10, 20, false, false, false, 2, false, 18, 3),  
+                          (3, 619, 30, 11, 12, false, false, false, 2, false, 18, 4),  
+                          (3, 620, 30, 20, 10, false, false, false, 2, false, 18, 5),
+                          (3, 621, 30, 13, 10, false, false, false, 2, false, 11, 6),  
+                          (3, 622, 30, 23, 12, false, false, false, 2,false, 14, 7),
+                          (3, 623, 30, 22, 10, false, false, false, 2, false, 15, 8),
+                          (3, 624, 30, 14, 10, false, false, false, 2, false, 18, 9),
+                          (3, 625, 30, 26, 11, false, false, false, 2, false, 13, 10),
+                          (3, 626, 30, 1, 14, false, false, false, 2, false, 13, 11),
+                          (3, 627, 30, 7, 14, false, false, false, 2, false, 16, 12),
+                          (3, 628, 30, 15, 10, false, false, false, 2, false, 13, 13),
+                          (3, 629, 30, 12, 8, false, false, false, 2, false, 18, 13),
+                          (3, 630, 30, 4, 11, false, false, false, 2, false, 14, 14),
+                          (3, 631, 30, 9, 14, false, false, false, 2, false, 14, 16),
+                          (3, 632, 30, 24, 14, false, false, true, 2, false, 14, 17),
+                          (3, 633, 30, 2, 12, false, false, false, 2, false, 13, 18);
+
+-- Lance Stroll Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (3, 634, 7, 3, 12, false, false, false, 2, false, 18, 1),
+                          (3, 635, 7, 25, 12, false, false, false, 2, false, 17, 2),
+                          (3, 636, 7, 10, 11, false, false, false, 2, false, 18, 3),  
+                          (3, 637, 7, 11, 10, false, false, false, 2, false, 18, 4),  
+                          (3, 638, 7, 20, 13, false, false, false, 2, false, 18, 5),
+                          (3, 639, 7, 13, 11, false, false, false, 2, false, 11, 6),  
+                          (3, 640, 7, 23, 13, false, false, false, 2,false, 14, 7),
+                          (3, 641, 7, 22, 14, false, false, false, 2, false, 15, 8),
+                          (3, 642, 7, 14, 13, false, false, false, 2, false, 18, 9),
+                          (3, 643, 7, 26, 15, false, false, false, 2, false, 13, 10),
+                          (3, 644, 7, 1, 13, false, false, false, 2, false, 13, 11),
+                          (3, 645, 7, 7, 13, false, false, false, 2, false, 16, 12),
+                          (3, 646, 7, 15, 11, false, false, false, 2, false, 13, 13),
+                          (3, 647, 7, 12, 9, false, false, false, 2, false, 18, 13),
+                          (3, 648, 7, 4, 20, false, false, false, 2, false, 14, 14),
+                          (3, 649, 7, 9, 15, false, false, false, 2, false, 14, 16),
+                          (3, 650, 7, 24, 12, false, false, false, 2, false, 14, 17),
+                          (3, 651, 7, 2, 14, false, false, false, 2, false, 13, 18);
+
+
+-- George Russel Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (9, 652, 12 , 3, 13, false, false, false, 2, false, 18, 1),
+                          (9, 653, 12, 25, 17, false, false, false, 2, false, 17, 2),
+                          (9, 654, 12, 10, 12, false, false, false, 2, false, 18, 3),  
+                          (9, 655, 12, 11, 15, false, false, false, 2, false, 18, 4),  
+                          (9, 656, 12, 20, 14, false, false, false, 2, false, 18, 5),
+                          (9, 657, 12, 13, 14, false, false, false, 2, false, 11, 6),  
+                          (9, 658, 12, 23, 14, false, false, false, 2,false, 14, 7),
+                          (9, 659, 12, 22, 15, false, false, false, 2, false, 15, 8),
+                          (9, 660, 12, 14, 17, false, false, false, 2, false, 18, 9),
+                          (9, 661, 12, 26, 16, false, false, false, 2, false, 13, 10),
+                          (9, 662, 12, 1, 17, false, false, false, 2, false, 13, 11),
+                          (9, 663, 12, 7, 16, false, false, false, 2, false, 16, 12),
+                          (9, 664, 12, 15, 12, false, false, false, 2, false, 13, 13),
+                          (9, 665, 12, 12, 13, false, false, false, 2, false, 18, 13),
+                          (9, 666, 12, 4, 17, false, false, false, 2, false, 14, 14),
+                          (9, 667, 12, 9, 9, false, false, false, 2, false, 14, 16),
+                          (9, 668, 12, 24, 14, false, false, false, 2, false, 14, 17),
+                          (9, 669, 12, 2, 15, false, false, false, 2, false, 13, 18);
+
+
+-- Nic Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (9, 670, 8, 3, 16, false, false, false, 2, false, 18, 1),
+                          (9, 671, 8, 25, 18, false, false, false, 2, false, 17, 2),
+                          (9, 672, 8, 10, 15, false, false, false, 2, false, 18, 3),  
+                          (9, 673, 8, 11, 16, false, false, false, 2, false, 18, 4),  
+                          (9, 674, 8, 20, 16, false, false, false, 2, false, 18, 5),
+                          (9, 675, 8, 13, 15, false, false, false, 2, false, 11, 6),  
+                          (9, 676, 8, 23, 15, false, false, false, 2,false, 14, 7),
+                          (9, 677, 8, 22, 16, false, false, false, 2, false, 15, 8),
+                          (9, 678, 8, 14, 15, false, false, false, 2, false, 18, 9),
+                          (9, 679, 8, 26, 17, false, false, false, 2, false, 13, 10),
+                          (9, 680, 8, 1, 16, false, false, false, 2, false, 13, 11),
+                          (9, 681, 8, 7, 17, false, false, false, 2, false, 16, 12),
+                          (9, 682, 8, 15, 19, false, false, false, 2, false, 13, 13),
+                          (9, 683, 8, 12, 15, false, false, false, 2, false, 18, 13),
+                          (9, 684, 8, 4, 15, false, false, false, 2, false, 14, 14),
+                          (9, 685, 8, 9, 10, false, false, false, 2, false, 14, 16),
+                          (9, 686, 8, 24, 19, false, false, false, 2, false, 14, 17),
+                          (9, 687, 8, 2, 16, false, false, false, 2, false, 13, 18);
+
+-- Esteban Ocon Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (10, 688, 24, 3, 7, false, false, false, 2, false, 18, 1),
+                          (10, 689, 24, 25, 11, false, false, false, 2, false, 17, 2),
+                          (10, 690, 24, 10, 19, false, false, false, 2, false, 18, 3),  
+                          (10, 691, 24, 11, 14, false, false, false, 2, false, 18, 4),  
+                          (10, 692, 24, 20, 12, false, false, false, 2, false, 18, 5),
+                          (10, 693, 24, 13, 16, false, false, false, 2, false, 11, 6),  
+                          (10, 694, 24, 23, 11, false, false, false, 2,false, 14, 7),
+                          (10, 695, 24, 22, 9, false, false, false, 2, false, 15, 8),
+                          (10, 696, 24, 14, 9, false, false, false, 2, false, 18, 9),
+                          (10, 697, 24, 26, 13, false, false, false, 2, false, 13, 10),
+                          (10, 698, 24, 1, 20, false, false, false, 2, false, 13, 11),
+                          (10, 699, 24, 7, 11, false, false, false, 2, false, 16, 12),
+                          (10, 700, 24, 15, 15, false, false, false, 2, false, 13, 13),
+                          (10, 701, 24, 12, 10, false, false, false, 2, false, 18, 13),
+                          (10, 702, 24, 4, 12, false, false, false, 2, false, 14, 14),
+                          (10, 703, 24, 9, 13, false, false, false, 2, false, 14, 16),
+                          (10, 704, 24, 24, 15, false, false, false, 2, false, 14, 17),
+                          (10, 705, 24, 2, 10, false, false, false, 2, false, 13, 18);
+
+-- Fernando Alonso Season 2
+INSERT INTO race_results (team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order)
+                  VALUES  (10, 706, 6, 3, 10, false, false, false, 2, false, 18, 1),
+                          (10, 707, 6, 25, 8, false, false, false, 2, false, 17, 2),
+                          (10, 708, 6, 10, 9, false, false, false, 2, false, 18, 3),  
+                          (10, 709, 6, 11, 6, false, false, false, 2, false, 18, 4),  
+                          (10, 710, 6, 20, 11, false, false, false, 2, false, 18, 5),
+                          (10, 711, 6, 13, 8, false, false, false, 2, false, 11, 6),  
+                          (10, 712, 6, 23, 8, false, false, false, 2,false, 14, 7),
+                          (10, 713, 6, 22,11, false, false, false, 2, false, 15, 8),
+                          (10, 714, 6, 14, 16, false, false, false, 2, false, 18, 9),
+                          (10, 715, 6, 26, 9, false, false, false, 2, false, 13, 10),
+                          (10, 716, 6, 1, 18, false, false, false, 2, false, 13, 11),
+                          (10, 717, 6, 7, 9, false, false, false, 2, false, 16, 12),
+                          (10, 718, 6, 15, 20, false, false, false, 2, false, 13, 13),
+                          (10, 719, 6, 12, 20, false, false, false, 2, false, 18, 13),
+                          (10, 720, 6, 4, 7, false, false, false, 2, false, 14, 14),
+                          (10, 721, 6, 9, 8, false, false, false, 2, false, 14, 16),
+                          (10, 722, 6, 24, 8, false, false, false, 2, false, 14, 17),
+                          (10, 723, 6, 2, 9, false, false, false, 2, false, 13, 18);

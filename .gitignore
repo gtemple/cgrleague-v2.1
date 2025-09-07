@@ -1,0 +1,61 @@
+# --- OS / Editors ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.log
+*.sqlite3
+.venv/
+venv/
+.env
+.env.*
+!.env.example   # keep a template
+
+# Django artifacts
+/media/         # user uploads
+/staticfiles/   # collectstatic output
+# keep migrations! (do NOT ignore: */migrations/*.py)
+
+# Test & tooling caches
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Build & packaging
+build/
+dist/
+
+# --- Node / Frontend (if present) ---
+node_modules/
+.pnp/
+.pnp.js
+.npm/
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.next/
+out/
+dist/
+build/
+.cache/
+.parcel-cache/
+.vite/
+.turbo/
+.eslintcache
+coverage/
+
+# --- Misc ---
+*.swp
+*.swo

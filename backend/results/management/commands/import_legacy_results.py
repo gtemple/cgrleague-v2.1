@@ -1,4 +1,3 @@
-# results/management/commands/import_legacy_results.py
 from __future__ import annotations
 
 import re
@@ -8,7 +7,7 @@ from typing import Any, Dict, List
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from results.models import RaceResult
+from results.models import Race, RaceResult
 from drivers.models import Driver
 from seasons.models import Season
 from tracks.models import Track
@@ -138,72 +137,113 @@ class Command(BaseCommand):
 
         created, updated, skipped = 0, 0, 0
         errs: List[str] = []
+        demotions: List[str] = []
 
-        # 3) Process each parsed row
+        # ---- Pass 1: ensure all Race objects exist (cache by season/round/is_sprint) ----
+        race_cache: dict[tuple[int, int, bool], Race] = {}
+
         for r in raw_rows:
-            # Expected legacy columns (we read them dynamically, but these are the ones we use):
-            # team_id, id, user_id, track_id, position, dnf, fastest_lap, dotd, season_id, sprint, race_distance, race_order
             try:
                 season_id = int(r["season_id"])
                 if only_season and season_id != only_season:
                     continue
-
-                driver_id = int(r["user_id"])  # maps to Driver.pk in new schema
+                rnd = int(r["race_order"])
+                is_sprint = bool(r["sprint"])
                 track_id = int(r["track_id"])
-                position = int(r["position"]) if r.get("position") is not None else None
-                dnf = bool(r["dnf"])
-                fastest_lap = bool(r["fastest_lap"])
-                dotd = bool(r["dotd"])
-                sprint = bool(r["sprint"])
-                race_distance = r.get("race_distance")
-                race_order = r.get("race_order")
+                key = (season_id, rnd, is_sprint)
+                if key in race_cache:
+                    continue
 
-                # Lookups
                 season = Season.objects.filter(id=season_id).first()
                 if not season:
                     skipped += 1
-                    errs.append(f"Season {season_id} missing (row with driver_id={driver_id}, track_id={track_id}).")
-                    continue
-
-                driver = Driver.objects.filter(id=driver_id).first()
-                if not driver:
-                    skipped += 1
-                    errs.append(f"Driver id {driver_id} not found (season {season_id}, track {track_id}).")
+                    errs.append(f"Season {season_id} missing (round {rnd}).")
                     continue
 
                 track = Track.objects.filter(id=track_id).first()
                 if not track:
                     skipped += 1
-                    errs.append(f"Track id {track_id} not found (driver id {driver_id}, season {season_id}).")
+                    errs.append(f"Track id {track_id} not found (season {season_id}, round {rnd}).")
                     continue
 
-                driver_season = DriverSeason.objects.filter(driver=driver, season=season).first()
-                if not driver_season:
+                race, _ = Race.objects.get_or_create(
+                    season=season,
+                    round=rnd,
+                    is_sprint=is_sprint,
+                    defaults={"track": track, "laps": r.get("race_distance")},
+                )
+                # If created without track, or track is empty, attach it.
+                if race.track_id is None:
+                    race.track = track
+                    race.save(update_fields=["track"])
+                race_cache[key] = race
+
+            except Exception as e:
+                skipped += 1
+                errs.append(f"{type(e).__name__} creating Race for row {r}: {e}")
+
+        # ---- Pass 2: upsert RaceResult rows ----
+        for r in raw_rows:
+            try:
+                season_id = int(r["season_id"])
+                if only_season and season_id != only_season:
+                    continue
+
+                driver_id = int(r["user_id"])
+                rnd = int(r["race_order"])
+                is_sprint = bool(r["sprint"])
+                position = int(r["position"]) if r.get("position") is not None else None
+                dnf = bool(r["dnf"])
+                fl_in = bool(r.get("fastest_lap", False))
+                dotd_in = bool(r.get("dotd", False))
+                # Optional legacy (generally absent in S1)
+                pole_in = bool(r.get("pole_position", False))
+
+                race = race_cache.get((season_id, rnd, is_sprint))
+                if not race:
                     skipped += 1
-                    errs.append(f"DriverSeason missing for driver id {driver_id} in season {season_id}.")
+                    errs.append(f"Race missing for season={season_id} round={rnd} sprint={is_sprint}.")
+                    continue
+
+                ds = DriverSeason.objects.filter(season_id=season_id, driver_id=driver_id).first()
+                if not ds:
+                    skipped += 1
+                    errs.append(f"DriverSeason missing for driver_id={driver_id} season={season_id}.")
                     continue
 
                 if dry:
                     continue
 
-                # Idempotent write (ignore legacy primary key 'id' and 'team_id')
+                status = "DNF" if dnf else "FIN"
+                finish_position = None if dnf else position
+
+                # Enforce one FL / DOTD / PP per race (match your partial unique constraints)
+                def safe_flag(flag: str, want: bool) -> bool:
+                    if not want:
+                        return False
+                    if RaceResult.objects.filter(race=race, **{flag: True}).exists():
+                        demotions.append(f"{flag.upper()} duplicate in R{race.round}: demoted driver_id={driver_id}")
+                        return False
+                    return True
+
+                fl = safe_flag("fastest_lap", fl_in)
+                dotd = safe_flag("dotd", dotd_in)
+                pole = safe_flag("pole_position", pole_in)
+
                 obj, was_created = RaceResult.objects.update_or_create(
-                    driver_season=driver_season,
-                    track=track,
-                    race_order=race_order,
-                    defaults={
-                        "position": position,
-                        "dnf": dnf,
-                        "fastest_lap": fastest_lap,
-                        "dotd": dotd,
-                        "sprint": sprint,
-                        "race_distance": race_distance,
-                        # Optional new fields left as None unless you later augment:
-                        # "grid_position": None,
-                        # "time_ms": None,
-                        # "gap_ms": None,
-                        # "laps_completed": None,
-                    },
+                    race=race,
+                    driver_season=ds,
+                    defaults=dict(
+                        grid_position=None,
+                        finish_position=finish_position,
+                        status=status,
+                        laps_completed=None,
+                        time_ms=None,
+                        gap_ms=None,
+                        fastest_lap=fl,
+                        dotd=dotd,
+                        pole_position=pole,
+                    ),
                 )
                 if was_created:
                     created += 1
@@ -227,15 +267,7 @@ class Command(BaseCommand):
                     self.stdout.write(f"- {msg}")
                 if len(errs) > 25:
                     self.stdout.write(f"... plus {len(errs)-25} more")
-            # Rollback everything in dry-run
+            if demotions:
+                for d in demotions:
+                    self.stdout.write(self.style.WARNING(d))
             raise transaction.TransactionManagementError("Dry run — rolled back.")
-
-        self.stdout.write(self.style.SUCCESS(
-            f"Import complete. Created: {created}, Updated: {updated}, Skipped: {skipped}."
-        ))
-        if errs:
-            self.stdout.write(self.style.WARNING(f"Warnings/Skips ({len(errs)}):"))
-            for msg in errs[:25]:
-                self.stdout.write(f"- {msg}")
-            if len(errs) > 25:
-                self.stdout.write(f"... plus {len(errs)-25} more")

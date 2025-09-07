@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from api.views import ping
 from tracks.views import list_tracks
 from seasons.views import list_seasons
@@ -11,4 +11,5 @@ urlpatterns = [
     path("api/tracks/", list_tracks),
     path("api/seasons/", list_seasons),
     path("api/teams/", list_teams),
+    path("api/", include("results.api.urls")),
 ]
