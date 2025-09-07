@@ -1,37 +1,55 @@
-const BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/";
-
-type FetchOptions = RequestInit & { json?: unknown };
-
-function buildUrl(path: string) {
-  // Ensures exactly one slash between base and path
-  const base = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
-  const p = path.startsWith("/") ? path : `/${path}`;
-  return `${base}${p}`;
+// src/api/client.ts
+export class ApiError extends Error {
+  status: number;
+  payload: unknown;
+  constructor(message: string, status: number, payload: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.payload = payload;
+  }
 }
 
-export async function http<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  const headers = new Headers(options.headers);
-  if (options.json !== undefined) {
-    headers.set("Content-Type", "application/json");
-  }
+function getApiBase() {
+  return (
+    import.meta.env.VITE_API_BASE_URL ||
+    "" // same-origin for dev proxy
+  );
+}
 
-  const res = await fetch(buildUrl(path), {
-    credentials: "include", // good habit for CSRF/logged-in endpoints
-    ...options,
-    headers,
-    body: options.json !== undefined ? JSON.stringify(options.json) : options.body,
+function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>) {
+  const base = getApiBase();
+  const url = new URL(path.startsWith("http") ? path : `${base}${path}`);
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+    }
+  }
+  return url.toString();
+}
+
+export async function fetchJson<T>(
+  path: string,
+  opts: RequestInit & { params?: Record<string, string | number | boolean | undefined> } = {}
+): Promise<T> {
+  const { params, headers, ...rest } = opts;
+  const url = buildUrl(path, params);
+  const res = await fetch(url, {
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...(headers || {}),
+    },
+    ...rest,
   });
 
+  // Try to parse JSON even on errors
   const text = await res.text();
-  let data: any = null;
-  try { data = text ? JSON.parse(text) : null; } catch { /* leave as text */ }
+  const maybeJson = text ? (() => { try { return JSON.parse(text); } catch { return text; } })() : null;
 
   if (!res.ok) {
-    const message = typeof data === "object" && data?.detail
-      ? data.detail
-      : `${res.status} ${res.statusText}`;
-    throw new Error(message);
+    throw new ApiError(`HTTP ${res.status} for ${url}`, res.status, maybeJson);
   }
-  return data as T;
+  return (maybeJson as T) ?? ({} as T);
 }

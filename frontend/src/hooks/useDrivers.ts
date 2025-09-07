@@ -1,28 +1,34 @@
-import { useCallback, useEffect, useState } from "react";
-import { listDrivers, createDriver, type Driver } from "../api/drivers";
-import { getCookie } from "../lib/csrf";
+// src/hooks/useDrivers.ts
+import { useCallback } from "react";
+import { useApiQuery } from "./useApiQuery";
+import { useApiMutation } from "./useApiMutation";
+import { type Driver } from "../api/drivers";
 
 export function useDrivers() {
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Query drivers
+  const { data, isLoading, error, refetch } = useApiQuery<{ drivers: Driver[] }>(`/api/drivers/`);
 
-  const refresh = useCallback(() => {
-    setLoading(true);
-    listDrivers()
-      .then(({ drivers }) => setDrivers(drivers))
-      .catch((e) => setError(String(e)))
-      .finally(() => setLoading(false));
-  }, []);
+  // Mutation to add driver
+  const { mutate: add, isLoading: adding, error: addError } = useApiMutation<Driver, { name: string; team?: string }>(
+    `/api/drivers/`,
+    { method: "POST" }
+  );
 
-  useEffect(() => { refresh(); }, [refresh]);
+  const addDriver = useCallback(
+    async (name: string, team?: string) => {
+      const created = await add({ name, team });
+      // simple optimistic update: re-fetch list after create
+      refetch();
+      return created;
+    },
+    [add, refetch]
+  );
 
-  const addDriver = useCallback(async (name: string, team?: string) => {
-    const csrf = getCookie("csrftoken");
-    const created = await createDriver({ name, team }, csrf);
-    setDrivers((prev) => [created, ...prev]);
-    return created;
-  }, []);
-
-  return { drivers, addDriver, error, loading, refresh };
+  return {
+    drivers: data?.drivers ?? [],
+    loading: isLoading || adding,
+    error: error || addError,
+    refresh: refetch,
+    addDriver,
+  };
 }

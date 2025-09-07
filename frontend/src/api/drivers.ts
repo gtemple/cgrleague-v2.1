@@ -1,15 +1,24 @@
-import { http } from "./client";
+import { fetchJson } from "./client";
 
-export type Driver = { id: number; name: string; team: string; created_at: string };
+export type Driver = {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  name?: string; // if you still have legacy “name”
+};
 
-export function listDrivers() {
-  return http<{ drivers: Driver[] }>("/api/drivers/");
+export async function listDrivers() {
+  // assume your endpoint returns { drivers: Driver[] } or change accordingly
+  return fetchJson<{ drivers: Driver[] }>(`/api/drivers/`);
 }
 
-export function createDriver(payload: { name: string; team?: string }, csrf?: string) {
-  return http<Driver>("/api/drivers/", {
+export async function createDriver(payload: { name: string; team?: string }) {
+  return fetchJson<Driver>(`/api/drivers/`, {
     method: "POST",
-    headers: csrf ? { "X-CSRFToken": csrf } : undefined,
-    json: payload,
+    body: JSON.stringify(payload),
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 }
