@@ -15,8 +15,9 @@ export type ResultsMatrixRow = {
   fastest_lap: boolean[];
   pole_positions: boolean[];
   dotds: boolean[];
-  total_points: number;              // NEW
-  avg_finish_position: number | null; // NEW
+  finish_points: (number | null)[]; // ← NEW
+  total_points: number;
+  avg_finish_position: number | null;
 };
 
 export type ResultsMatrixResponse = {
@@ -25,15 +26,11 @@ export type ResultsMatrixResponse = {
     id: number;
     round: number;
     is_sprint: boolean;
-    track: {
-      id: number;
-      name: string;
-      city: string;
-      country: string;
-    };
+    track: { id: number; name: string; city: string; country: string };
   }[];
-  results: ResultsMatrixRow[]; 
-  points_leaderboard: number[];    
+  results: ResultsMatrixRow[];
+  points_leaderboard: number[];
+  constructor_results: { team_name: string; team_image: string | null; points: number }[]; // NEW
 };
 
 export function useSeasonResultsMatrix(

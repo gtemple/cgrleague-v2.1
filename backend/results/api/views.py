@@ -140,7 +140,6 @@ class SeasonResultsMatrixView(APIView):
     def get(self, request, season_id: int):
         include_sprints = str(request.GET.get("include_sprints", "")).lower() in ("1", "true", "yes")
 
-        # Races for the season (include sprints optionally) ordered by round, then sprints after GPs for the same round
         races_qs = (
             Race.objects.filter(season_id=season_id)
             .select_related("track")
@@ -152,12 +151,11 @@ class SeasonResultsMatrixView(APIView):
         races = list(races_qs)
         if not races:
             return Response(
-                {"season_id": season_id, "races": [], "results": [], "points_leaderboard": []}
+                {"season_id": season_id, "races": [], "results": [], "points_leaderboard": [], "constructor_results": []}
             )
 
         race_index = {r.id: i for i, r in enumerate(races)}
 
-        # Pull all results for those races with the related objects we need
         results_qs = (
             RaceResult.objects
             .filter(race__in=races)
@@ -169,15 +167,16 @@ class SeasonResultsMatrixView(APIView):
             )
         )
 
-        # Build rows keyed by DriverSeason
         rows_by_ds: Dict[int, Dict[str, Any]] = {}
+
+        # NEW: aggregate constructor totals as we loop
+        constructor_totals: Dict[int, Dict[str, Any]] = {}  # team_id -> { team_name, team_image, points }
 
         def initials_for(driver) -> str:
             first = (getattr(driver, "first_name", "") or "").strip()
-            last = (getattr(driver, "last_name", "") or "").strip()
+            last  = (getattr(driver, "last_name", "") or "").strip()
             if first or last:
                 return (first[:1] + last[:1]).upper()
-            # fallback if only a single name field exists (optional)
             name = (getattr(driver, "name", "") or "").strip()
             return name[:2].upper() if name else ""
 
@@ -187,8 +186,10 @@ class SeasonResultsMatrixView(APIView):
             if ds_id not in rows_by_ds:
                 driver = ds.driver
                 team_name = ""
+                team_logo = None
                 if getattr(ds, "team_season", None) and getattr(ds.team_season, "team", None):
                     team_name = ds.team_season.team.team_name
+                    team_logo = getattr(ds.team_season.team, "team_img", None)
 
                 rows_by_ds[ds_id] = {
                     "driver_info": {
@@ -204,8 +205,9 @@ class SeasonResultsMatrixView(APIView):
                     "fastest_lap": [False] * len(races),
                     "pole_positions": [False] * len(races),
                     "dotds": [False] * len(races),
+                    "finish_points": [0] * len(races),  # if you already added this earlier, keep it
                     "total_points": 0,
-                    "_finish_list": [],  # for averaging
+                    "_finish_list": [],
                 }
 
             row = rows_by_ds[ds_id]
@@ -218,13 +220,28 @@ class SeasonResultsMatrixView(APIView):
             row["pole_positions"][idx] = rr.pole_position
             row["dotds"][idx] = rr.dotd
 
-            # accumulate points and finishes
             pts = points_for_result(rr)
             row["total_points"] += pts
+            row["finish_points"][idx] = pts  # per-race points
+
             if rr.finish_position is not None:
                 row["_finish_list"].append(rr.finish_position)
 
-        # finalize avg and shape rows
+            # --- NEW: add to constructor totals ---
+            team = getattr(ds, "team_season", None)
+            team_id = getattr(team.team, "id", None) if team and getattr(team, "team", None) else None
+            if team_id is not None:
+                team_name = getattr(team.team, "team_name", "") or ""
+                team_img  = getattr(team.team, "team_img", None)
+                if team_id not in constructor_totals:
+                    constructor_totals[team_id] = {
+                        "team_name": team_name,
+                        "team_image": team_img,
+                        "points": 0,
+                    }
+                constructor_totals[team_id]["points"] += pts
+
+        # finalize driver rows
         results: List[Dict[str, Any]] = []
         for r in rows_by_ds.values():
             finishes = r.pop("_finish_list")
@@ -232,7 +249,7 @@ class SeasonResultsMatrixView(APIView):
             r["avg_finish_position"] = avg
             results.append(r)
 
-        # sort: total points DESC, then avg finish ASC (None goes last), then last name ASC
+        # sort drivers by total points DESC, avg finish ASC, last name ASC
         def sort_key(r):
             avg = r["avg_finish_position"]
             avg_norm = avg if avg is not None else 1e9
@@ -259,11 +276,19 @@ class SeasonResultsMatrixView(APIView):
 
         points_leaderboard = [row["total_points"] for row in results]
 
+        # --- NEW: constructor_results: sorted list (highest → lowest) ---
+        constructor_results = sorted(
+            constructor_totals.values(),
+            key=lambda x: x["points"],
+            reverse=True,
+        )
+
         return Response(
             {
                 "season_id": int(season_id),
                 "races": races_payload,
                 "results": results,
                 "points_leaderboard": points_leaderboard,
+                "constructor_results": constructor_results,  # <-- new
             }
         )

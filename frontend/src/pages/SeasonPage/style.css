@@ -1,6 +1,95 @@
-.position-legend-container {
-border-width: 1px;
-border-style: solid;
+.border {
+  border-width: 1px;
+  border-style: solid;
+  padding: 20px;
+  margin: 8px;
+  border-color: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background-color: rgb(8, 9, 15);;
+}
+
+button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: rgb(20, 22, 34);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+h2 {
+  padding: 0;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.tooltip-header {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  margin-top: 16px;
+  border-spacing: 6px 12px; 
+}
+
+.table td {
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table td:last-child,
+.table th:last-child {
+  font-weight: bold;
+}
+
+.season-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.season-title {
+  font-weight: 600;
+}
+
+.season-dropdown {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: rgb(20, 22, 34);
+  color: white;
+  font-size: 1rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.seasons-row-one {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.matrix-chart-title {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  font-weight: 700;
 }
 
 .position-legend-boxes {
@@ -20,20 +109,27 @@ border-style: solid;
   font-size: 0.7rem;
   font-weight: 600;
 }
+.position-legend-box.first {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
 
+.position-legend-box.last {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
 .matrix-chart-container {
   display: flex;
   flex-direction: column;
   gap: 4px;
   overflow-x: auto;
-  padding: 8px;
 }
 .matrix-chart-row {
   display: flex;
   gap: 4px;
   align-items: center;
   padding: 0px;
-  margin: 0px;
+  margin: 4px 0px;
 }
 
 .matrix-chart-driver-label {
@@ -50,6 +146,55 @@ border-style: solid;
   justify-content: center;
   font-size: 0.7rem;
   font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.matrix-chart-cell-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.matrix-chart-tooltip {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  bottom: 110%;
+  transform: translateX(-50%);
+  background: #181f2a;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  font-size: 0.95em;
+  white-space: nowrap;
+  pointer-events: none;
+  font-weight: 400;
+}
+
+.tooltip-emphasis {
+  font-weight: 700;
+  color: #fff;
+}
+
+.matrix-chart-cell-content:hover .matrix-chart-tooltip {
+  display: block;
+  z-index: 2;
+}
+.cell-data {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 100%;
+ height: 100%;
+ font-size: 16px;
+}
+
+
+.matrix-chart-total-cell {
+  font-weight: 700;
+  width: 60px;
+  margin-left: 8px;
 }
 
 .matrix-chart-driver-image-container {
@@ -68,3 +213,72 @@ border-style: solid;
     transform: scale(2.6);
     overflow: hidden;
   }
+
+.matrix-chart-race-header-cell {
+  width: 47px;
+}
+
+.matrix-chart-flag-image-container {
+  display: inline-block;
+  overflow: hidden;
+  width: 42px;
+}
+
+.matrix-chart-flag-image-container img {
+    width: 22px;
+    overflow: hidden;
+  }
+
+.matrix-chart-footer {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+}
+
+.matrix-chart-filters {
+
+}
+.matrix-chart-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+
+.fastest-lap {
+  color: rgba(231, 109, 255, 0.8);
+}
+.pole-position {
+  border-color: rgb(77, 255, 42);
+}
+
+.secondary-size {
+  height: 30px;
+  width: 30px;
+}
+
+@media (max-width: 1330px) {
+  .seasons-side-tables {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+}
+
+.team-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 6px 0 12px;
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.team-logo img {
+  height: 100%;
+  object-position: center;
+  display: block;
+  scale: 1.2;
+}
