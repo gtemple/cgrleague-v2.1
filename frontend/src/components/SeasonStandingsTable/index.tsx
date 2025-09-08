@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useSeasonStandings } from "../../hooks/useSeasonStandings";
 import { displayImage } from "../../utils/displayImage";
-import "./styles.css"
+import "./style.css"
 
 type SeasonStandingRow = {
   driver_season_id: number;

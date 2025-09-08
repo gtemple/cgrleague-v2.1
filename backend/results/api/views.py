@@ -3,10 +3,13 @@ from django.db.models import Case, When, Value, IntegerField, Sum, F, Q
 from django.db.models.functions import Coalesce
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework import status
+from typing import Dict, List, Any
 
 from entries.models import DriverSeason
-from results.models import RaceResult
+from results.models import Race, RaceResult
+from results.scoring import points_for_result
 
 PLACE_POINTS = {
     1: 25, 2: 18, 3: 15, 4: 12, 5: 10,
@@ -129,3 +132,138 @@ class SeasonStandingsView(APIView):
             })
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class SeasonResultsMatrixView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, season_id: int):
+        include_sprints = str(request.GET.get("include_sprints", "")).lower() in ("1", "true", "yes")
+
+        # Races for the season (include sprints optionally) ordered by round, then sprints after GPs for the same round
+        races_qs = (
+            Race.objects.filter(season_id=season_id)
+            .select_related("track")
+            .order_by("round", "is_sprint")
+        )
+        if not include_sprints:
+            races_qs = races_qs.filter(is_sprint=False)
+
+        races = list(races_qs)
+        if not races:
+            return Response(
+                {"season_id": season_id, "races": [], "results": [], "points_leaderboard": []}
+            )
+
+        race_index = {r.id: i for i, r in enumerate(races)}
+
+        # Pull all results for those races with the related objects we need
+        results_qs = (
+            RaceResult.objects
+            .filter(race__in=races)
+            .select_related(
+                "race",
+                "race__track",
+                "driver_season__driver",
+                "driver_season__team_season__team",
+            )
+        )
+
+        # Build rows keyed by DriverSeason
+        rows_by_ds: Dict[int, Dict[str, Any]] = {}
+
+        def initials_for(driver) -> str:
+            first = (getattr(driver, "first_name", "") or "").strip()
+            last = (getattr(driver, "last_name", "") or "").strip()
+            if first or last:
+                return (first[:1] + last[:1]).upper()
+            # fallback if only a single name field exists (optional)
+            name = (getattr(driver, "name", "") or "").strip()
+            return name[:2].upper() if name else ""
+
+        for rr in results_qs:
+            ds = rr.driver_season
+            ds_id = ds.id
+            if ds_id not in rows_by_ds:
+                driver = ds.driver
+                team_name = ""
+                if getattr(ds, "team_season", None) and getattr(ds.team_season, "team", None):
+                    team_name = ds.team_season.team.team_name
+
+                rows_by_ds[ds_id] = {
+                    "driver_info": {
+                        "first_name": getattr(driver, "first_name", "") or "",
+                        "last_name": getattr(driver, "last_name", "") or "",
+                        "team_name": team_name,
+                        "profile_image": getattr(driver, "profile_image", None),
+                        "initials": initials_for(driver),
+                    },
+                    "finish_positions": [None] * len(races),
+                    "grid_positions": [None] * len(races),
+                    "statuses": [None] * len(races),
+                    "fastest_lap": [False] * len(races),
+                    "pole_positions": [False] * len(races),
+                    "dotds": [False] * len(races),
+                    "total_points": 0,
+                    "_finish_list": [],  # for averaging
+                }
+
+            row = rows_by_ds[ds_id]
+            idx = race_index[rr.race_id]
+
+            row["finish_positions"][idx] = rr.finish_position
+            row["grid_positions"][idx] = rr.grid_position
+            row["statuses"][idx] = rr.status
+            row["fastest_lap"][idx] = rr.fastest_lap
+            row["pole_positions"][idx] = rr.pole_position
+            row["dotds"][idx] = rr.dotd
+
+            # accumulate points and finishes
+            pts = points_for_result(rr)
+            row["total_points"] += pts
+            if rr.finish_position is not None:
+                row["_finish_list"].append(rr.finish_position)
+
+        # finalize avg and shape rows
+        results: List[Dict[str, Any]] = []
+        for r in rows_by_ds.values():
+            finishes = r.pop("_finish_list")
+            avg = (sum(finishes) / len(finishes)) if finishes else None
+            r["avg_finish_position"] = avg
+            results.append(r)
+
+        # sort: total points DESC, then avg finish ASC (None goes last), then last name ASC
+        def sort_key(r):
+            avg = r["avg_finish_position"]
+            avg_norm = avg if avg is not None else 1e9
+            last = (r["driver_info"]["last_name"] or "").lower()
+            return (-r["total_points"], avg_norm, last)
+
+        results.sort(key=sort_key)
+
+        # races payload with track details
+        races_payload = [
+            {
+                "id": r.id,
+                "round": r.round,
+                "is_sprint": r.is_sprint,
+                "track": {
+                    "id": r.track_id,
+                    "name": getattr(r.track, "name", ""),
+                    "city": getattr(r.track, "city", ""),
+                    "country": getattr(r.track, "country", ""),
+                },
+            }
+            for r in races
+        ]
+
+        points_leaderboard = [row["total_points"] for row in results]
+
+        return Response(
+            {
+                "season_id": int(season_id),
+                "races": races_payload,
+                "results": results,
+                "points_leaderboard": points_leaderboard,
+            }
+        )
