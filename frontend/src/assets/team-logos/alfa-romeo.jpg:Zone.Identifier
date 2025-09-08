@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://cloudconvert.com/
+HostUrl=https://eu-central.storage.cloudconvert.com/tasks/ae3cfe2f-636a-4b2f-a0fc-f41615ab2f5d/alfa-romeo.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cloudconvert-production%2F20250908%2Ffra%2Fs3%2Faws4_request&X-Amz-Date=20250908T001654Z&X-Amz-Expires=86400&X-Amz-Signature=65913d6b68f2e4e5f3d94d9943ceb35d88f9cbd01935de32519e90e37b386d47&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3D%22alfa-romeo.jpg%22&response-content-type=image%2Fjpeg&x-id=GetObject

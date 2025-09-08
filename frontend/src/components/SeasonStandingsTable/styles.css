@@ -1,7 +1,7 @@
 /* ==== Card shell ==== */
 .standings-card {
   --bg: #0e1116;
-  --panel: rgba(255, 255, 255, 0.04);
+  --panel: rgba(5, 5, 20, 0.616);
   --panel-strong: rgba(255, 255, 255, 0.08);
   --text: #e9edf3;
   --muted: #9aa5b1;
@@ -13,18 +13,18 @@
 
   background: var(--panel);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border-radius: 8px;
   backdrop-filter: blur(6px);
   color: var(--text);
-  overflow: hidden;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
 }
 
 .standings-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  background: var(--panel-strong);
+  padding: 14px 16px 8px 16px;;
+  font-size: 20px;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -63,176 +63,110 @@
   margin-bottom: 10px;
 }
 
-@keyframes shimmer {
-  0% { background-position: -200px 0; }
-  100% { background-position: 200px 0; }
-}
-
-/* ==== Table ==== */
-.table-scroll {
-  overflow-x: auto;
-}
-
 .standings-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 10px; /* “cards” rows */
-  padding: 12px 12px 16px;
+  padding: 12px 6px 0 2px;
 }
 
-.standings-table thead th {
-  text-align: left;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--muted);
-  padding: 0 12px;
-  position: sticky;
-  top: 52px; /* sits just below the header bar */
-  background: transparent;
-  backdrop-filter: blur(6px);
-  z-index: 1;
-}
-
-.standings-table tbody tr {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
-}
-
-.standings-table tbody tr:hover {
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.standings-table td {
-  padding: 12px;
-  vertical-align: middle;
+.driver-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  font-weight: 600;
 }
 
 /* ==== Position badge & podium colors ==== */
-.pos .pos-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  font-weight: 800;
-  background: rgba(255, 255, 255, 0.06);
+
+.pos {
+  width: 32px;
+  text-align: center;
+  margin-right: 2px;
 }
 
-tbody tr.pos-gold .pos-badge { background: linear-gradient(180deg, var(--gold), #e5b63f); color: #1d1500; }
-tbody tr.pos-silver .pos-badge { background: linear-gradient(180deg, var(--silver), #b7c1c9); color: #101316; }
-tbody tr.pos-bronze .pos-badge { background: linear-gradient(180deg, var(--bronze), #b7763a); color: #1a0e05; }
+.driver {
+  margin-left: 12px;
+}
 
-/* ==== Driver cell ==== */
-.driver-cell {
+.driver-info {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 220px;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  display: inline-block;
+  width: 46px;
+  height: 46px;
   border-radius: 999px;
-  object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.avatar-fallback {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.driver-name {
-  font-weight: 600;
-  letter-spacing: 0.2px;
-}
-
-/* ==== Team cell ==== */
-.team-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 200px;
-}
-
-.team-logo {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  border-radius: 6px;
-  background: #fff;
-  padding: 3px;
-}
-
-.team-logo-fallback {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.team-name {
-  color: var(--muted);
-  font-weight: 500;
-}
-
-/* ==== Points cell with progress bar ==== */
-.points-cell {
-  min-width: 90px;
-  text-align: right;
-}
-
-.points-cell .points {
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-
-.points-cell .bar {
-  position: relative;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
   overflow: hidden;
 }
 
-.points-cell .bar .fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+.avatar img {
+    width: 46px;
+    height: 46px;
+    padding-top: 14px;
+    transform: scale(2.2);
+    overflow: hidden;
+  }
+.avatar-fallback {
+  width: 42px;
+  height: 42px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), var(--success));
-  width: 0%;
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(2);
 }
 
-/* ==== Responsive tweaks ==== */
-@media (max-width: 640px) {
-  .standings-table thead {
-    display: none;
-  }
-  .standings-table,
-  .standings-table tbody,
-  .standings-table tr,
-  .standings-table td {
-    display: block;
-    width: 100%;
-  }
-  .standings-table tbody tr {
-    border-radius: 12px;
-    margin-bottom: 10px;
-    padding: 10px;
-  }
-  .standings-table td {
-    padding: 8px 6px;
-  }
-  .points-cell {
-    margin-top: 6px;
-  }
+.team-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 6px 0 12px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.team-logo img {
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.team-cell {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.points {
+  margin-left: auto;
+  margin-right: 6px;
+  text-align: center;
+}
+
+.standings-divider {
+  height: 1px;
+  background: rgba(6, 31, 48, 0.507);
+    box-shadow: 0 2px 6px 0 rgba(7, 26, 39, 0.507);
+  margin: 0 24px;
+}
+
+.arrow-container {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.standings-arrow-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #4da3ff;
+  padding: 0;
+  margin: 0;
+  transform: rotate(180deg);
 }
