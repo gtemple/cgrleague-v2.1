@@ -86,31 +86,30 @@ export function SeasonStandingsTable({ seasonId }: { seasonId: number }) {
               </React.Fragment>
             );
           })}
-          {visibleStart > 0 && (
-            <div className='arrow-container'>
+          <div className="arrow-controls">
+            {visibleStart > 0 ? (
               <button
                 className="standings-arrow-btn"
                 aria-label="Show previous"
                 onClick={() => setVisibleStart(Math.max(0, visibleStart - PAGE_SIZE))}
               >
                 &#9660;
-
               </button>
-            </div>
-          )}
-          {hasMore && (
-            <div className='arrow-container'>
-
+            ) : (
+              <span className="arrow-placeholder" />
+            )}
+            {hasMore ? (
               <button
                 className="standings-arrow-btn"
                 aria-label="Show more"
                 onClick={() => setVisibleStart(visibleStart + PAGE_SIZE)}
               >
                 &#9650;
-
               </button>
-            </div>
-          )}
+            ) : (
+              <span className="arrow-placeholder" />
+            )}
+          </div>
         </div>
       </div>
     </div>

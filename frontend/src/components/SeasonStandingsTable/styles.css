@@ -102,9 +102,9 @@
 }
 
 .avatar img {
-    width: 46px;
-    height: 46px;
-    padding-top: 14px;
+    width: 50px;
+    height: 50px;
+    padding-top: 18px;
     transform: scale(2.2);
     overflow: hidden;
   }
@@ -162,11 +162,29 @@
 
 .standings-arrow-btn {
   background: none;
-  border: none;
+  border-width: 1px;
+  border-radius: 4px;
+  border-color: rgba(6, 31, 48, 0.507);
+  padding: 0 124px;
   cursor: pointer;
   font-size: 1rem;
-  color: #4da3ff;
-  padding: 0;
+  color: #2c6dc2b2;
   margin: 0;
   transform: rotate(180deg);
+}
+
+.arrow-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  justify-content: flex-end;
+  margin: 12px 0 12px 0;
+}
+
+.arrow-placeholder {
+  display: block;
+  width: 100%;
+  visibility: hidden;
 }

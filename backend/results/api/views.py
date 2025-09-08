@@ -108,6 +108,7 @@ class SeasonStandingsView(APIView):
             if getattr(ds, "team_season", None) and getattr(ds.team_season, "team", None):
                 team_name = ds.team_season.team.team_name
                 team_id = ds.team_season.team.id
+                team_logo = ds.team_season.team.team_img
 
             drv = ds.driver
             data.append({
@@ -123,6 +124,7 @@ class SeasonStandingsView(APIView):
                 "team": {
                     "id": team_id,
                     "name": team_name,
+                    "logo_image": team_logo
                 },
             })
 
