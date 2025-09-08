@@ -21,8 +21,9 @@ body {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center top;
-    background: #000 url('./assets/background/ferrari-background.jpeg') center top no-repeat;
-    background-size: 100vw auto;
+    /* background: #000 url('./assets/background/ferrari-background.jpeg') center top no-repeat; */
+  background-color: rgb(10, 12, 20);
+  background-size: 100vw auto;
   background-repeat: no-repeat;
   background-position: center top;
   

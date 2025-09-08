@@ -1,0 +1,70 @@
+.position-legend-container {
+border-width: 1px;
+border-style: solid;
+}
+
+.position-legend-boxes {
+  display: flex;
+  margin: 12px 0;
+  justify-content: center;
+  align-items: center;
+}
+
+.position-legend-box {
+  width: 20px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.matrix-chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 8px;
+}
+.matrix-chart-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0px;
+  margin: 0px;
+}
+
+.matrix-chart-driver-label {
+  color: white;
+  width: 40px;
+  align-items: center;;
+}
+
+.matrix-chart-cell {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.matrix-chart-driver-image-container {
+  display: inline-block;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.matrix-chart-driver-image-container img {
+    width: 36px;
+    height: 36px;
+    padding-top: 12px;
+    transform: scale(2.6);
+    overflow: hidden;
+  }

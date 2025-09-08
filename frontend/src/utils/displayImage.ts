@@ -1,5 +1,6 @@
 export const displayImage = (name: string, type: string) => {
   let typePath = '';
+  console.log(name)
   if (type === 'driver') typePath = 'driver-profiles';
   if (type === 'team') typePath = 'team-logos';
   // Convert name to lowercase, replace spaces with hyphens, remove non-alphanumerics except hyphens
