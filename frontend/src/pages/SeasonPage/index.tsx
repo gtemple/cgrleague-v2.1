@@ -44,7 +44,7 @@ export function PositionLegend() {
 
 
 export const MatrixChart = ({ data }: MatrixProps) => {
-  const [matrixData, setMatrixData] = useState('finishPosition');
+  const [matrixData, setMatrixData] = useState('heatMap');
   if (!data) return null;
 
 
@@ -84,7 +84,7 @@ export const MatrixChart = ({ data }: MatrixProps) => {
 
 
               {row.finish_positions.map((finishPos, raceIndex) => {
-                //@ts-expect-error finishPos can be number or string
+                // @ts-expect-error finishPos can be number or string
                 const bg = getPositionColor(finishPos);
 
                 return (
