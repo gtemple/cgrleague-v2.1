@@ -1,7 +1,8 @@
 
 
-import { SeasonStandingsTable } from "../components/SeasonStandingsTable/index";
-import { ConstructorStandingsTable } from "../components/ConstructorStandingsTable";
+import { SeasonStandingsTable } from "../../components/SeasonStandingsTable/index";
+import { ConstructorStandingsTable } from "../../components/ConstructorStandingsTable";
+
 export default function HomePage() {
 
   return (

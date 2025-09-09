@@ -322,7 +322,7 @@ const SeasonSelector = ({
   currentSeasonId: number;
   setCurrentSeason: (season: number) => void;
 }) => {
-  const seasons = [1, 2, 3, 4, 5, 6];
+  const seasons = [1, 2, 3, 4, 5, 6, 7];
 
   return (
     <div className="season-selector">
@@ -371,7 +371,7 @@ const LastRaceResults = ({ data }: { data?: SeasonLastRaceResponse }) => {
 
 export default function SeasonPage() {
   const params = useParams();
-  const [currentSeason, setCurrentSeason] = useState(Number(params?.seasonId) || 1);
+  const [currentSeason, setCurrentSeason] = useState(Number(params?.seasonId) || 6);
 
   const { data, isLoading, error } = useSeasonResultsMatrix(currentSeason, { includeSprints: true });
   const { data: lastRaceData } = useSeasonLastRace(currentSeason, { includeSprints: false });
