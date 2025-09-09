@@ -10,11 +10,18 @@ export class ApiError extends Error {
   }
 }
 
-function getApiBase() {
-  return (
-    import.meta.env.VITE_API_BASE_URL_DEV ||
-    "" // same-origin for dev proxy
-  );
+export function getApiBase(): string {
+  // DEV/PROD booleans are provided by Vite
+  const raw =
+    import.meta.env.DEV
+      ? import.meta.env.VITE_BACKEND_URL_DEV
+      : import.meta.env.VITE_BACKEND_URL;
+
+  // Prefer env; otherwise fall back to same-origin (useful with a Vite dev proxy)
+  const base = (raw && String(raw).trim()) || window.location.origin;
+
+  // Normalize: remove any trailing slashes
+  return base.replace(/\/+$/, "");
 }
 
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>) {
