@@ -1,6 +1,6 @@
 // src/pages/SeasonPage/index.tsx
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useSeasonResultsMatrix } from "../../hooks/useSeasonResultsMatrix";
 import { useSeasonLastRace, type SeasonLastRaceResponse } from "../../hooks/useSeasonLastRace";
 import type { ResultsMatrixResponse } from "../../hooks/useSeasonResultsMatrix";
@@ -371,7 +371,13 @@ const LastRaceResults = ({ data }: { data?: SeasonLastRaceResponse }) => {
 
 export default function SeasonPage() {
   const params = useParams();
+  const navigate = useNavigate();
   const [currentSeason, setCurrentSeason] = useState(Number(params?.seasonId) || 6);
+
+  const handleSeasonChange = (season: number) => {
+    setCurrentSeason(season);
+    navigate(`/seasons/${season}`); // Update the URL
+  };
 
   const { data, isLoading, error } = useSeasonResultsMatrix(currentSeason, { includeSprints: true });
   const { data: lastRaceData } = useSeasonLastRace(currentSeason, { includeSprints: false });
@@ -390,7 +396,7 @@ export default function SeasonPage() {
     <div>
       <header className="season-header">
         <h1 className='season-title'>Season {currentSeason}</h1>
-        <SeasonSelector currentSeasonId={currentSeason} setCurrentSeason={setCurrentSeason} />
+        <SeasonSelector currentSeasonId={currentSeason} setCurrentSeason={handleSeasonChange} />
       </header>
 
       {isLoading && <p>Loading…</p>}
