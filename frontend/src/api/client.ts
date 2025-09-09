@@ -42,7 +42,6 @@ export async function fetchJson<T>(
   const { params, headers, ...rest } = opts;
   const url = buildUrl(path, params);
   const res = await fetch(url, {
-    credentials: "include",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",

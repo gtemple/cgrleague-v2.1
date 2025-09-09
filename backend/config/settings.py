@@ -70,12 +70,30 @@ def _split_csv(name: str) -> list[str]:
 
 FRONTEND_ORIGINS = _split_csv("FRONTEND_ORIGINS")  # e.g. "https://cgr-league.net,https://your-site.netlify.app"
 
+_raw = os.getenv("FRONTEND_ORIGINS", "")
+if _raw:
+    _origins = [o.strip().rstrip("/") for o in _raw.split(",") if o.strip()]
+else:
+    _origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+CORS_ALLOWED_ORIGINS = _origins
 # Local dev defaults
 DEV_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+]
+
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    os.getenv("EXTERNAL_HOST", "cgrleague-v2-1.onrender.com"),
 ]
 
 CORS_ALLOWED_ORIGINS = DEV_ORIGINS + FRONTEND_ORIGINS
