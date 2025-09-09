@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSeasonResultsMatrix } from "../../hooks/useSeasonResultsMatrix";
+import { useSeasonLastRace, type SeasonLastRaceResponse } from "../../hooks/useSeasonLastRace";
 import type { ResultsMatrixResponse } from "../../hooks/useSeasonResultsMatrix";
 import { getPositionColor } from "../../utils/getPositionColor";
 import { displayImage } from "../../utils/displayImage";
@@ -79,7 +80,7 @@ export const MatrixChart = ({ data }: MatrixProps) => {
                 <div className="matrix-chart-driver-label">{driver?.initials}</div>
               )}
 
-              {console.log(row)}
+              {/* {console.log(row)} */}
 
 
               {row.finish_positions.map((finishPos, raceIndex) => {
@@ -340,11 +341,40 @@ const SeasonSelector = ({
   );
 };
 
+const LastRaceResults = ({ data }: { data?: SeasonLastRaceResponse }) => {
+  if (!data) return null;
+  const { last_race } = data;
+
+  return (
+    <div className="last-race-container border">
+      <h2>Last Race Results</h2>
+      <div>{last_race?.race?.track?.name}</div>
+      <div className="track-image">
+        {last_race?.race?.track?.image && <img src={displayImage(last_race.race.track.image, 'trackImage')} alt={last_race.race.track.name} />}
+      </div>
+      {last_race?.results.map((result, i) => (
+        <div className="last-race-result" key={result.driver.id}>
+          <h2>P{i + 1}</h2>
+          <div>
+            <div className='last-race-driver-info'>
+              <div className='matrix-chart-driver-image-container secondary-size'>{result?.driver?.profile_image && <img src={displayImage(result.driver.profile_image, 'driver')} alt={result.driver.display_name} />}
+              </div>
+              <div>{result.driver.display_name}</div>
+            </div>
+            <div className="team-name">{result.team.name}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function SeasonPage() {
   const params = useParams();
   const [currentSeason, setCurrentSeason] = useState(Number(params?.seasonId) || 1);
 
   const { data, isLoading, error } = useSeasonResultsMatrix(currentSeason, { includeSprints: true });
+  const { data: lastRaceData } = useSeasonLastRace(currentSeason, { includeSprints: false });
 
   // ✅ no any
   const errorMessage = useMemo(() => {
@@ -370,13 +400,16 @@ export default function SeasonPage() {
         <div className='season-container'>
           <div className='seasons-row-one'>
 
-            <MatrixChart data={data} />
+            <MatrixChart data={data ?? undefined} />
             <div className='seasons-side-tables'>
-              <ConstructorsTable data={data} />
-              <PodiumsTable data={data} />
-              <FastestLapTable data={data} />
-              <DotdsTable data={data} />
+              <ConstructorsTable data={data ?? undefined} />
+              <LastRaceResults data={lastRaceData ?? undefined} />
             </div>
+          </div>
+          <div className='seasons-row-two'>
+            <PodiumsTable data={data ?? undefined} />
+            <FastestLapTable data={data ?? undefined} />
+            <DotdsTable data={data ?? undefined} />
           </div>
         </div>
       )}

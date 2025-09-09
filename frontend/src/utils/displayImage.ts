@@ -3,6 +3,7 @@ export const displayImage = (name: string, type: string) => {
   if (type === 'driver') typePath = 'driver-profiles';
   if (type === 'team') typePath = 'team-logos';
   if (type === 'flags') typePath = 'flags';
+  if (type === 'trackImage') typePath = 'track-images';
   // Convert name to lowercase, replace spaces with hyphens, remove non-alphanumerics except hyphens
   const fileName = name
     .toLowerCase()

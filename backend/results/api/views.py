@@ -292,3 +292,176 @@ class SeasonResultsMatrixView(APIView):
                 "constructor_results": constructor_results,  # <-- new
             }
         )
+
+from django.db.models import Count, Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+
+from results.models import Race, RaceResult
+from results.scoring import points_for_result
+
+
+class SeasonLastRaceView(APIView):
+    """
+    Returns:
+      - last_race: top 3 classified results from the most recent race that has results
+      - next_race: the next upcoming race (earliest race after `last_race` with 0 results),
+                   or the first race if the season hasn't started yet.
+    Optional query:
+      ?include_sprints=1   # include sprint races in the ordering
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, season_id: int, *args, **kwargs):
+        include_sprints = str(request.GET.get("include_sprints", "")).lower() in ("1", "true", "yes")
+
+        races_qs = (
+            Race.objects
+            .filter(season_id=season_id)
+            .select_related("track")
+            .order_by("round", "is_sprint")
+        )
+        if not include_sprints:
+            races_qs = races_qs.filter(is_sprint=False)
+
+        races = list(races_qs)
+        if not races:
+            return Response({
+                "season_id": int(season_id),
+                "include_sprints": include_sprints,
+                "last_race": None,
+                "next_race": None,
+            })
+
+        # Last race that has any results
+        last_race = (
+            Race.objects
+            .filter(id__in=[r.id for r in races], results__isnull=False)
+            .order_by("round", "is_sprint")
+            .last()
+        )
+
+        last_race_payload = None
+        if last_race:
+            top3 = (
+                RaceResult.objects
+                .filter(race=last_race, finish_position__isnull=False)
+                .select_related(
+                    "driver_season__driver",
+                    "driver_season__team_season__team",
+                    "race__track",
+                )
+                .order_by("finish_position")[:3]
+            )
+
+            def initials_for(driver) -> str:
+                first = (getattr(driver, "first_name", "") or "").strip()
+                last = (getattr(driver, "last_name", "") or "").strip()
+                if first or last:
+                    return (first[:1] + last[:1]).upper()
+                name = (getattr(driver, "name", "") or "").strip()
+                return name[:2].upper() if name else ""
+
+            last_race_payload = {
+                "race": {
+                    "id": last_race.id,
+                    "round": last_race.round,
+                    "is_sprint": last_race.is_sprint,
+                    "track": {
+                        "id": last_race.track_id,
+                        "name": getattr(last_race.track, "name", ""),
+                        "city": getattr(last_race.track, "city", ""),
+                        "country": getattr(last_race.track, "country", ""),
+                        "image": getattr(last_race.track, "img", None),
+                    },
+                },
+                "results": [
+                    {
+                        "finish_position": rr.finish_position,
+                        "status": rr.status,
+                        "fastest_lap": rr.fastest_lap,
+                        "dotd": rr.dotd,
+                        "points": points_for_result(rr),
+                        "driver": {
+                            "id": rr.driver_season.driver_id,
+                            "first_name": getattr(rr.driver_season.driver, "first_name", "") or "",
+                            "last_name": getattr(rr.driver_season.driver, "last_name", "") or "",
+                            "display_name": (
+                                f"{getattr(rr.driver_season.driver, 'first_name', '') or ''} "
+                                f"{getattr(rr.driver_season.driver, 'last_name', '') or ''}"
+                            ).strip() or getattr(rr.driver_season.driver, "name", ""),
+                            "profile_image": getattr(rr.driver_season.driver, "profile_image", None),
+                            "initials": initials_for(rr.driver_season.driver),
+                        },
+                        "team": {
+                            "id": getattr(getattr(rr.driver_season, "team_season", None), "team_id", None),
+                            "name": (
+                                getattr(
+                                    getattr(getattr(rr.driver_season, "team_season", None), "team", None),
+                                    "team_name",
+                                    "",
+                                ) or ""
+                            ),
+                            "logo_image": (
+                                getattr(
+                                    getattr(getattr(rr.driver_season, "team_season", None), "team", None),
+                                    "team_img",
+                                    None,
+                                )
+                            ),
+                        },
+                    }
+                    for rr in top3
+                ],
+            }
+
+        # Next upcoming race (first with zero results) AFTER last_race.
+        # If no last_race (season not started), pick the very first race.
+        next_race = None
+        if last_race:
+            next_race = (
+                Race.objects
+                .filter(id__in=[r.id for r in races])
+                .filter(
+                    Q(round__gt=last_race.round) |
+                    (Q(round=last_race.round) & Q(is_sprint__gt=last_race.is_sprint))
+                )
+                .annotate(result_count=Count("results"))
+                .filter(result_count=0)
+                .order_by("round", "is_sprint")
+                .first()
+            )
+        else:
+            next_race = (
+                Race.objects
+                .filter(id__in=[r.id for r in races])
+                .annotate(result_count=Count("results"))
+                .filter(result_count=0)
+                .order_by("round", "is_sprint")
+                .first()
+            )
+
+        next_race_payload = None
+        if next_race:
+            next_race_payload = {
+                "race": {
+                    "id": next_race.id,
+                    "round": next_race.round,
+                    "is_sprint": next_race.is_sprint,
+                    "track": {
+                        "id": next_race.track_id,
+                        "name": getattr(next_race.track, "name", ""),
+                        "city": getattr(next_race.track, "city", ""),
+                        "country": getattr(next_race.track, "country", ""),
+                        "image": getattr(next_race.track, "img", None),
+                    },
+                }
+            }
+
+        return Response({
+            "season_id": int(season_id),
+            "include_sprints": include_sprints,
+            "last_race": last_race_payload,
+            "next_race": next_race_payload,
+        })
