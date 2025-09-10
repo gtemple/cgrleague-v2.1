@@ -320,14 +320,6 @@ h2 {
   width: 30px;
 }
 
-@media (max-width: 1330px) {
-  .seasons-side-tables {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-}
-
 .team-logo {
   display: flex;
   align-items: center;
@@ -344,4 +336,313 @@ h2 {
   object-position: center;
   display: block;
   scale: 1.2;
+}
+
+@media (max-width: 1000px) {
+/* ========== Mobile-first resets & tokens ========== */
+:root{
+  --bg: #08090f;
+  --panel: #0d1018;
+  --border: rgba(255,255,255,.14);
+  --muted: rgba(255,255,255,.6);
+  --text: #fff;
+  --radius: 10px;
+  --pad: 14px;
+  --gap: 10px;
+  --cell: 28px;       /* base cell size on phones */
+  --cell-gap: 4px;
+}
+
+*{ box-sizing: border-box; }
+img{ display:block; max-width:100%; height:auto; }
+
+/* Provide a container style (your layout uses <main class="container">) */
+.container{
+  width:100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 12px 24px;
+}
+
+/* Panels / cards */
+.border{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--pad);
+  margin: 8px 0;
+}
+
+/* Text & buttons */
+h1, h2{ margin:0; color:var(--text); }
+h1{ font-size: 1.25rem; font-weight: 700; }
+h2{ font-size: 1rem; font-weight: 600; }
+
+button{
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #141622;
+  color: var(--text);
+  font-size: .9rem;
+  font-weight: 500;
+}
+
+/* ========== Header / controls ========== */
+.season-header{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+.season-title{ font-size: 1.25rem; }
+
+.season-selector{ width: 100%; }
+.season-dropdown{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #141622;
+  color: var(--text);
+  font-size: 1rem;
+  border: 1px solid var(--border);
+}
+
+/* ========== Page layout ========== */
+.season-container{
+  display: grid;
+  gap: 16px;
+}
+
+/* Row groupings collapse to one column on phones */
+.seasons-row-one,
+.seasons-row-two,
+.seasons-side-tables{
+  display: grid;
+  gap: 16px;
+}
+
+/* ========== Matrix grid ========== */
+.matrix-chart-container{
+  display: grid;
+  gap: 12px;
+}
+
+/* Horizontal scroll for the grid area */
+.matrix-chart-container .border{
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* A single "row" (header row or driver row) */
+.matrix-chart-row{
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: var(--cell-gap);
+  align-items: center;
+}
+
+/* Cell sizing on phones */
+.matrix-chart-cell{
+  width: var(--cell);
+  height: var(--cell);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: .75rem;
+  font-weight: 700;
+  overflow: hidden;
+  background: #0f1220;
+}
+
+.cell-data{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: .9rem;
+}
+
+/* Sticky first column (driver) so names/avatars stay visible while scrolling) */
+.matrix-chart-race-header-cell,
+.matrix-chart-driver-image-container,
+.matrix-chart-driver-label{
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--panel);
+}
+
+/* First "header" cell (empty spacer) */
+.matrix-chart-race-header-cell{ width: calc(var(--cell) - 2px); }
+
+/* Driver avatar / initials */
+.matrix-chart-driver-image-container,
+.matrix-chart-driver-label{
+  width: calc(var(--cell) - 2px);
+  height: calc(var(--cell) - 2px);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Race flag header cells */
+.matrix-chart-flag-image-container{
+  width: var(--cell);
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  gap: 2px;
+}
+.matrix-chart-flag-image-container img{ width: 18px; }
+
+/* Sprint chip */
+.sprint-indicator{
+  font-size: .6rem;
+  color: var(--muted);
+}
+
+/* Tooltip: disable on touch by default, only show on hover (desktop) */
+.matrix-chart-tooltip{ display:none; }
+.matrix-chart-cell-content:hover .matrix-chart-tooltip{
+  display:block;
+  position:absolute;
+  z-index: 10;
+  left:50%;
+  bottom:110%;
+  transform: translateX(-50%);
+  background:#181f2a;
+  border:1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  white-space: nowrap;
+  font-size: .9rem;
+}
+
+/* Totals pill lives at far right; keep narrow on phones */
+.matrix-chart-total-cell{
+  margin-left: 6px;
+  min-width: 50px;
+  text-align: right;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--text);
+}
+
+/* Legend & footer */
+.matrix-chart-footer{
+  display:grid;
+  gap: 12px;
+}
+.matrix-chart-buttons{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+/* Legend bar is compact */
+.position-legend-container h2{ margin-bottom: 6px; }
+.position-legend-boxes{
+  display:flex;
+  justify-content:center;
+  gap: 0;
+}
+.position-legend-box{
+  width: 14px;
+  height: 26px;
+  font-size: .7rem;
+}
+
+/* Tables (Constructors / Podiums / FL / DOTD) */
+.table{
+  width: 100%;
+  border-collapse: collapse;
+}
+.table td{
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border);
+  font-size: .95rem;
+}
+.table tr:last-child td{ border-bottom: none; }
+.table td:last-child{ text-align: right; font-weight: 700; }
+
+/* Tiny avatars / logos inside tables */
+.secondary-size{ width: 28px; height: 28px; }
+.team-logo{
+  width: 20px; height: 20px; border-radius: 3px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* Last race card */
+.last-race-container{ align-items: stretch; }
+.last-race-result{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  padding-top: 12px;
+}
+.last-race-result h2{
+  margin: 0; font-size: 1.25rem;
+}
+.last-race-driver-info{ display:flex; align-items:center; gap:10px; }
+.team-name{ color: var(--muted); font-weight: 500; }
+
+/* Track hero */
+.track-image{
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin-top: 10px;
+}
+.track-image img{
+  width:100%; height:auto; border-radius:6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.18);
+}
+
+/* Accents */
+.fastest-lap{ color: rgba(231,109,255,.9); }
+.pole-position{ outline: 1px solid #4dff2a; outline-offset: -1px; }
+
+/* ========== Breakpoints ========== */
+
+/* ≥ 600px: give grid a bit more breathing room */
+
+
+}
+
+@media (min-width: 600px){
+  :root{
+    --cell: 32px;
+  }
+  .season-header{ grid-template-columns: 1fr auto; }
+  .season-dropdown{ max-width: 220px; }
+  .matrix-chart-buttons{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ≥ 900px: approach your desktop sizing */
+@media (min-width: 900px){
+  :root{
+    --cell: 40px;
+  }
+  .season-container{ gap: 20px; }
+  .seasons-row-one{
+    grid-template-columns: 1fr minmax(260px, 320px);
+    align-items: start;
+  }
+  .seasons-side-tables{ grid-auto-rows: min-content; }
+  .seasons-row-two{
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .matrix-chart-title{ font-size: 1.25rem; }
+  .matrix-chart-flag-image-container img{ width: 22px; }
+  .position-legend-box{ width: 18px; height: 30px; }
 }
