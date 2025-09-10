@@ -59,7 +59,7 @@ export const MatrixChart = ({ data }: MatrixProps) => {
           <div className="matrix-chart-race-header-cell"></div>
           {races.map((row, raceIndex) => (
             <div key={raceIndex} className="matrix-chart-flag-image-container">
-
+              {row?.is_sprint && <div className="sprint-indicator">Sprint</div>}
               {row?.track?.country ? (
                 <img src={displayImage(row?.track?.country, 'flags')} />
               ) : (

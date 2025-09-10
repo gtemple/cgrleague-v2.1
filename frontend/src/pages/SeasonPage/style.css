@@ -222,11 +222,20 @@ h2 {
   }
 
 .matrix-chart-race-header-cell {
-  width: 47px;
+  width: 38px;
+}
+
+.sprint-indicator {
+  font-size: 10px;
 }
 
 .matrix-chart-flag-image-container {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  margin-bottom: 8px;;
   overflow: hidden;
   width: 42px;
 }
