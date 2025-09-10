@@ -2,7 +2,7 @@ import { useApiQuery } from "./useApiQuery";
 
 export type ConstructorRow = {
   team_season_id: number;
-  team: { id: number; name: string };
+  team: { id: number; name: string, display_name: string; logo_image: string | null };
   points: number;
 };
 

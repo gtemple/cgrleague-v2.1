@@ -311,9 +311,7 @@ h2 {
 .fastest-lap {
   color: rgba(231, 109, 255, 0.8);
 }
-.pole-position {
-  border-color: rgb(77, 255, 42);
-}
+.pole-position{ outline: 1px solid #4dff2a; outline-offset: -1px; }
 
 .secondary-size {
   height: 30px;

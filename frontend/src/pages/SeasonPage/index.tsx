@@ -179,11 +179,16 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
   if (!data) return null;
   const { constructor_results } = data;
 
+  const truncateName = (name: string, maxLength: number = 20) => {
+    return name.length > maxLength ? name.substring(0, maxLength) + '...' : name;
+  };
+
   const constructors = constructor_results
     .map((row) => {
       const totalPoints = row.points
       return {
-        constructor: row.team_name,
+        constructor: row.team_display_name,
+        displayName: truncateName(row.team_name, 20),
         profileImage: row.team_image,
         totalPoints,
       };
@@ -197,7 +202,7 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
           {constructors.map((constructor) => (
             <tr key={constructor.constructor}>
               <td className='team-logo secondary-size'>{constructor?.profileImage && <img src={displayImage(constructor.profileImage, 'team')} alt={constructor.constructor} />} </td>
-              <td>{constructor.constructor}</td>
+              <td>{constructor.displayName}</td>
               <td>{constructor.totalPoints}</td>
             </tr>
           ))}

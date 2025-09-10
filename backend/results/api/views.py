@@ -11,9 +11,6 @@ from entries.models import DriverSeason
 from results.models import Race, RaceResult
 from results.scoring import points_for_result
 from django.db.models import Count, Q
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 
 
 PLACE_POINTS = {
@@ -46,10 +43,9 @@ def _fl_bonus_case():
 class ConstructorStandingsView(APIView):
     """
     Sum team points for a season.
-    Scoring: 25-18-15-12-10-8-6-4-2-1 plus +1 for fastest lap (any position).
+    Scoring: 25-18-15-12-10-8-6-4-2-1 +1 for fastest lap (any position).
     """
     def get(self, request, season_id: int, *args, **kwargs):
-        # base points by finishing position
         base_pts = Case(
             When(finish_position=1, then=Value(25)),
             When(finish_position=2, then=Value(18)),
@@ -77,25 +73,35 @@ class ConstructorStandingsView(APIView):
             .annotate(points_row=base_pts + fl_bonus)
             .values(
                 "driver_season__team_season_id",
+                "driver_season__team_season__display_name",
                 "driver_season__team_season__team__id",
                 "driver_season__team_season__team__team_name",
+                "driver_season__team_season__team__team_img", 
             )
             .annotate(points=Sum("points_row"))
             .order_by("-points", "driver_season__team_season__team__team_name")
         )
 
-        data = [
-            {
+        data = []
+        for row in qs:
+            team_id = row["driver_season__team_season__team__id"]
+            base_name = row["driver_season__team_season__team__team_name"]
+            season_display = row["driver_season__team_season__display_name"] or ""
+            display_name = season_display or base_name
+
+            data.append({
                 "team_season_id": row["driver_season__team_season_id"],
                 "team": {
-                    "id": row["driver_season__team_season__team__id"],
-                    "name": row["driver_season__team_season__team__team_name"],
+                    "id": team_id,
+                    "name": base_name,
+                    "display_name": display_name, 
+                    "logo_image": row.get("driver_season__team_season__team__team_img"),
                 },
                 "points": row["points"] or 0,
-            }
-            for row in qs
-        ]
+            })
+
         return Response(data)
+
 
 class SeasonStandingsView(APIView):
     def get(self, request, season_id: int, *args, **kwargs):
@@ -139,13 +145,26 @@ class SeasonStandingsView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
+# results/api/views.py
+from typing import Any, Dict, List
+
+from django.db.models import Count, Q
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from entries.models import DriverSeason
+from results.models import Race, RaceResult
+from results.scoring import points_for_result
+
+
 class SeasonResultsMatrixView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, season_id: int):
         include_sprints = str(request.GET.get("include_sprints", "")).lower() in ("1", "true", "yes")
 
-        # 1) All races (maybe none yet)
+        # 1) Races (maybe none yet)
         races_qs = (
             Race.objects.filter(season_id=season_id)
             .select_related("track")
@@ -158,7 +177,7 @@ class SeasonResultsMatrixView(APIView):
         race_index = {r.id: i for i, r in enumerate(races)}
         race_count = len(races)
 
-        # 2) All driver entries for the season (so everyone appears even w/ no results)
+        # 2) All driver entries so everyone appears even with zero results
         ds_qs = (
             DriverSeason.objects
             .filter(season_id=season_id)
@@ -166,7 +185,6 @@ class SeasonResultsMatrixView(APIView):
             .order_by("driver__last_name", "driver__first_name", "id")
         )
 
-        # Helpers
         def initials_for(driver) -> str:
             first = (getattr(driver, "first_name", "") or "").strip()
             last  = (getattr(driver, "last_name", "") or "").strip()
@@ -175,18 +193,22 @@ class SeasonResultsMatrixView(APIView):
             name = (getattr(driver, "name", "") or "").strip()
             return name[:2].upper() if name else ""
 
-        # 3) Pre-seed rows for EVERY driver (arrays sized to #races)
+        # 3) Pre-seed rows & constructor totals
         rows_by_ds: Dict[int, Dict[str, Any]] = {}
-        # Also pre-seed constructor totals so every team shows up with 0
         constructor_totals: Dict[int, Dict[str, Any]] = {}
 
         for ds in ds_qs:
             driver = ds.driver
+
             team_name = ""
             team_logo = None
             team_id = None
+            team_display_name = ""
+
             if getattr(ds, "team_season", None) and getattr(ds.team_season, "team", None):
-                team_name = ds.team_season.team.team_name
+                base_name = ds.team_season.team.team_name
+                team_display_name = (ds.team_season.display_name or base_name) or ""
+                team_name = base_name
                 team_logo = getattr(ds.team_season.team, "team_img", None)
                 team_id = ds.team_season.team.id
 
@@ -194,7 +216,8 @@ class SeasonResultsMatrixView(APIView):
                 "driver_info": {
                     "first_name": getattr(driver, "first_name", "") or "",
                     "last_name": getattr(driver, "last_name", "") or "",
-                    "team_name": team_name,
+                    "team_name": team_name,                 # base team name
+                    "team_display_name": team_display_name, # per-season display name
                     "profile_image": getattr(driver, "profile_image", None),
                     "initials": initials_for(driver),
                 },
@@ -204,19 +227,20 @@ class SeasonResultsMatrixView(APIView):
                 "fastest_lap": [False] * race_count,
                 "pole_positions": [False] * race_count,
                 "dotds": [False] * race_count,
-                "finish_points": [0] * race_count,   # <-- per-race points default 0
+                "finish_points": [0] * race_count,  # per-race points (default 0)
                 "total_points": 0,
-                "_finish_list": [],                  # for avg finish
+                "_finish_list": [],                 # for avg finish
             }
 
             if team_id is not None and team_id not in constructor_totals:
                 constructor_totals[team_id] = {
                     "team_name": team_name,
+                    "team_display_name": team_display_name,
                     "team_image": team_logo,
                     "points": 0,
                 }
 
-        # 4) Overlay actual results (if any races/results exist)
+        # 4) Overlay actual results (if any)
         if race_count > 0:
             results_qs = (
                 RaceResult.objects
@@ -231,13 +255,17 @@ class SeasonResultsMatrixView(APIView):
 
             for rr in results_qs:
                 ds = rr.driver_season
-                # Safety: if some result exists for a ds not in our pre-seed, create it on the fly
+
+                # Safety: if a result appears for a DS we didn't preload (edge cases)
                 if ds.id not in rows_by_ds:
                     driver = ds.driver
                     team_name = ""
                     team_logo = None
+                    team_display_name = ""
                     if getattr(ds, "team_season", None) and getattr(ds.team_season, "team", None):
-                        team_name = ds.team_season.team.team_name
+                        base_name = ds.team_season.team.team_name
+                        team_display_name = (ds.team_season.display_name or base_name) or ""
+                        team_name = base_name
                         team_logo = getattr(ds.team_season.team, "team_img", None)
 
                     rows_by_ds[ds.id] = {
@@ -245,6 +273,7 @@ class SeasonResultsMatrixView(APIView):
                             "first_name": getattr(driver, "first_name", "") or "",
                             "last_name": getattr(driver, "last_name", "") or "",
                             "team_name": team_name,
+                            "team_display_name": team_display_name,
                             "profile_image": getattr(driver, "profile_image", None),
                             "initials": initials_for(driver),
                         },
@@ -281,21 +310,22 @@ class SeasonResultsMatrixView(APIView):
                 t_id = getattr(team.team, "id", None) if team and getattr(team, "team", None) else None
                 if t_id is not None:
                     if t_id not in constructor_totals:
+                        base_name = getattr(team.team, "team_name", "") or ""
                         constructor_totals[t_id] = {
-                            "team_name": getattr(team.team, "team_name", "") or "",
+                            "team_name": base_name,
+                            "team_display_name": (getattr(team, "display_name", "") or base_name) or "",
                             "team_image": getattr(team.team, "team_img", None),
                             "points": 0,
                         }
                     constructor_totals[t_id]["points"] += pts
 
-        # 5) Finalize rows: avg finish, sorting
+        # 5) Finalize rows: avg finish & sorting
         results: List[Dict[str, Any]] = []
         for r in rows_by_ds.values():
             finishes = r.pop("_finish_list")
             r["avg_finish_position"] = (sum(finishes) / len(finishes)) if finishes else None
             results.append(r)
 
-        # Sort: total points DESC, avg finish ASC (None last), last name ASC
         def sort_key(r):
             avg = r["avg_finish_position"]
             avg_norm = avg if avg is not None else 1e9
@@ -304,7 +334,6 @@ class SeasonResultsMatrixView(APIView):
 
         results.sort(key=sort_key)
 
-        # races payload (with track details)
         races_payload = [
             {
                 "id": r.id,
@@ -337,6 +366,7 @@ class SeasonResultsMatrixView(APIView):
                 "constructor_results": constructor_results,
             }
         )
+
 
 
 

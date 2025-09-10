@@ -30,7 +30,7 @@ export type ResultsMatrixResponse = {
   }[];
   results: ResultsMatrixRow[];
   points_leaderboard: number[];
-  constructor_results: { team_name: string; team_image: string | null; points: number }[]; // NEW
+  constructor_results: { team_name: string; team_image: string | null; team_display_name: string; points: number }[]; // NEW
 };
 
 export function useSeasonResultsMatrix(
