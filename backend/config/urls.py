@@ -7,9 +7,8 @@ from teams.views import list_teams
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/ping/", ping),
-    path("api/tracks/", list_tracks),
     path("api/seasons/", list_seasons),
     path("api/teams/", list_teams),
+    path("api/", include("tracks.api.urls")),
     path("api/", include("results.api.urls")),
 ]

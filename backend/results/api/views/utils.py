@@ -1,5 +1,6 @@
 from typing import Any, Dict, Optional
 from django.db.models import Case, When, Value, IntegerField, Q
+from teams.models import Team
 
 # Shared points table (Finishing position → points)
 PLACE_POINTS = {
@@ -56,11 +57,23 @@ def serialize_driver(drv) -> Dict[str, Any]:
         "initials": initials_for(drv),
     }
 
-def serialize_team(team_obj) -> Dict[str, Any]:
+def serialize_team(team: Optional[Team]) -> Dict[str, Any]:
+    """
+    Normalize a team payload.
+    - name -> Team.team_name
+    - logo_image -> Team.team_img  (✅ always use this field)
+    """
+    if team is None:
+        return {
+            "id": None,
+            "name": "",
+            "logo_image": None,
+        }
+
     return {
-        "id": getattr(team_obj, "id", None),
-        "name": getattr(team_obj, "team_name", "") if team_obj else "",
-        "logo_image": getattr(team_obj, "team_img", None) if team_obj else None,
+        "id": team.id,
+        "name": getattr(team, "team_name", "") or "",
+        "logo_image": getattr(team, "team_img", None),  # <-- important bit
     }
 
 def serialize_track(t) -> Dict[str, Any]:
