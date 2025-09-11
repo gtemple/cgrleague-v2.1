@@ -1,0 +1,170 @@
+.teaser-card {
+  --panel: rgba(5, 5, 20, 0.62);
+  --border: rgba(255,255,255,0.08);
+  --text: #e9edf3;
+  --muted: #9aa5b1;
+
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px;
+}
+
+.teaser-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.teaser-header h3 {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: .3px;
+  font-size: 18px;
+}
+
+.pill {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+}
+.pill-sprint { border-color: rgba(255, 199, 14, 0.5); }
+
+/* Track block */
+.teaser-track {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.teaser-track-image {
+  width: 100%;
+  height: 96px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+.teaser-track-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.teaser-track-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.teaser-track-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+.teaser-track-sub {
+  color: var(--muted);
+  font-size: 13px;
+}
+.teaser-flag {
+  width: 18px;
+  height: 12px;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* Winners section */
+.teaser-section { margin-top: 14px; }
+.teaser-section-title {
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Stack (no lists) */
+.winner-stack { display: flex; flex-direction: column; }
+
+/* Add a divider to all but the first, without using lists */
+.winner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 2px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.winner-row.first { border-top: none; } /* remove top line on first row */
+
+.wr-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.wr-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.15);
+  flex: 0 0 auto;
+}
+.wr-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.wr-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.12);
+  border-radius: 999px;
+}
+.wr-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.wr-name { font-weight: 600; }
+.wr-sub { color: var(--muted); font-size: 12px; }
+
+.wr-right { display: flex; align-items: center; gap: 6px; }
+.wr-team-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Larger screens: show track image + meta side-by-side */
+@media (min-width: 520px) {
+  .teaser-track {
+    grid-template-columns: 160px 1fr;
+    align-items: center;
+  }
+}
+
+/* States */
+.teaser-skeleton {
+  margin-top: 8px;
+  height: 110px;
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.08) 0%,
+    rgba(255,255,255,0.04) 40%,
+    rgba(255,255,255,0.08) 80%);
+  animation: shimmer 1.3s infinite;
+}
+.teaser-error, .teaser-muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}

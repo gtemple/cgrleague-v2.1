@@ -16,7 +16,7 @@ export function useSeasonStandings(seasonId: number) {
   );
 
   const { data, isLoading, error, refetch } = useApiQuery<StandingRow[]>(
-    `api/seasons/${seasonId}/standings/`,
+    `/api/seasons/${seasonId}/standings/`,
     {
       enabled: !!seasonId,
       transform,

@@ -7,6 +7,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from typing import Dict, List, Any
 
+
+from seasons.models import Season
 from entries.models import DriverSeason
 from results.models import Race, RaceResult
 from results.scoring import points_for_result
@@ -532,4 +534,130 @@ class SeasonLastRaceView(APIView):
             "include_sprints": include_sprints,
             "last_race": last_race_payload,
             "next_race": next_race_payload,
+        })
+    
+
+class NextRaceTeaserView(APIView):
+    """
+    GET /api/teasers/next-race/?include_sprints=0|1
+
+    - newest season (max id)
+    - upcoming race = first race in that season with zero results
+      (ordered by round, is_sprint). By default only GPs (is_sprint=False),
+      unless include_sprints=1 is passed.
+    - recent_winners: winners at the same track (non-sprint) from up to the
+      previous 5 seasons (most recent first).
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        include_sprints = str(request.GET.get("include_sprints", "")).lower() in ("1", "true", "yes")
+
+        latest_season = Season.objects.order_by("-id").first()
+        if not latest_season:
+            return Response({
+                "season_id": None,
+                "upcoming_race": None,
+                "recent_winners": [],
+            })
+
+        # Base queryset for races in the latest season
+        races_qs = (
+            Race.objects
+            .filter(season=latest_season)
+            .select_related("track")
+        )
+        if not include_sprints:
+            races_qs = races_qs.filter(is_sprint=False)
+
+        # First race with 0 results (upcoming)
+        upcoming = (
+            races_qs
+            .annotate(result_count=Count("results"))
+            .filter(result_count=0)
+            .order_by("round", "is_sprint")
+            .first()
+        )
+
+        upcoming_payload = None
+        recent_winners: List[Dict[str, Any]] = []
+
+        if upcoming:
+            t = upcoming.track
+            upcoming_payload = {
+                "season_id": latest_season.id,
+                "race": {
+                    "id": upcoming.id,
+                    "round": upcoming.round,
+                    "is_sprint": upcoming.is_sprint,
+                },
+                "track": {
+                    "id": t.id if t else None,
+                    "name": getattr(t, "name", "") if t else "",
+                    "city": getattr(t, "city", "") if t else "",
+                    "country": getattr(t, "country", "") if t else "",
+                    "image": getattr(t, "img", None) if t else None,
+                },
+            }
+
+            # Find up to 5 most recent seasons before latest, with a GP at this track and a winner
+            prev_seasons = list(
+                Season.objects.filter(id__lt=latest_season.id)
+                .order_by("-id")
+            )
+
+            for s in prev_seasons:
+                # Only non-sprint historical winners (GPs)
+                race = (
+                    Race.objects
+                    .filter(season=s, track_id=upcoming.track_id, is_sprint=False)
+                    .order_by("round")   # in case track appears multiple times (rare)
+                    .first()
+                )
+                if not race:
+                    continue
+
+                rr = (
+                    RaceResult.objects
+                    .filter(race=race, finish_position=1)
+                    .select_related(
+                        "driver_season__driver",
+                        "driver_season__team_season__team",
+                    )
+                    .first()
+                )
+                if not rr:
+                    continue
+
+                drv = rr.driver_season.driver
+                team = getattr(rr.driver_season, "team_season", None)
+                team_obj = getattr(team, "team", None)
+
+                recent_winners.append({
+                    "season_id": s.id,
+                    "driver": {
+                        "id": drv.id,
+                        "first_name": getattr(drv, "first_name", "") or "",
+                        "last_name": getattr(drv, "last_name", "") or "",
+                        "display_name": (
+                            f"{getattr(drv, 'first_name', '') or ''} "
+                            f"{getattr(drv, 'last_name', '') or ''}"
+                        ).strip() or getattr(drv, "name", ""),
+                        "profile_image": getattr(drv, "profile_image", None),
+                    },
+                    "team": {
+                        "id": getattr(team_obj, "id", None),
+                        "name": getattr(team_obj, "team_name", "") if team_obj else "",
+                        "logo_image": getattr(team_obj, "team_img", None) if team_obj else None,
+                    },
+                    "race_id": race.id,
+                })
+
+                if len(recent_winners) >= 5:
+                    break
+
+        return Response({
+            "season_id": latest_season.id,
+            "upcoming_race": upcoming_payload,
+            "recent_winners": recent_winners,
         })
