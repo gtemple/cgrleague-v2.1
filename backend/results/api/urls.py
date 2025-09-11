@@ -3,7 +3,7 @@ from .views import SeasonStandingsView
 from .views import ConstructorStandingsView
 from .views import SeasonResultsMatrixView
 from .views import SeasonLastRaceView
-from .views import NextRaceTeaserView
+from results.api.views import NextRaceTeaserView
 
 urlpatterns = [
     path("seasons/<int:season_id>/standings/", SeasonStandingsView.as_view(), name="season-standings"),
