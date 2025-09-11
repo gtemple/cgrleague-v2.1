@@ -6,6 +6,7 @@ import { useSeasonLastRace, type SeasonLastRaceResponse } from "../../hooks/useS
 import type { ResultsMatrixResponse } from "../../hooks/useSeasonResultsMatrix";
 import { getPositionColor } from "../../utils/getPositionColor";
 import { displayImage } from "../../utils/displayImage";
+import { Loader } from "../../components/Loader";
 
 
 import './style.css'
@@ -45,11 +46,18 @@ export function PositionLegend() {
 
 export const MatrixChart = ({ data }: MatrixProps) => {
   const [matrixData, setMatrixData] = useState('heatMap');
-  if (!data) return null;
 
+  if (!data) {
+    return (
+      <div className="border">
+        <h2 className='matrix-chart-title'>Results Grid</h2>
+        <Loader variant="skeleton" lines={10} full />
+      </div>
+    );
+  }
 
   const { results, races } = data;
-  console.log('data', data)
+
 
   return (
     <div className="matrix-chart-container">
@@ -176,7 +184,14 @@ export const MatrixChart = ({ data }: MatrixProps) => {
 }
 
 const ConstructorsTable = ({ data }: MatrixProps) => {
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="table-container border">
+        <h2>Fastest Laps</h2>
+        <Loader variant="skeleton" lines={5} />
+      </div>
+    );
+  }
   const { constructor_results } = data;
 
   const truncateName = (name: string, maxLength: number = 20) => {
@@ -213,7 +228,14 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
 }
 
 const PodiumsTable = ({ data }: MatrixProps) => {
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="table-container border">
+        <h2>Podiums</h2>
+        <Loader variant="skeleton" lines={5} />
+      </div>
+    );
+  }
   const { results } = data;
 
   const podiums = results
@@ -249,7 +271,14 @@ const PodiumsTable = ({ data }: MatrixProps) => {
 }
 
 const FastestLapTable = ({ data }: MatrixProps) => {
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="table-container border">
+        <h2>Fastest Laps</h2>
+        <Loader variant="skeleton" lines={5} />
+      </div>
+    );
+  }
   const { results } = data;
 
   const fastestLaps = results
@@ -285,7 +314,14 @@ const FastestLapTable = ({ data }: MatrixProps) => {
 }
 
 const DotdsTable = ({ data }: MatrixProps) => {
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="table-container border">
+        <h2>Fastest Laps</h2>
+        <Loader variant="skeleton" lines={5} />
+      </div>
+    );
+  }
   const { results } = data;
 
   const dotds = results
@@ -347,7 +383,14 @@ const SeasonSelector = ({
 };
 
 const LastRaceResults = ({ data }: { data?: SeasonLastRaceResponse }) => {
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="table-container border">
+        <h2>Fastest Laps</h2>
+        <Loader variant="skeleton" lines={5} />
+      </div>
+    );
+  }
   const { last_race } = data;
 
   return (
@@ -384,7 +427,7 @@ export const SeasonPage = () => {
     navigate(`/seasons/${season}`); // Update the URL
   };
 
-  const { data, isLoading, error } = useSeasonResultsMatrix(currentSeason, { includeSprints: true });
+const { data, isLoading, error } = useSeasonResultsMatrix(currentSeason, { includeSprints: true });
   const { data: lastRaceData } = useSeasonLastRace(currentSeason, { includeSprints: false });
 
   // ✅ no any
@@ -403,13 +446,15 @@ export const SeasonPage = () => {
         <h1 className='season-title'>Season {currentSeason}</h1>
         <SeasonSelector currentSeasonId={currentSeason} setCurrentSeason={handleSeasonChange} />
       </header>
-      {isLoading && <p>Loading…</p>}
+
+      {isLoading && (
+        <Loader label="Loading season…" full />
+      )}
       {errorMessage && <p style={{ color: "crimson" }}>Failed to load results: {errorMessage}</p>}
 
       {!isLoading && !errorMessage && (
         <div className='season-container'>
           <div className='seasons-row-one'>
-
             <MatrixChart data={data ?? undefined} />
             <div className='seasons-side-tables'>
               <ConstructorsTable data={data ?? undefined} />
@@ -425,4 +470,4 @@ export const SeasonPage = () => {
       )}
     </div>
   );
-}
+};

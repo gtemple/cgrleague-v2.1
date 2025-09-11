@@ -1,4 +1,5 @@
 import { useApiQuery } from "./useApiQuery";
+import { useMemo } from "react";
 
 type Options = {
   includeSprints?: boolean;
@@ -67,20 +68,29 @@ export type SeasonLastRaceResponse = {
 export function useSeasonLastRace(seasonId: number, opts: Options = {}) {
   const { includeSprints = false, enabled = true } = opts;
 
+  const transform = useMemo(() => {
+    return (data: SeasonLastRaceResponse) => {
+      if (data?.last_race?.results) {
+        return {
+          ...data,
+          last_race: {
+            ...data.last_race,
+            results: [...data.last_race.results].sort(
+              (a, b) => a.finish_position - b.finish_position
+            ),
+          },
+        };
+      }
+      return data;
+    };
+  }, []); // stable
+
   return useApiQuery<SeasonLastRaceResponse>(
     `/api/seasons/${seasonId}/last-race/`,
     {
       params: { include_sprints: includeSprints ? 1 : 0 },
       enabled: enabled && !!seasonId,
-      // (optional) transform to guarantee top3 sorted (backend already sorts)
-      transform: (data) => {
-        if (data?.last_race?.results) {
-          data.last_race.results = [...data.last_race.results].sort(
-            (a, b) => a.finish_position - b.finish_position
-          );
-        }
-        return data;
-      },
+      transform,
     }
   );
 }

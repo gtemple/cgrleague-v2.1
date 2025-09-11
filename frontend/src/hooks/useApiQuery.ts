@@ -1,5 +1,4 @@
-// src/hooks/useApiQuery.ts
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchJson, ApiError } from "../api/client";
 
 export type QueryState<T> = {
@@ -11,8 +10,8 @@ export type QueryState<T> = {
 
 type Options<T> = {
   params?: Record<string, string | number | boolean | undefined>;
-  enabled?: boolean;
-  transform?: (data: T) => T;
+  enabled?: boolean;          // default true
+  transform?: (data: T) => T; // e.g. sorting
 };
 
 export function useApiQuery<T = unknown>(
@@ -27,16 +26,13 @@ export function useApiQuery<T = unknown>(
   const refetch = useCallback(() => {
     refetchToken.current += 1;
     setLoading(true);
+    // keep current data during manual refetch (optional):
+    // setData(null);
   }, []);
 
-  // stable key for params
-  const paramsString = useMemo(() => JSON.stringify(params ?? {}), [params]);
-
-  // keep transform stable (init with identity fn)
-  const transformRef = useRef<(d: T) => T>((d) => d);
-  useEffect(() => {
-    transformRef.current = transform ?? ((d) => d);
-  }, [transform]);
+  // Build a stable “request key” from path + params
+  const paramsString = JSON.stringify(params ?? {});
+  const requestKey = `${path}|${paramsString}`;
 
   useEffect(() => {
     if (!enabled) return;
@@ -44,11 +40,15 @@ export function useApiQuery<T = unknown>(
     let cancelled = false;
     const tokenAtStart = refetchToken.current;
 
+    // Immediately show loading state when the request key changes
+    setLoading(true);
+    setError(null);
+    setData(null); // ensures your skeletons show during season switch
+
     (async () => {
       try {
-        setError(null);
         const json = await fetchJson<T>(path, { params });
-        const final = transformRef.current(json);
+        const final = transform ? transform(json) : json;
         if (!cancelled && tokenAtStart === refetchToken.current) {
           setData(final);
         }
@@ -64,8 +64,11 @@ export function useApiQuery<T = unknown>(
       }
     })();
 
-    return () => { cancelled = true; };
-  }, [path, paramsString, enabled]);
+    return () => {
+      cancelled = true;
+    };
+  // IMPORTANT: depend on the stable requestKey instead of the raw params object
+  }, [requestKey, enabled, transform]);
 
   return { data, isLoading, error, refetch };
 }
