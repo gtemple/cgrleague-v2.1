@@ -1,3 +1,9 @@
+:root { --nav-h: 60px; }             /* match your navbar height */
+@media (max-width: 480px) {
+  :root { --nav-h: 56px; }
+}
+
+
 .container {
   max-width: 1100px;
   margin: 0 auto;
@@ -91,16 +97,24 @@
   border-spacing: 0;
   min-width: 720px;
 }
+
+.stats-table thead {
+  position: sticky;
+  z-index: 3;                        /* above rows */
+  background: rgba(5,5,20,0.92);
+  backdrop-filter: blur(6px);
+  /* optional: a subtle shadow to separate from first row while scrolling */
+  box-shadow: 0 2px 0 rgba(255,255,255,0.08);
+}
 .stats-table thead th {
+  position: static;
   text-align: left;
   font-weight: 700;
   padding: 10px 10px;
-  position: sticky;
-  top: 60px; /* below navbar */
-  background: rgba(5,5,20,0.92);
-  backdrop-filter: blur(6px);
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
+
+/* Body cells unchanged */
 .stats-table tbody td {
   padding: 10px 10px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -156,4 +170,53 @@
 @keyframes shimmer {
   0% { background-position: -220px 0; }
   100% { background-position: 220px 0; }
+}
+
+@media (max-width: 900px) {
+  .track-header {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .track-hero {
+    height: 140px;
+  }
+}
+
+/* Controls: stack and full-width inputs on narrow screens */
+@media (max-width: 720px) {
+  .track-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .controls-left,
+  .controls-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .control {
+    flex: 1 1 auto;
+  }
+  .control select,
+  .track-select,
+  .btn {
+    width: 100%;
+  }
+}
+
+/* Table: slightly smaller font and safer min-width */
+@media (max-width: 720px) {
+  .stats-table {
+    font-size: 14px;
+    min-width: 640px; /* still scrolls horizontally in .table-wrap */
+  }
+  .col-driver { min-width: 200px; }
+  .avatar { width: 30px; height: 30px; }
+}
+
+/* If the sticky header feels too close to the navbar on small screens */
+@media (max-width: 720px) {
+  .stats-table thead {
+    top: calc(var(--nav-h) + 4px);
+  }
 }
