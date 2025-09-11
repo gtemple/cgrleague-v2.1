@@ -3,7 +3,7 @@
 import { SeasonStandingsTable } from "../../components/SeasonStandingsTable/index";
 import { ConstructorStandingsTable } from "../../components/ConstructorStandingsTable";
 
-export default function HomePage() {
+export const HomePage = () => {
 
   return (
     <main style={{ padding: 16 }}>

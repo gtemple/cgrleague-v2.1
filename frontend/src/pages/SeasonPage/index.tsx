@@ -374,7 +374,7 @@ const LastRaceResults = ({ data }: { data?: SeasonLastRaceResponse }) => {
   );
 }
 
-export default function SeasonPage() {
+export const SeasonPage = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [currentSeason, setCurrentSeason] = useState(Number(params?.seasonId) || 6);
@@ -398,12 +398,11 @@ export default function SeasonPage() {
   }, [error]);
 
   return (
-    <div>
+    <div className="season-container">
       <header className="season-header">
         <h1 className='season-title'>Season {currentSeason}</h1>
         <SeasonSelector currentSeasonId={currentSeason} setCurrentSeason={handleSeasonChange} />
       </header>
-
       {isLoading && <p>Loading…</p>}
       {errorMessage && <p style={{ color: "crimson" }}>Failed to load results: {errorMessage}</p>}
 

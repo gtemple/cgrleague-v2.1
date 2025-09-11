@@ -1,39 +1,155 @@
+:root {
+  --nav-h: 60px;
+}
+
+/* Existing base (you already have) */
 .navbar {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0;
   z-index: 10;
   background: #111;
   color: #fff;
   border-bottom: 1px solid #222;
+  width: 100vw;
+  height: var(--nav-h);
 }
 .nav-inner {
-  max-width: 1200px;
   margin: 0 auto;
-  padding: 12px 16px;
+  padding: 12px 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.brand {
-  color: #ffd60a;
-  text-decoration: none;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+
+/* NEW: burger */
+.nav-toggle { display: none; }
+
+.nav-burger {
+  display: none;            /* hidden on desktop */
+  width: 40px;
+  height: 40px;
+  margin-left: 8px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
+.nav-burger:hover { background: #1b1b1b; }
+
+.nav-burger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #e5e5e5;
+  border-radius: 2px;
+}
+
+/* Links (desktop default stays) */
 .nav-links {
   display: flex;
   gap: 16px;
 }
 .nav-link {
-  color: #cfcfcf;
+  color: #cfcfcfad;
   text-decoration: none;
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 4px 8px;
+  font-weight: 500;
 }
-.nav-link:hover {
-  background: #1b1b1b;
-}
+.nav-link:hover { background: #1b1b1b; }
 .nav-link-active {
-  color: #111;
-  background: #ffd60a;
+  color: #ffffff;
+  border-bottom: solid 3px #9e1212;
 }
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.brand {
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-decoration: none;
+}
+.nav-logo-container {
+  width: 40px; height: 40px; margin-right: 12px;
+}
+.nav-logo-container img {
+  width: 100%; height: 100%; object-fit: contain; border-radius: 8px;
+}
+
+/* ---------- Mobile tweaks ---------- */
+@media (max-width: 768px) {
+  :root { --nav-h: 56px; }
+
+  .nav-inner {
+    padding: 10px 16px;
+    gap: 8px;
+  }
+
+  .brand {
+    font-size: 0.95rem;
+    letter-spacing: 0.4px;
+  }
+
+  .nav-logo-container {
+    width: 32px; height: 32px; margin-right: 8px;
+  }
+
+  /* Show burger, hide inline links */
+  .nav-burger { display: flex; }
+  .nav-links {
+    position: fixed;
+    top: var(--nav-h);
+    left: 0; right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #101010;
+    border-top: 1px solid #222;
+    padding: 10px 12px 12px;
+    transform-origin: top;
+    transform: translateY(-8px) scaleY(0);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 160ms ease, opacity 160ms ease;
+  }
+
+  /* Larger tap targets on mobile */
+  .nav-link {
+    padding: 12px 10px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  .nav-link-active {
+    border-bottom: none;
+    background: #1b1b1b;
+  }
+
+  /* Toggle open */
+  .nav-toggle:checked + .nav-burger + .nav-links {
+    transform: translateY(0) scaleY(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Animate burger to "X" */
+  .nav-toggle:checked + .nav-burger span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+    transition: transform 160ms ease;
+  }
+  .nav-toggle:checked + .nav-burger span:nth-child(2) {
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  .nav-toggle:checked + .nav-burger span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+    transition: transform 160ms ease;
+  }
+}
+
+/* Optional: ensure page content isn't hidden under fixed navbar */
+main.container { padding-top: calc(var(--nav-h) + 12px); }

@@ -1,8 +1,15 @@
 #root {
-  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
+  padding: 0;
   text-align: center;
+}
+
+.container {
+  margin: 0 40px;
+  padding: 2rem;
+  padding-top: 80px;
+
 }
 
 .logo {

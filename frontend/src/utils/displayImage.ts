@@ -5,18 +5,19 @@ const slugify = (name: string) =>
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "");
 
-type ImageType = "driver" | "team" | "flags" | "trackImage";
+type ImageType = "driver" | "team" | "flags" | "trackImage" | "siteImage";
 
 const maps: Record<ImageType, Record<string, string>> = {
   driver: {},
   team: {},
   flags: {},
   trackImage: {},
+  siteImage: {},
 };
 
 // Grab all supported images (adjust patterns/paths as needed)
 const allImages = import.meta.glob(
-  "../assets/{driver-profiles,team-logos,flags,track-images}/*.{jpg,png,webp,svg}",
+  "../assets/{driver-profiles,team-logos,flags,track-images,site-images}/*.{jpg,png,webp,svg}",
   { eager: true, as: "url" }
 );
 
@@ -33,6 +34,7 @@ for (const [key, url] of Object.entries(allImages)) {
   if (folder === "team-logos") maps.team[slug] = url as string;
   if (folder === "flags") maps.flags[slug] = url as string;
   if (folder === "track-images") maps.trackImage[slug] = url as string;
+  if (folder === "site-images") maps.siteImage[slug] = url as string;
 }
 
 export function displayImage(name: string, type: ImageType): string | undefined {

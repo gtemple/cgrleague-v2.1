@@ -6,7 +6,6 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -16,14 +15,10 @@
 body {
   display: flex;
   justify-content: center;
-  margin: 0 40px;
   display: flex;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center top;
   background-color: rgb(10, 12, 20);
   background-size: 100vw auto;
 
