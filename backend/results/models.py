@@ -56,6 +56,8 @@ class RaceResult(models.Model):
     )
 
     # Optional because you don't always have this data yet
+    cleanest_driver = models.BooleanField("Cleanest Driver", default=False)
+    most_overtakes = models.BooleanField("Most Overtakes", default=False)
     grid_position = models.PositiveIntegerField(null=True, blank=True)
     finish_position = models.PositiveIntegerField(null=True, blank=True)
     status = models.CharField(max_length=4, choices=STATUS_CHOICES, default="FIN")

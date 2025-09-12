@@ -7,7 +7,7 @@ import { NextRaceTeaser } from "../../components/NextRaceTeaser/index";
 import './style.css'
 
 export const HomePage = () => {
-  const currentSeasonId = 6;
+  const currentSeasonId = 7;
 
   return (
     <main style={{ padding: 16 }}>

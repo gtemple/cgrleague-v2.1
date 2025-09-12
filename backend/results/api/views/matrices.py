@@ -67,7 +67,7 @@ class SeasonResultsMatrixView(APIView):
                 "fastest_lap": [False] * race_count,
                 "pole_positions": [False] * race_count,
                 "dotds": [False] * race_count,
-                "finish_points": [0] * race_count,  # NEW (already present in your latest)
+                "finish_points": [0] * race_count,
                 "total_points": 0,
                 "_finish_list": [],
             }
@@ -78,6 +78,8 @@ class SeasonResultsMatrixView(APIView):
                     "team_display_name": team_display_name,
                     "team_image": team_logo,
                     "points": 0,
+                    "_finish_sum": 0,
+                    "_finish_count": 0,
                 }
 
         if race_count > 0:
@@ -153,8 +155,13 @@ class SeasonResultsMatrixView(APIView):
                             "team_display_name": (getattr(team, "display_name", "") or base_name) or "",
                             "team_image": getattr(team.team, "team_img", None),
                             "points": 0,
+                            "_finish_sum": 0,
+                            "_finish_count": 0,
                         }
                     constructor_totals[t_id]["points"] += pts
+                    if rr.finish_position is not None:
+                        constructor_totals[t_id]["_finish_sum"] += rr.finish_position
+                        constructor_totals[t_id]["_finish_count"] += 1
 
         results: List[Dict[str, Any]] = []
         for r in rows_by_ds.values():
@@ -162,13 +169,14 @@ class SeasonResultsMatrixView(APIView):
             r["avg_finish_position"] = (sum(finishes) / len(finishes)) if finishes else None
             results.append(r)
 
-        def sort_key(r):
+        # Drivers: points desc, avg finish asc, last name asc
+        def driver_sort_key(r):
             avg = r["avg_finish_position"]
             avg_norm = avg if avg is not None else 1e9
             last = (r["driver_info"]["last_name"] or "").lower()
             return (-r["total_points"], avg_norm, last)
 
-        results.sort(key=sort_key)
+        results.sort(key=driver_sort_key)
 
         races_payload = [
             {
@@ -187,11 +195,27 @@ class SeasonResultsMatrixView(APIView):
 
         points_leaderboard = [row["total_points"] for row in results]
 
-        constructor_results = sorted(
-            constructor_totals.values(),
-            key=lambda x: x["points"],
-            reverse=True,
-        )
+        # Constructors: compute avg_finish and sort by points desc, avg asc, then name
+        constructor_results: List[Dict[str, Any]] = []
+        for t in constructor_totals.values():
+            cnt = t.get("_finish_count", 0) or 0
+            s = t.get("_finish_sum", 0) or 0
+            avg = (s / cnt) if cnt > 0 else None
+            constructor_results.append({
+                "team_name": t["team_name"],
+                "team_display_name": t["team_display_name"],
+                "team_image": t["team_image"],
+                "points": t["points"],
+                "avg_finish": avg,
+            })
+
+        def ctor_sort_key(x):
+            avg = x.get("avg_finish")
+            avg_norm = avg if avg is not None else 1e9
+            stable = (x.get("team_display_name") or x.get("team_name") or "").lower()
+            return (-x["points"], avg_norm, stable)
+
+        constructor_results.sort(key=ctor_sort_key)
 
         return Response(
             {
