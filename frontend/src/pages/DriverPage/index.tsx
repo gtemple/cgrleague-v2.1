@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDriversList } from "../../hooks/useDriverList";
 import { useDriverDetail } from "../../hooks/useDriverDetails";
+import { DriverHistoryTable } from "./DriverHistoryTable";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./style.css";
@@ -126,6 +127,7 @@ export const DriverPage = () => {
               </div>
             </div>
           </section>
+          <DriverHistoryTable driverId={driverId} />
         </>
       )}
     </div>
