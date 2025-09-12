@@ -1,3 +1,4 @@
+// src/hooks/useApiQuery.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchJson, ApiError } from "../api/client";
 
@@ -12,11 +13,12 @@ type Options<T> = {
   params?: Record<string, string | number | boolean | undefined>;
   enabled?: boolean;          // default true
   transform?: (data: T) => T; // e.g. sorting
+  keepPreviousData?: boolean; // <-- NEW (default false)
 };
 
 export function useApiQuery<T = unknown>(
   path: string,
-  { params, enabled = true, transform }: Options<T> = {}
+  { params, enabled = true, transform, keepPreviousData = false }: Options<T> = {}
 ): QueryState<T> {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setLoading] = useState<boolean>(!!enabled);
@@ -26,11 +28,8 @@ export function useApiQuery<T = unknown>(
   const refetch = useCallback(() => {
     refetchToken.current += 1;
     setLoading(true);
-    // keep current data during manual refetch (optional):
-    // setData(null);
   }, []);
 
-  // Build a stable “request key” from path + params
   const paramsString = JSON.stringify(params ?? {});
   const requestKey = `${path}|${paramsString}`;
 
@@ -40,10 +39,9 @@ export function useApiQuery<T = unknown>(
     let cancelled = false;
     const tokenAtStart = refetchToken.current;
 
-    // Immediately show loading state when the request key changes
     setLoading(true);
     setError(null);
-    setData(null); // ensures your skeletons show during season switch
+    if (!keepPreviousData) setData(null); // <-- preserve data if asked
 
     (async () => {
       try {
@@ -67,8 +65,16 @@ export function useApiQuery<T = unknown>(
     return () => {
       cancelled = true;
     };
-  // IMPORTANT: depend on the stable requestKey instead of the raw params object
-  }, [requestKey, enabled, transform]);
+    // IMPORTANT: do NOT depend on `transform` — changing it shouldn’t refetch
+  }, [requestKey, enabled]); 
+
+  // If transform changes, just re-derive from current data (no refetch)
+  useEffect(() => {
+    if (transform && data != null) {
+      setData(transform(data));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transform]);
 
   return { data, isLoading, error, refetch };
 }

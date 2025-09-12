@@ -11,4 +11,5 @@ urlpatterns = [
     path("api/teams/", list_teams),
     path("api/", include("tracks.api.urls")),
     path("api/", include("results.api.urls")),
+    path("api/", include("drivers.api.urls")),
 ]
