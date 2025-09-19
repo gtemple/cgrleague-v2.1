@@ -1,4 +1,11 @@
 
+:root{
+  --cell: 40px;      /* width of each race column */
+  --firstcol: 36px;  /* width of the driver/avatar column */
+  --cell-gap: 4px;
+}
+
+
 .season-container {
 margin: 40px 0 0 0;
 }
@@ -135,23 +142,41 @@ h2 {
   gap: 4px;
   overflow-x: auto;
 }
-.matrix-chart-row {
+.matrix-chart-row{
   display: flex;
-  gap: 4px;
+  gap: var(--cell-gap);
   align-items: center;
-  padding: 0px;
-  margin: 4px 0px;
 }
+
+.matrix-chart-race-header-cell,
+.matrix-chart-driver-image-container,
+.matrix-chart-driver-label{
+  flex: 0 0 var(--firstcol);
+  width: var(--firstcol);
+}
+
+.matrix-chart-cell,
+.matrix-chart-driver-image-container,
+.matrix-chart-flag-image-container{
+  box-sizing: border-box;
+}
+
+/* Remove old fixed widths that fight the vars */
+.matrix-chart-race-header-cell{ /* was 45px */ width: var(--firstcol); }
+.matrix-chart-driver-image-container{ width: var(--firstcol); height: var(--firstcol); }
+.matrix-chart-driver-label{ width: var(--firstcol); }
+.matrix-chart-flag-image-container{ width: var(--cell); }
+.matrix-chart-cell{ width: var(--cell); }
 
 .matrix-chart-driver-label {
   color: white;
-  width: 40px;
   align-items: center;;
 }
 
 .matrix-chart-cell {
   width: 40px;
   height: 40px;
+  margin-bottom: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,10 +250,6 @@ h2 {
     object-position: center top;
 }
 
-.matrix-chart-race-header-cell {
-  width: 38px;
-}
-
 .sprint-indicator {
   font-size: 10px;
 }
@@ -239,13 +260,11 @@ h2 {
   align-items: center;
   gap: 4px;
   margin-top: auto;
-  margin-bottom: 8px;;
+  margin-bottom: 8px;
   overflow: hidden;
-  width: 40px;
 }
 
 .matrix-chart-flag-image-container img {
-    width: 22px;
     overflow: hidden;
   }
 
@@ -361,6 +380,7 @@ img{ display:block; max-width:100%; height:auto; }
 /* Provide a container style (your layout uses <main class="container">) */
 .container{
   width:100%;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 0 12px 24px;
 }
@@ -484,8 +504,6 @@ button{
 /* Driver avatar / initials */
 .matrix-chart-driver-image-container,
 .matrix-chart-driver-label{
-  width: calc(var(--cell) - 2px);
-  height: calc(var(--cell) - 2px);
   border-radius: 999px;
   border: 1px solid var(--border);
   display:flex;
