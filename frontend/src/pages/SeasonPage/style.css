@@ -361,7 +361,6 @@ img{ display:block; max-width:100%; height:auto; }
 /* Provide a container style (your layout uses <main class="container">) */
 .container{
   width:100%;
-  max-width: 1100px;
   margin: 0 auto;
   padding: 0 12px 24px;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDriversList } from "../../hooks/useDriverList";
 import { useDriverDetail } from "../../hooks/useDriverDetails";
@@ -25,12 +25,6 @@ export const DriverPage = () => {
 
   const hasValueInList = list?.some(d => String(d.id) === selectValue);
 
-  const headerSubtitle = useMemo(() => {
-    if (!driver) return "";
-    const parts = [driver.first_name, driver.last_name].filter(Boolean);
-    return parts.join(" · ");
-  }, [driver]);
-
   const selectedLabel =
     driver?.display_name ??
     list?.find(d => String(d.id) === selectValue)?.display_name ??
@@ -38,46 +32,6 @@ export const DriverPage = () => {
 
   return (
     <div className="driver-page container">
-      <header className="driver-header">
-        <div className="driver-meta">
-          <h1 className="driver-title">
-            {driver?.display_name ??
-              list?.find(d => String(d.id) === selectValue)?.display_name ??
-              "Driver"}
-          </h1>
-          {headerSubtitle && <div className="driver-subtitle">{headerSubtitle}</div>}
-        </div>
-
-        <div className="driver-picker">
-          {/* Always render the select; keep options during loading */}
-          {!listError && (
-            <select
-              className="driver-select"
-              value={selectValue}
-              onChange={(e) => {
-                const next = e.target.value;
-                setSelectValue(next);               // instant UI update
-                if (next && next !== driverId) navigate(`/drivers/${next}`);
-              }}
-              aria-busy={listLoading || undefined}
-              disabled={listError ? true : false}
-            >
-              {/* Ghost option so current selection stays visible even if not in options yet */}
-              {!hasValueInList && selectValue && (
-                <option value={selectValue}>{selectedLabel}</option>
-              )}
-
-              {list?.map((d) => (
-                <option key={d.id} value={String(d.id)}>
-                  {d.display_name}
-                </option>
-              ))}
-
-              {!selectValue && <option value="">Select a driver…</option>}
-            </select>
-          )}
-        </div>
-      </header>
 
       {isLoading && <Loader label="Loading driver…" full />}
 
@@ -87,45 +41,101 @@ export const DriverPage = () => {
 
       {!isLoading && !error && driver && totals && (
         <>
-          <section className="driver-hero border">
-            <div className="portrait-wrap">
-              <div className="portrait-bg" />
-              {driver.profile_image ? (
-                <img
-                  className="portrait-img"
-                  src={displayImage(driver.profile_image, "driver")}
-                  alt={driver.display_name}
-                />
-              ) : (
-                <div className="portrait-fallback" />
-              )}
-            </div>
+          {console.log(data)}
+          <section className="driver-hero">
+            <div className="hero-top-row">
+              <div className="portrait-wrap">
+                <div className="portrait-bg" />
+                {driver.profile_image ? (
+                  <img
+                    className="portrait-img"
+                    src={displayImage(driver.profile_image, "driver")}
+                    alt={driver.display_name}
+                  />
+                ) : (
+                  <div className="portrait-fallback" />
+                )}
+              </div>
+              <div className="hero-header">
+                <div>
+                  <div className='hero-names'>
+                    <div className="hero-name">{driver.first_name} {driver.last_name}</div>
+                  </div>
+                  <div className='hero-header-sub'>
+                    <div>Wins: {totals.wins}</div>
+                    <div>Podiums: {totals.podiums}</div>
+                  </div>
+                </div>
+                <div className="driver-picker">
+                  {/* Always render the select; keep options during loading */}
+                  {!listError && (
+                    <select
+                      className="driver-select"
+                      value={selectValue}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setSelectValue(next);               // instant UI update
+                        if (next && next !== driverId) navigate(`/drivers/${next}`);
+                      }}
+                      aria-busy={listLoading || undefined}
+                      disabled={listError ? true : false}
+                    >
+                      {/* Ghost option so current selection stays visible even if not in options yet */}
+                      {!hasValueInList && selectValue && (
+                        <option value={selectValue}>{selectedLabel}</option>
+                      )}
 
+                      {list?.map((d) => (
+                        <option key={d.id} value={String(d.id)}>
+                          {d.display_name}
+                        </option>
+                      ))}
 
-            <div className="hero-stats">
-              <div className="stat-card">
-                <div className="stat-label">Points</div>
-                <div className="stat-value">{totals.points}</div>
-                <div className="stat-sub">
-                  Base {totals.points_breakdown.base} · FL +{totals.points_breakdown.fastest_lap_bonus}
+                      {!selectValue && <option value="">Select a driver…</option>}
+                    </select>
+                  )}
                 </div>
               </div>
+            </div>
+            <div className='hero-divider' />
+            <div className='hero-second-row'>
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>{totals.points_breakdown.base + totals.points_breakdown.fastest_lap_bonus}</div>
+                <div className='hero-highlight-label'>Points</div>
+              </div>
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>{totals.poles}</div>
+                <div className='hero-highlight-label'>Poles</div>
+              </div>
 
-              <div className="stat-grid">
-                <div className="stat"><span className="stat-k">Wins</span><span className="stat-v">{totals.wins}</span></div>
-                <div className="stat"><span className="stat-k">Podiums</span><span className="stat-v">{totals.podiums}</span></div>
-                <div className="stat"><span className="stat-k">Poles</span><span className="stat-v">{totals.poles}</span></div>
-                <div className="stat"><span className="stat-k">Fastest Laps</span><span className="stat-v">{totals.fastest_laps}</span></div>
-                <div className="stat"><span className="stat-k">Laps</span><span className="stat-v">{totals.laps}</span></div>
-                <div className="stat"><span className="stat-k">Races</span><span className="stat-v">{totals.races}</span></div>
-                <div className="stat"><span className="stat-k">Completed</span><span className="stat-v">{totals.races_completed}</span></div>
-                <div className="stat"><span className="stat-k">DNFs</span><span className="stat-v">{totals.dnfs}</span></div>
-                <div className="stat"><span className="stat-k">Avg Finish</span><span className="stat-v">{totals.avg_finish !== null ? totals.avg_finish.toFixed(1) : "—"}</span></div>
-                <div className="stat"><span className="stat-k">Cleanest</span><span className="stat-v">{totals.cleanest_awards}</span></div>
-                <div className="stat"><span className="stat-k">Most Overtakes</span><span className="stat-v">{totals.most_overtakes_awards}</span></div>
-                <div className="stat"><span className="stat-k">DOTD</span><span className="stat-v">{totals.dotds}</span></div>
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>{totals.races}</div>
+                <div className='hero-highlight-label'>Races</div>
+              </div>
+
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>{totals.fastest_laps}</div>
+                <div className='hero-highlight-label'>Fastest Laps</div>
+              </div>
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>{totals.dotds}</div>
+                <div className='hero-highlight-label'>Driver of the Days</div>
+              </div>
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>{totals.cleanest_awards}</div>
+                <div className='hero-highlight-label'>Cleanest Awards</div>
+              </div>
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>{totals.most_overtakes_awards}</div>
+                <div className='hero-highlight-label'>Most Overtakes</div>
+              </div>
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>{totals.laps}</div>
+                <div className='hero-highlight-label'>Laps Completed</div>
               </div>
             </div>
+
+
           </section>
           <DriverHistoryTable driverId={driverId} />
         </>

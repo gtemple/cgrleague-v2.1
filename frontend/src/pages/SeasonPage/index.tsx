@@ -45,7 +45,7 @@ export function PositionLegend() {
 
 
 export const MatrixChart = ({ data }: MatrixProps) => {
-  const [matrixData, setMatrixData] = useState('heatMap');
+  const [matrixData, setMatrixData] = useState('finishPosition'); // 'heatMap' | 'finishPosition' | 'finishPoints'
 
   if (!data) {
     return (

@@ -50,7 +50,7 @@ export const TrackPage = () => {
   };
 
   return (
-    <div className="track-page container">
+    <div className="track-page track-container">
       <header className="track-header">
         <div className="track-meta">
           <h1 className="track-title">{track?.name ?? "Track"}</h1>
