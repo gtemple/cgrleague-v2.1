@@ -1,16 +1,52 @@
-.teaser-card {
+/* ---------------------------
+   Mobile-first polish
+---------------------------- */
+
+/* Fluid typography + spacing tokens */
+:root {
+  --gap: 16px;
+  --radius: 12px;
   --panel: rgba(5, 5, 20, 0.62);
   --border: rgba(255,255,255,0.08);
   --text: #e9edf3;
   --muted: #9aa5b1;
-
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  padding: 12px;
 }
 
+@media (max-width: 480px) {
+  :root { --gap: 12px; --radius: 10px; }
+}
+
+/* Teaser grid: single column by default (phones), two columns on wider screens */
+.teaser-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gap);
+}
+
+@media (min-width: 900px) {
+  .teaser-grid {
+    grid-template-columns: 1.1fr 0.9fr; /* your original desktop split */
+  }
+}
+
+/* Cards */
+.teaser-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 12px;
+  min-width: 0; /* allow children to shrink for ellipses */
+}
+
+@media (min-width: 520px) {
+  .teaser-card { padding: 14px; }
+}
+@media (min-width: 900px) {
+  .teaser-card { padding: 16px; }
+}
+
+/* Header */
 .teaser-header {
   display: flex;
   align-items: center;
@@ -21,7 +57,8 @@
   margin: 0;
   font-weight: 700;
   letter-spacing: .3px;
-  font-size: 18px;
+  font-size: clamp(16px, 3.8vw, 18px);
+  line-height: 1.15;
 }
 
 .pill {
@@ -30,6 +67,7 @@
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.06);
+  white-space: nowrap;
 }
 .pill-sprint { border-color: rgba(255, 199, 14, 0.5); }
 
@@ -39,10 +77,11 @@
   grid-template-columns: 1fr;
   gap: 10px;
 }
+
 .teaser-track-image {
   width: 100%;
-  height: 96px;
-  border-radius: 6px;
+  aspect-ratio: 16 / 9;             /* replaces fixed height for responsiveness */
+  border-radius: 8px;
   overflow: hidden;
   background: rgba(255,255,255,0.05);
   box-shadow: 0 4px 16px rgba(0,0,0,0.18);
@@ -52,10 +91,24 @@
   height: 100%;
   object-fit: cover;
 }
+
+@media (min-width: 520px) {
+  .teaser-track {
+    grid-template-columns: 150px 1fr; /* slightly narrower for small tablets */
+    align-items: center;
+  }
+}
+@media (min-width: 720px) {
+  .teaser-track {
+    grid-template-columns: 170px 1fr;
+  }
+}
+
 .teaser-track-meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 .teaser-track-title {
   display: flex;
@@ -63,9 +116,16 @@
   gap: 8px;
   font-weight: 700;
 }
+.teaser-track-title span {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;          /* long track names won’t break layout */
+}
 .teaser-track-sub {
   color: var(--muted);
-  font-size: 13px;
+  font-size: clamp(12px, 3.4vw, 13px);
 }
 .teaser-flag {
   width: 18px;
@@ -73,6 +133,7 @@
   object-fit: cover;
   border-radius: 2px;
   border: 1px solid rgba(255,255,255,0.12);
+  flex: 0 0 auto;
 }
 
 /* Winners section */
@@ -84,18 +145,17 @@
   font-weight: 600;
 }
 
-/* Stack (no lists) */
 .winner-stack { display: flex; flex-direction: column; }
 
-/* Add a divider to all but the first, without using lists */
 .winner-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 10px 2px;
   border-top: 1px solid rgba(255,255,255,0.06);
 }
-.winner-row.first { border-top: none; } /* remove top line on first row */
+.winner-row.first { border-top: none; }
 
 .wr-left {
   display: flex;
@@ -104,51 +164,27 @@
   min-width: 0;
 }
 .wr-avatar {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.15);
   flex: 0 0 auto;
 }
-.wr-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
+@media (min-width: 520px) {
+  .wr-avatar { width: 38px; height: 38px; }
 }
-.wr-avatar-fallback {
-  width: 100%;
-  height: 100%;
-  background: rgba(255,255,255,0.12);
-  border-radius: 999px;
-}
-.wr-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.wr-name { font-weight: 600; }
+.wr-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.wr-avatar-fallback { width: 100%; height: 100%; background: rgba(255,255,255,0.12); border-radius: 999px; }
+
+.wr-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wr-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wr-sub { color: var(--muted); font-size: 12px; }
 
 .wr-right { display: flex; align-items: center; gap: 6px; }
-.wr-team-logo {
-  width: 18px;
-  height: auto;
-  border-radius: 3px;
-  object-fit: cover;
-  display: block;
-}
+.wr-team-logo { width: 18px; height: auto; border-radius: 3px; object-fit: cover; display: block; }
 
-/* Larger screens: show track image + meta side-by-side */
-@media (min-width: 520px) {
-  .teaser-track {
-    grid-template-columns: 160px 1fr;
-    align-items: center;
-  }
-}
-
-/* States */
+/* Loading/Error/Muted */
 .teaser-skeleton {
   margin-top: 8px;
   height: 110px;
@@ -157,101 +193,149 @@
     rgba(255,255,255,0.08) 0%,
     rgba(255,255,255,0.04) 40%,
     rgba(255,255,255,0.08) 80%);
+  background-size: 200% 100%;
   animation: shimmer 1.3s infinite;
 }
-.teaser-error, .teaser-muted {
-  color: var(--muted);
-  font-size: 14px;
+@media (prefers-reduced-motion: reduce) {
+  .teaser-skeleton { animation: none; }
 }
+
+.teaser-error, .teaser-muted { color: var(--muted); font-size: 14px; }
 
 @keyframes shimmer {
   0% { background-position: -200px 0; }
   100% { background-position: 200px 0; }
 }
 
-/* Layout for the two side-by-side cards */
-.teaser-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 16px;
-}
+/* ---------------------------
+   "Also Coming Up" list
+---------------------------- */
 
-@media (max-width: 900px) {
-  .teaser-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ---------- "Also Coming Up" (next two) ---------- */
 .nexttwo-list {
   display: grid;
   gap: 12px;
   margin-top: 6px;
 
-  /* These two lines make it “fit what you can, scroll for the rest” */
-  max-height: var(--nexttwo-max, 360px);  /* tweak per layout */
+  max-height: var(--nexttwo-max, 360px);
   overflow-y: auto;
   overscroll-behavior: contain;
-    mask-image: linear-gradient(to bottom, black 85%, rgba(0,0,0,0.0));
-  -webkit-mask-image: linear-gradient(to bottom, black 85%, rgba(0,0,0,0.0));
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
+
+  /* soft fade at the bottom; harmless if unsupported */
+  mask-image: linear-gradient(to bottom, black 85%, rgba(0,0,0,0));
+  -webkit-mask-image: linear-gradient(to bottom, black 85%, rgba(0,0,0,0));
 }
+
+/* Base grid areas so we can reflow on mobile without changing JSX */
 .nexttwo-row {
   display: grid;
   grid-template-columns: 88px 1fr auto;
+  grid-template-areas: "thumb meta winner";
   gap: 10px;
   align-items: center;
   padding: 10px;
   border-radius: 10px;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
+  min-width: 0;
+}
+.nt-thumb   { grid-area: thumb; }
+.nt-meta    { grid-area: meta;  min-width: 0; }
+.nt-winner  { grid-area: winner; }
+
+@media (max-width: 520px) {
+  /* Stack winner under meta on phones */
+  .nexttwo-row {
+    grid-template-columns: 72px 1fr;
+    grid-template-areas:
+      "thumb meta"
+      "winner winner";
+    align-items: start;
+  }
 }
 
 .nt-thumb {
-  width: 88px;
-  height: 56px;
+  width: 100%;
+  aspect-ratio: 16 / 10;            /* responsive thumb */
   border-radius: 8px;
   overflow: hidden;
   background: rgba(255,255,255,0.05);
   box-shadow: 0 4px 12px rgba(0,0,0,0.18);
 }
 .nt-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.nt-thumb-fallback { background: rgba(255,255,255,0.08); }
+.nt-thumb-fallback { width: 100%; height: 100%; background: rgba(255,255,255,0.08); }
 
-.nt-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.nt-title { display: flex; align-items: center; gap: 8px; font-weight: 700; }
-.nt-sub { color: var(--muted); font-size: 13px; }
+.nt-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  min-width: 0;
+}
+.nt-title span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nt-sub { color: var(--muted); font-size: clamp(12px, 3.4vw, 13px); }
 
 .nt-winner {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
+  min-width: 0;
+}
+@media (max-width: 520px) {
+  .nt-winner { justify-content: flex-start; margin-top: 4px; }
 }
 
 .nt-winner-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .nt-avatar {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.15);
+  flex: 0 0 auto;
+}
+@media (min-width: 520px) {
+  .nt-avatar { width: 32px; height: 32px; }
 }
 .nt-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .nt-avatar-fallback { width: 100%; height: 100%; background: rgba(255,255,255,0.12); border-radius: 999px; }
 
-.nt-winner-meta { display: flex; flex-direction: column; gap: 2px; }
-.nt-winner-name { font-weight: 600; font-size: 14px; }
-.nt-winner-sub { color: var(--muted); font-size: 12px; }
+.nt-winner-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nt-winner-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nt-winner-sub  { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .nt-team-logo {
   width: 20px;
   height: auto;
   object-fit: cover;
+  flex: 0 0 auto;
 }
 
-/* Minor tweak so flags match your existing style */
+/* Make flags slightly smaller inside next-two rows on phones */
 .nexttwo-row .teaser-flag { width: 16px; height: 12px; }
+
+/* ---------------------------
+   Minor global helpers
+---------------------------- */
+
+/* If you keep the main inline style, this is optional: */
+.standings-container {
+  display: flex;
+  gap: var(--gap);
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .standings-container { flex-direction: column; }
+}

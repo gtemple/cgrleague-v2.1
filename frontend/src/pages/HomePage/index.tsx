@@ -10,7 +10,7 @@ export const HomePage = () => {
   const currentSeasonId = 7;
 
   return (
-    <main style={{ padding: 16 }}>
+    <main className="home">
       <NextRaceTeaser includeSprints={true} />
       <div className="standings-container">
         <SeasonStandingsTable seasonId={currentSeasonId} />
