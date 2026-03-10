@@ -1,12 +1,7 @@
 from typing import Any, Dict, Optional
 from django.db.models import Case, When, Value, IntegerField, Q
 from teams.models import Team
-
-# Shared points table (Finishing position → points)
-PLACE_POINTS = {
-    1: 25, 2: 18, 3: 15, 4: 12, 5: 10,
-    6: 8, 7: 6, 8: 4, 9: 2, 10: 1,
-}
+from results.scoring import POINTS_BY_POSITION as PLACE_POINTS
 
 def points_case(prefix: str = "results__") -> Case:
     """

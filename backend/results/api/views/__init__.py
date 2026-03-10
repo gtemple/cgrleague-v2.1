@@ -1,6 +1,6 @@
 from .standings import SeasonStandingsView, ConstructorStandingsView
 from .matrices import SeasonResultsMatrixView
-from .races import SeasonLastRaceView, NextRaceTeaserView
+from .races import SeasonLastRaceView, NextRaceTeaserView, RaceDetailView
 
 __all__ = [
     "SeasonStandingsView",
@@ -8,4 +8,5 @@ __all__ = [
     "SeasonResultsMatrixView",
     "SeasonLastRaceView",
     "NextRaceTeaserView",
+    "RaceDetailView",
 ]

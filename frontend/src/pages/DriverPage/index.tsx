@@ -31,7 +31,7 @@ export const DriverPage = () => {
     "Loading…";
 
   return (
-    <div className="driver-page container">
+    <div className="driver-page">
 
       {isLoading && <Loader label="Loading driver…" full />}
 

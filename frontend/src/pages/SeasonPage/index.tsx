@@ -1,6 +1,6 @@
 // src/pages/SeasonPage/index.tsx
 import { useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSeasonResultsMatrix } from "../../hooks/useSeasonResultsMatrix";
 import { useSeasonLastRace, type SeasonLastRaceResponse } from "../../hooks/useSeasonLastRace";
 import type { ResultsMatrixResponse } from "../../hooks/useSeasonResultsMatrix";
@@ -14,6 +14,7 @@ import './style.css'
 
 type MatrixProps = {
   data?: ResultsMatrixResponse;
+  seasonId: number;
 };
 
 export function PositionLegend() {
@@ -44,7 +45,7 @@ export function PositionLegend() {
 }
 
 
-export const MatrixChart = ({ data }: MatrixProps) => {
+export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
   const [matrixData, setMatrixData] = useState('finishPosition'); // 'heatMap' | 'finishPosition' | 'finishPoints'
 
   if (!data) {
@@ -66,15 +67,19 @@ export const MatrixChart = ({ data }: MatrixProps) => {
         <div className="matrix-chart-row">
           <div className="matrix-chart-race-header-cell"></div>
           {races.map((row, raceIndex) => (
-            <div key={raceIndex} className="matrix-chart-flag-image-container">
+            <Link
+              key={raceIndex}
+              className="matrix-chart-flag-image-container"
+              to={`/seasons/${seasonId}/races/${row.round}${row.is_sprint ? '?is_sprint=1' : ''}`}
+              title={`Round ${row.round}${row.is_sprint ? ' (Sprint)' : ''} — ${row.track?.name ?? ''}`}
+            >
               {row?.is_sprint && <div className="sprint-indicator">Sprint</div>}
               {row?.track?.country ? (
                 <img src={displayImage(row?.track?.country, 'flags')} />
               ) : (
                 <div className="matrix-chart-driver-label"></div>
               )}
-            </div>
-
+            </Link>
           ))}
         </div>
         {results.map((row, driverIndex) => {
@@ -455,7 +460,7 @@ const { data, isLoading, error } = useSeasonResultsMatrix(currentSeason, { inclu
       {!isLoading && !errorMessage && (
         <div className='season-container'>
           <div className='seasons-row-one'>
-            <MatrixChart data={data ?? undefined} />
+            <MatrixChart data={data ?? undefined} seasonId={currentSeason} />
             <div className='seasons-side-tables'>
               <ConstructorsTable data={data ?? undefined} />
               <LastRaceResults data={lastRaceData ?? undefined} />

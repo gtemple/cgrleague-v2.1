@@ -1,0 +1,237 @@
+.race-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.race-page-back a {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  font-size: 14px;
+}
+.race-page-back a:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Header */
+.race-header {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 16px;
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .race-header { grid-template-columns: 1fr; }
+}
+
+.race-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+.race-subtitle {
+  color: #b7c0cb;
+  margin-top: 6px;
+}
+.race-track-hero {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0e1116;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.race-track-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Controls */
+.race-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.race-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.race-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.race-round-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  min-width: 70px;
+  text-align: center;
+}
+.btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #172033;
+  color: #e9edf3;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.race-error {
+  color: #ff6b6b;
+  padding: 12px 0;
+}
+
+/* Table */
+.race-results-wrap {
+  overflow-x: auto;
+}
+
+.race-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 680px;
+}
+
+.race-table thead th {
+  text-align: left;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 5, 20, 0.92);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.race-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.race-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.row-dnf td {
+  opacity: 0.6;
+}
+
+/* Position badge */
+.col-pos { width: 52px; }
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Driver cell */
+.col-driver { min-width: 200px; }
+.driver-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex: 0 0 auto;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.driver-name-link {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+.driver-name-link:hover {
+  text-decoration: underline;
+}
+
+/* Team cell */
+.col-team { min-width: 180px; }
+.team-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.team-logo-sm {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.team-logo-sm img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.col-pts { font-weight: 700; }
+
+/* Status badge */
+.status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.status-dnf {
+  background: rgba(220, 60, 60, 0.2);
+  color: #ff8080;
+}
+
+/* Flag chips */
+.col-flags { min-width: 120px; }
+.flag-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+.chip-pole  { background: rgba(77, 255, 42, 0.15);  color: #4dff2a; }
+.chip-fl    { background: rgba(231, 109, 255, 0.15); color: #e76dff; }
+.chip-dotd  { background: rgba(255, 199, 14, 0.15);  color: #ffc70e; }
+.chip-clean { background: rgba(80, 200, 255, 0.15);  color: #50c8ff; }
+.chip-ov    { background: rgba(255, 140, 50, 0.15);  color: #ff8c32; }
+
+/* Shared border card */
+.border {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 5, 20, 0.6);
+  border-radius: 10px;
+  padding: 12px;
+}

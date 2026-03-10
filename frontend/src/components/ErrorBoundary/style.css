@@ -1,0 +1,36 @@
+.error-boundary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+  color: rgba(255, 255, 255, 0.87);
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-boundary h2 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.error-boundary p {
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+.error-boundary button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.87);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.error-boundary button:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+}

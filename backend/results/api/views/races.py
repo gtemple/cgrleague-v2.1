@@ -12,6 +12,66 @@ from .utils import (
     serialize_race_basic, serialize_track, serialize_driver, serialize_team, initials_for
 )
 
+
+class RaceDetailView(APIView):
+    """
+    GET /api/seasons/<season_id>/races/<round>/
+    Optional: ?is_sprint=1  (default 0)
+
+    Returns the full classified grid for a single race.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, season_id: int, round: int, *args, **kwargs):
+        is_sprint = str(request.GET.get("is_sprint", "")).lower() in ("1", "true", "yes")
+
+        try:
+            race = Race.objects.select_related("track", "season").get(
+                season_id=season_id, round=round, is_sprint=is_sprint
+            )
+        except Race.DoesNotExist:
+            return Response({"detail": "Race not found."}, status=404)
+
+        results = (
+            RaceResult.objects
+            .filter(race=race)
+            .select_related(
+                "driver_season__driver",
+                "driver_season__team_season__team",
+            )
+            .order_by("finish_position", "driver_season_id")
+        )
+
+        return Response({
+            "race": {
+                "id": race.id,
+                "round": race.round,
+                "is_sprint": race.is_sprint,
+                "laps": race.laps,
+                "started_at": race.started_at,
+                "track": serialize_track(race.track),
+            },
+            "results": [
+                {
+                    "finish_position": rr.finish_position,
+                    "grid_position": rr.grid_position,
+                    "status": rr.status,
+                    "laps_completed": rr.laps_completed,
+                    "fastest_lap": rr.fastest_lap,
+                    "pole_position": rr.pole_position,
+                    "dotd": rr.dotd,
+                    "cleanest_driver": rr.cleanest_driver,
+                    "most_overtakes": rr.most_overtakes,
+                    "points": points_for_result(rr),
+                    "driver": serialize_driver(rr.driver_season.driver),
+                    "team": serialize_team(
+                        getattr(getattr(rr.driver_season, "team_season", None), "team", None)
+                    ),
+                }
+                for rr in results
+            ],
+        })
+
 class SeasonLastRaceView(APIView):
     """
     Returns:
