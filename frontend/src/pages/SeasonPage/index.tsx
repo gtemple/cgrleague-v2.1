@@ -8,9 +8,7 @@ import { getPositionColor } from "../../utils/getPositionColor";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 
-
 import './style.css'
-
 
 type MatrixProps = {
   data?: ResultsMatrixResponse;
@@ -22,7 +20,7 @@ export function PositionLegend() {
 
   return (
     <div className="position-legend-container border">
-      <h2>Legend</h2>
+      <div className="legend-header">Legend</div>
       <div className="position-legend-boxes">
         {positions.map((pos, i) => (
           <div
@@ -44,9 +42,9 @@ export function PositionLegend() {
   );
 }
 
-
 export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
-  const [matrixData, setMatrixData] = useState('finishPosition'); // 'heatMap' | 'finishPosition' | 'finishPoints'
+  const [displayMode, setDisplayMode] = useState<'finishPosition' | 'finishPoints'>('finishPosition');
+  const [showHeatMap, setShowHeatMap] = useState(false);
 
   if (!data) {
     return (
@@ -58,7 +56,6 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
   }
 
   const { results, races } = data;
-
 
   return (
     <div className="matrix-chart-container">
@@ -73,12 +70,13 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
               to={`/seasons/${seasonId}/races/${row.round}${row.is_sprint ? '?is_sprint=1' : ''}`}
               title={`Round ${row.round}${row.is_sprint ? ' (Sprint)' : ''} — ${row.track?.name ?? ''}`}
             >
-              {row?.is_sprint && <div className="sprint-indicator">Sprint</div>}
+              {row?.is_sprint && <div className="sprint-indicator">S</div>}
               {row?.track?.country ? (
                 <img src={displayImage(row?.track?.country, 'flags')} />
               ) : (
                 <div className="matrix-chart-driver-label"></div>
               )}
+              <div className="round-label">R{row.round}</div>
             </Link>
           ))}
         </div>
@@ -88,60 +86,46 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
             <div key={driverIndex} className="matrix-chart-row">
               {driver.profile_image ? (
                 <div className="matrix-chart-driver-image-container">
-                  <img src={displayImage(driver?.profile_image, 'driver')} alt={`${driver?.initials} portrait`} /></div>
+                  <img src={displayImage(driver?.profile_image, 'driver')} alt={`${driver?.initials} portrait`} />
+                </div>
               ) : (
                 <div className="matrix-chart-driver-label">{driver?.initials}</div>
               )}
 
-              {/* {console.log(row)} */}
-
-
               {row.finish_positions.map((finishPos, raceIndex) => {
                 // @ts-expect-error finishPos can be number or string
                 const bg = getPositionColor(finishPos);
+                const cellStyle = showHeatMap && finishPos != null
+                  ? { backgroundColor: bg.replace('rgb(', 'rgba(').replace(')', ', 0.45)') }
+                  : {};
 
                 return (
-
                   <div
                     key={raceIndex}
                     className="matrix-chart-cell"
+                    style={cellStyle}
                   >
                     <div className="matrix-chart-cell-content">
-                      {/* Existing cell content */}
-                      {matrixData === 'heatMap' && (
-                        <div style={{ backgroundColor: bg, width: '100%', height: '100%' }} />
-                      )}
-                      {matrixData === 'finishPosition' && (
-                        <div
-                          className={
-                            'cell-data' +
-                            (row.fastest_lap[raceIndex] ? ' fastest-lap' : '') +
-                            (row.pole_positions[raceIndex] ? ' pole-position' : '')
-                          }
-                        >
-                          {row.statuses[raceIndex] === 'FIN' ? finishPos : row.statuses[raceIndex]}
-                        </div>
-                      )}
-                      {matrixData === 'finishPoints' && (
-                        <div
-                          className={
-                            'cell-data' +
-                            (row.fastest_lap[raceIndex] ? ' fastest-lap' : '') +
-                            (row.pole_positions[raceIndex] ? ' pole-position' : '')
-                          }
-                        >
-                          {row.finish_points[raceIndex]}
-                        </div>
-                      )}
+                      <div
+                        className={
+                          'cell-data' +
+                          (row.fastest_lap[raceIndex] ? ' fastest-lap' : '') +
+                          (row.pole_positions[raceIndex] ? ' pole-position' : '')
+                        }
+                      >
+                        {displayMode === 'finishPosition'
+                          ? (row.statuses[raceIndex] === 'FIN' ? finishPos : row.statuses[raceIndex])
+                          : row.finish_points[raceIndex]
+                        }
+                      </div>
 
-                      {/* Tooltip */}
                       <div className="matrix-chart-tooltip">
                         <div className="tooltip-header">
                           <div>
                             <h2>{row.driver_info.first_name} {row.driver_info.last_name}</h2>
-                            <div> {row.driver_info.team_name}</div>
+                            <div>{row.driver_info.team_name}</div>
                           </div>
-                          <div> {row.statuses[raceIndex] !== 'FIN' && (
+                          <div>{row.statuses[raceIndex] !== 'FIN' && (
                             <div><span className="tooltip-emphasis">{row.statuses[raceIndex] ?? '-'}</span></div>
                           )}</div>
                         </div>
@@ -149,14 +133,13 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
                         <div>Position: <span className="tooltip-emphasis">{finishPos ?? '-'}</span></div>
                         <div>Points: <span className="tooltip-emphasis">{row.finish_points[raceIndex] ?? 0}</span></div>
                         <div>Grid: <span className="tooltip-emphasis">{row.grid_positions[raceIndex] ?? '-'}</span></div>
-
                       </div>
                     </div>
                   </div>
                 );
               })}
               <div className='matrix-chart-total-cell'>
-                {matrixData === 'finishPosition'
+                {displayMode === 'finishPosition'
                   ? row.avg_finish_position !== null
                     ? Number(row.avg_finish_position).toFixed(1)
                     : '-'
@@ -167,32 +150,38 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
         })}
       </div>
       <div className="matrix-chart-footer">
-        <div className="matrix-chart-filters border" >
-          <h2>Filters</h2>
-          <div className="matrix-chart-buttons">
-            <button onClick={() => setMatrixData('heatMap')}>
-              Heat map
-            </button>
-            <button onClick={() => setMatrixData('finishPosition')}>
-              Position
-            </button>
-            <button onClick={() => setMatrixData('finishPoints')}>
-              Points
+        <div className="matrix-chart-filters border">
+          <div className="filter-row">
+            <div className="filter-group">
+              <span className="filter-label">Display</span>
+              <div className="filter-segmented">
+                <button className={displayMode === 'finishPosition' ? 'seg-active' : ''} onClick={() => setDisplayMode('finishPosition')}>
+                  Position
+                </button>
+                <button className={displayMode === 'finishPoints' ? 'seg-active' : ''} onClick={() => setDisplayMode('finishPoints')}>
+                  Points
+                </button>
+              </div>
+            </div>
+            <button
+              className={`heatmap-toggle${showHeatMap ? ' active' : ''}`}
+              onClick={() => setShowHeatMap(v => !v)}
+            >
+              Heat Map
             </button>
           </div>
         </div>
         <PositionLegend />
       </div>
     </div>
-
   );
 }
 
 const ConstructorsTable = ({ data }: MatrixProps) => {
   if (!data) {
     return (
-      <div className="table-container border">
-        <h2>Fastest Laps</h2>
+      <div className="stats-card">
+        <div className="stats-card-header">Constructors</div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
@@ -203,25 +192,21 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
     return name.length > maxLength ? name.substring(0, maxLength) + '...' : name;
   };
 
-  const constructors = constructor_results
-    .map((row) => {
-      const totalPoints = row.points
-      return {
-        constructor: row.team_display_name,
-        displayName: truncateName(row.team_name, 20),
-        profileImage: row.team_image,
-        totalPoints,
-      };
-    })
+  const constructors = constructor_results.map((row) => ({
+    constructor: row.team_display_name,
+    displayName: truncateName(row.team_name, 20),
+    profileImage: row.team_image,
+    totalPoints: row.points,
+  }));
 
   return (
-    <div className="table-container border">
-      <h2>Constructors</h2>
+    <div className="stats-card">
+      <div className="stats-card-header">Constructors</div>
       <table className="table">
         <tbody>
           {constructors.map((constructor) => (
             <tr key={constructor.constructor}>
-              <td className='team-logo secondary-size'>{constructor?.profileImage && <img src={displayImage(constructor.profileImage, 'team')} alt={constructor.constructor} />} </td>
+              <td><div className='team-logo'>{constructor?.profileImage && <img src={displayImage(constructor.profileImage, 'team')} alt={constructor.constructor} />}</div></td>
               <td>{constructor.displayName}</td>
               <td>{constructor.totalPoints}</td>
             </tr>
@@ -235,8 +220,8 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
 const PodiumsTable = ({ data }: MatrixProps) => {
   if (!data) {
     return (
-      <div className="table-container border">
-        <h2>Podiums</h2>
+      <div className="stats-card">
+        <div className="stats-card-header">Podiums</div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
@@ -257,16 +242,23 @@ const PodiumsTable = ({ data }: MatrixProps) => {
     .sort((a, b) => b.podiumFinishes - a.podiumFinishes)
     .slice(0, 5);
 
+  const max = podiums[0]?.podiumFinishes ?? 1;
+
   return (
-    <div className="table-container border">
-      <h2>Podiums</h2>
+    <div className="stats-card">
+      <div className="stats-card-header">Podiums</div>
       <table className="table">
         <tbody>
           {podiums.map((driver) => (
             <tr key={driver.driver}>
-              <td className='matrix-chart-driver-image-container secondary-size'>{driver?.profileImage && <img src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />} </td>
+              <td><div className='avatar-sm'>{driver?.profileImage && <img src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
               <td>{driver.driver}</td>
-              <td>{driver.podiumFinishes}</td>
+              <td className="stat-bar-cell">
+                <div className="stat-bar-wrap">
+                  <div className="stat-bar" style={{ width: `${(driver.podiumFinishes / max) * 100}%` }} />
+                  <span className="stat-bar-count">{driver.podiumFinishes}</span>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -278,8 +270,8 @@ const PodiumsTable = ({ data }: MatrixProps) => {
 const FastestLapTable = ({ data }: MatrixProps) => {
   if (!data) {
     return (
-      <div className="table-container border">
-        <h2>Fastest Laps</h2>
+      <div className="stats-card">
+        <div className="stats-card-header">Fastest Laps</div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
@@ -300,16 +292,23 @@ const FastestLapTable = ({ data }: MatrixProps) => {
     .sort((a, b) => b.fastestLapCount - a.fastestLapCount)
     .slice(0, 5);
 
+  const max = fastestLaps[0]?.fastestLapCount ?? 1;
+
   return (
-    <div className="table-container border">
-      <h2>Fastest Laps</h2>
+    <div className="stats-card">
+      <div className="stats-card-header">Fastest Laps</div>
       <table className="table">
         <tbody>
           {fastestLaps.map((driver) => (
             <tr key={driver.driver}>
-              <td className='matrix-chart-driver-image-container secondary-size'>{driver?.profileImage && <img src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />} </td>
+              <td><div className='avatar-sm'>{driver?.profileImage && <img src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
               <td>{driver.driver}</td>
-              <td>{driver.fastestLapCount}</td>
+              <td className="stat-bar-cell">
+                <div className="stat-bar-wrap">
+                  <div className="stat-bar stat-bar-fl" style={{ width: `${(driver.fastestLapCount / max) * 100}%` }} />
+                  <span className="stat-bar-count">{driver.fastestLapCount}</span>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -321,8 +320,8 @@ const FastestLapTable = ({ data }: MatrixProps) => {
 const DotdsTable = ({ data }: MatrixProps) => {
   if (!data) {
     return (
-      <div className="table-container border">
-        <h2>Fastest Laps</h2>
+      <div className="stats-card">
+        <div className="stats-card-header">Driver of the Day</div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
@@ -343,16 +342,23 @@ const DotdsTable = ({ data }: MatrixProps) => {
     .sort((a, b) => b.dotdCount - a.dotdCount)
     .slice(0, 5);
 
+  const max = dotds[0]?.dotdCount ?? 1;
+
   return (
-    <div className="table-container border">
-      <h2>Driver of the Day</h2>
+    <div className="stats-card">
+      <div className="stats-card-header">Driver of the Day</div>
       <table className="table">
         <tbody>
           {dotds.map((driver) => (
             <tr key={driver.driver}>
-              <td className='matrix-chart-driver-image-container secondary-size'>{driver?.profileImage && <img src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />} </td>
+              <td><div className='avatar-sm'>{driver?.profileImage && <img src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
               <td>{driver.driver}</td>
-              <td>{driver.dotdCount}</td>
+              <td className="stat-bar-cell">
+                <div className="stat-bar-wrap">
+                  <div className="stat-bar stat-bar-dotd" style={{ width: `${(driver.dotdCount / max) * 100}%` }} />
+                  <span className="stat-bar-count">{driver.dotdCount}</span>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -371,27 +377,25 @@ const SeasonSelector = ({
   const seasons = [1, 2, 3, 4, 5, 6, 7];
 
   return (
-    <div className="season-selector">
-      <select
-        className="season-dropdown"
-        value={currentSeasonId}
-        onChange={(e) => setCurrentSeason(Number(e.target.value))}
-      >
-        {seasons.map((season) => (
-          <option key={season} value={season}>
-            Season {season}
-          </option>
-        ))}
-      </select>
+    <div className="season-tabs">
+      {seasons.map((season) => (
+        <button
+          key={season}
+          className={`season-tab${season === currentSeasonId ? ' season-tab-active' : ''}`}
+          onClick={() => setCurrentSeason(season)}
+        >
+          S{season}
+        </button>
+      ))}
     </div>
   );
 };
 
-const LastRaceResults = ({ data }: { data?: SeasonLastRaceResponse }) => {
+const LastRaceResults = ({ data, seasonId }: { data?: SeasonLastRaceResponse; seasonId?: number }) => {
   if (!data) {
     return (
-      <div className="table-container border">
-        <h2>Fastest Laps</h2>
+      <div className="stats-card">
+        <div className="stats-card-header">Last Race</div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
@@ -399,18 +403,26 @@ const LastRaceResults = ({ data }: { data?: SeasonLastRaceResponse }) => {
   const { last_race } = data;
 
   return (
-    <div className="last-race-container border">
-      <h2>Last Race Results</h2>
-      <div>{last_race?.race?.track?.name}</div>
+    <div className="stats-card last-race-card">
+      <div className="stats-card-header">
+        <span>Last Race</span>
+        {seasonId && last_race?.race?.round && (
+          <Link to={`/seasons/${seasonId}/races/${last_race.race.round}`} className="lr-link">
+            View results →
+          </Link>
+        )}
+      </div>
+      <div className="lr-track-name">{last_race?.race?.track?.name}</div>
       <div className="track-image">
         {last_race?.race?.track?.image && <img src={displayImage(last_race.race.track.image, 'trackImage')} alt={last_race.race.track.name} />}
       </div>
       {last_race?.results.map((result, i) => (
         <div className="last-race-result" key={result.driver.id}>
-          <h2>P{i + 1}</h2>
+          <div className={`lr-pos-badge lr-pos-badge-${i + 1}`}>P{i + 1}</div>
           <div>
             <div className='last-race-driver-info'>
-              <div className='matrix-chart-driver-image-container secondary-size'>{result?.driver?.profile_image && <img src={displayImage(result.driver.profile_image, 'driver')} alt={result.driver.display_name} />}
+              <div className='avatar-sm'>
+                {result?.driver?.profile_image && <img src={displayImage(result.driver.profile_image, 'driver')} alt={result.driver.display_name} />}
               </div>
               <div>{result.driver.display_name}</div>
             </div>
@@ -429,13 +441,12 @@ export const SeasonPage = () => {
 
   const handleSeasonChange = (season: number) => {
     setCurrentSeason(season);
-    navigate(`/seasons/${season}`); // Update the URL
+    navigate(`/seasons/${season}`);
   };
 
-const { data, isLoading, error } = useSeasonResultsMatrix(currentSeason, { includeSprints: true });
+  const { data, isLoading, error } = useSeasonResultsMatrix(currentSeason, { includeSprints: true });
   const { data: lastRaceData } = useSeasonLastRace(currentSeason, { includeSprints: false });
 
-  // ✅ no any
   const errorMessage = useMemo(() => {
     if (!error) return null;
     return error instanceof Error
@@ -463,7 +474,7 @@ const { data, isLoading, error } = useSeasonResultsMatrix(currentSeason, { inclu
             <MatrixChart data={data ?? undefined} seasonId={currentSeason} />
             <div className='seasons-side-tables'>
               <ConstructorsTable data={data ?? undefined} />
-              <LastRaceResults data={lastRaceData ?? undefined} />
+              <LastRaceResults data={lastRaceData ?? undefined} seasonId={currentSeason} />
             </div>
           </div>
           <div className='seasons-row-two'>
