@@ -24,18 +24,18 @@ class HallOfFameView(APIView):
             drivers_qs = drivers_qs.filter(human=True)
 
         # 2. Get race-level stats (Wins, Podiums, Awards, Points)
-        points_expr = points_case() + fl_bonus_case()
+        points_expr = points_case("season_entries__results__") + fl_bonus_case("season_entries__results__")
         
         metrics = drivers_qs.annotate(
-            total_wins=Count("results", filter=Q(results__finish_position=1)),
-            total_podiums=Count("results", filter=Q(results__finish_position__lte=3)),
+            total_wins=Count("season_entries__results", filter=Q(season_entries__results__finish_position=1)),
+            total_podiums=Count("season_entries__results", filter=Q(season_entries__results__finish_position__lte=3)),
             total_points=Coalesce(Sum(points_expr), 0),
-            total_fastest_laps=Count("results", filter=Q(results__fastest_lap=True)),
-            total_dotd=Count("results", filter=Q(results__dotd=True)),
-            total_clean_driver=Count("results", filter=Q(results__cleanest_driver=True)),
-            total_overtakes=Count("results", filter=Q(results__most_overtakes=True)),
+            total_fastest_laps=Count("season_entries__results", filter=Q(season_entries__results__fastest_lap=True)),
+            total_dotd=Count("season_entries__results", filter=Q(season_entries__results__dotd=True)),
+            total_clean_driver=Count("season_entries__results", filter=Q(season_entries__results__cleanest_driver=True)),
+            total_overtakes=Count("season_entries__results", filter=Q(season_entries__results__most_overtakes=True)),
         ).values(
-            "id", "first_name", "last_name", "driver_img",
+            "id", "first_name", "last_name", "profile_image",
             "total_wins", "total_podiums", "total_points",
             "total_fastest_laps", "total_dotd", "total_clean_driver", "total_overtakes"
         )
@@ -48,7 +48,7 @@ class HallOfFameView(APIView):
             winner = (
                 DriverSeason.objects.filter(season=season)
                 .annotate(
-                    points=Coalesce(Sum(points_case()), 0) + Coalesce(Sum(fl_bonus_case()), 0),
+                    points=Coalesce(Sum(points_case("results__")), 0) + Coalesce(Sum(fl_bonus_case("results__")), 0),
                     avg_finish=Avg(
                         "results__finish_position",
                         filter=Q(results__finish_position__isnull=False),
@@ -60,8 +60,7 @@ class HallOfFameView(APIView):
                 .first()
             )
             if winner:
-                championships_map[winner.driver_id] = championships_map.get(winner.driver_id, 0) + 1
-
+                championships_map[winner.driver_id] = championships_map.get(winner.driver_id, 0) + 1                                                            
         # 4. Combine data
         data = []
         for d in metrics:

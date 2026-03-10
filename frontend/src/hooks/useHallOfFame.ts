@@ -17,6 +17,7 @@ export type HallOfFameDriver = {
 
 export function useHallOfFame(onlyHuman: boolean) {
   return useApiQuery<HallOfFameDriver[]>(
-    `/hall-of-fame/?only_human=${onlyHuman}`
+    `/api/hall-of-fame/`,
+    { params: { only_human: onlyHuman } }
   );
 }
