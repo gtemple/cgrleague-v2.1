@@ -1,0 +1,239 @@
+.hall-of-fame-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hof-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hof-hero-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.podium-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.podium-spot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.podium-spot.rank-1 {
+  order: 2;
+  z-index: 2;
+}
+
+.podium-spot.rank-2 {
+  order: 1;
+}
+
+.podium-spot.rank-3 {
+  order: 3;
+}
+
+.podium-driver-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--card-bg, rgba(255, 255, 255, 0.05));
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.podium-driver-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #ccc;
+  background: #222;
+}
+
+.rank-1 .podium-driver-img {
+  width: 160px;
+  height: 160px;
+  border-color: #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.rank-2 .podium-driver-img {
+  border-color: #c0c0c0;
+}
+
+.rank-3 .podium-driver-img {
+  border-color: #cd7f32;
+}
+
+.podium-driver-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.podium-step {
+  width: 100%;
+  background: #333;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10px;
+  border-radius: 4px 4px 0 0;
+  min-width: 100px;
+}
+
+.rank-1 .podium-step {
+  height: 140px;
+  background: linear-gradient(to top, #443c0a, #ffd700);
+}
+
+.rank-2 .podium-step {
+  height: 100px;
+  background: linear-gradient(to top, #333, #c0c0c0);
+}
+
+.rank-3 .podium-step {
+  height: 70px;
+  background: linear-gradient(to top, #2b1d0e, #cd7f32);
+}
+
+.podium-rank-num {
+  font-size: 2rem;
+  font-weight: bold;
+  opacity: 0.5;
+}
+
+.podium-name {
+  font-weight: bold;
+  display: block;
+}
+
+.podium-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary-color, #ff4444);
+}
+
+.hof-grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.hof-awards-section {
+  margin-top: 4rem;
+}
+
+.hof-awards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.hof-stat-card {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hof-stat-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+
+.hof-stat-value {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin: 0.5rem 0;
+}
+
+.hof-stat-driver {
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+/* Switch Styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #ff4444;
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+@media (max-width: 768px) {
+  .podium-container {
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .podium-driver-img {
+    width: 60px;
+    height: 60px;
+  }
+  .rank-1 .podium-driver-img {
+    width: 100px;
+    height: 100px;
+  }
+}

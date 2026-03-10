@@ -32,8 +32,9 @@ export function NavBar() {
 
         <nav id="site-nav" className="nav-links">
           <NavLink to="/seasons/7" className={linkClass}>Seasons</NavLink>
-          <NavLink to="/drivers/1" className={linkClass}>Drivers</NavLink>
+          <NavLink to="/drivers" className={linkClass}>Drivers</NavLink>
           <NavLink to="/tracks/1" className={linkClass}>Tracks</NavLink>
+          <NavLink to="/hall-of-fame" className={linkClass}>Hall of Fame</NavLink>
         </nav>
 
         <div />
