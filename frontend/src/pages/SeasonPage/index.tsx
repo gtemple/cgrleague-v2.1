@@ -15,28 +15,32 @@ type MatrixProps = {
   seasonId?: number;
 };
 
-export function PositionLegend() {
-  const positions = Array.from({ length: 20 }, (_, i) => `${i + 1}`);
+const LEGEND_ZONES = [
+  { color: 'rgb(255, 199, 14)', name: 'Win',     range: 'P1' },
+  { color: 'rgb(255, 110, 20)', name: 'Podium',  range: 'P2–3' },
+  { color: 'rgb(165, 22,  22)', name: 'Points',  range: 'P4–10' },
+  { color: 'rgb(30,  12,  42)', name: 'Outside', range: 'P11+' },
+] as const;
 
+export function PositionLegend() {
   return (
-    <div className="position-legend-container border">
-      <div className="legend-header">Legend</div>
-      <div className="position-legend-boxes">
-        {positions.map((pos, i) => (
-          <div
-            key={pos}
-            className={
-              "position-legend-box" +
-              (i === 0 ? " first" : "") +
-              (i === positions.length - 1 ? " last" : "")
-            }
-            style={{ backgroundColor: getPositionColor(pos) }}
-          >
-            {(i === positions.length - 1 || i === 0) ? (
-              <span className="position-legend-label">{pos.toUpperCase()}</span>
-            ) : null}
-          </div>
-        ))}
+    <div className="position-legend-container stats-card">
+      <div className="stats-card-header">Position Key</div>
+      <div className="legend-body">
+        <div className="legend-gradient-bar" />
+        <div className="legend-gradient-ends">
+          <span>P20</span>
+          <span>P1</span>
+        </div>
+        <div className="legend-zones">
+          {LEGEND_ZONES.map(z => (
+            <div key={z.name} className="legend-zone-item">
+              <div className="legend-zone-dot" style={{ background: z.color }} />
+              <span className="legend-zone-name">{z.name}</span>
+              <span className="legend-zone-range">{z.range}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -48,9 +52,9 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
 
   if (!data) {
     return (
-      <div className="border">
-        <h2 className='matrix-chart-title'>Results Grid</h2>
-        <Loader variant="skeleton" lines={10} full />
+      <div className="stats-card">
+        <div className="stats-card-header">Results Grid</div>
+        <div style={{ padding: '16px' }}><Loader variant="skeleton" lines={10} full /></div>
       </div>
     );
   }
@@ -59,8 +63,9 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
 
   return (
     <div className="matrix-chart-container">
-      <div className='border'>
-        <h2 className='matrix-chart-title'>Results Grid</h2>
+      <div className='stats-card'>
+        <div className="stats-card-header">Results Grid</div>
+        <div className="matrix-chart-inner">
         <div className="matrix-chart-row">
           <div className="matrix-chart-race-header-cell"></div>
           {races.map((row, raceIndex) => (
@@ -84,13 +89,14 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
           const driver = row.driver_info;
           return (
             <div key={driverIndex} className="matrix-chart-row">
-              {driver.profile_image ? (
+              <div className="matrix-driver-cell">
                 <div className="matrix-chart-driver-image-container">
-                  <img src={displayImage(driver?.profile_image, 'driver')} alt={`${driver?.initials} portrait`} />
+                  {driver.profile_image
+                    ? <img src={displayImage(driver.profile_image, 'driver')} alt={`${driver.initials} portrait`} />
+                    : null}
                 </div>
-              ) : (
-                <div className="matrix-chart-driver-label">{driver?.initials}</div>
-              )}
+                <span className="matrix-driver-code">{driver.initials}</span>
+              </div>
 
               {row.finish_positions.map((finishPos, raceIndex) => {
                 // @ts-expect-error finishPos can be number or string
@@ -148,12 +154,14 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
             </div>
           )
         })}
+        </div>{/* matrix-chart-inner */}
       </div>
       <div className="matrix-chart-footer">
-        <div className="matrix-chart-filters border">
+        <div className="matrix-chart-filters stats-card">
+          <div className="stats-card-header">Display</div>
+          <div className="filter-body">
           <div className="filter-row">
             <div className="filter-group">
-              <span className="filter-label">Display</span>
               <div className="filter-segmented">
                 <button className={displayMode === 'finishPosition' ? 'seg-active' : ''} onClick={() => setDisplayMode('finishPosition')}>
                   Position
@@ -170,6 +178,7 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
               Heat Map
             </button>
           </div>
+          </div>{/* filter-body */}
         </div>
         <PositionLegend />
       </div>
@@ -199,6 +208,8 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
     totalPoints: row.points,
   }));
 
+  const max = constructors[0]?.totalPoints ?? 1;
+
   return (
     <div className="stats-card">
       <div className="stats-card-header">Constructors</div>
@@ -208,7 +219,12 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
             <tr key={constructor.constructor}>
               <td><div className='team-logo'>{constructor?.profileImage && <img src={displayImage(constructor.profileImage, 'team')} alt={constructor.constructor} />}</div></td>
               <td>{constructor.displayName}</td>
-              <td>{constructor.totalPoints}</td>
+              <td className="stat-bar-cell">
+                <div className="stat-bar-wrap">
+                  <div className="stat-bar stat-bar-constructor" style={{ width: `${(constructor.totalPoints / max) * 100}%` }} />
+                  <span className="stat-bar-count">{constructor.totalPoints}</span>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -459,7 +475,10 @@ export const SeasonPage = () => {
   return (
     <div className="season-container">
       <header className="season-header">
-        <h1 className='season-title'>Season {currentSeason}</h1>
+        <div className="season-header-left">
+          <div className="season-eyebrow">CGR League</div>
+          <h1 className="season-title">Season {currentSeason}</h1>
+        </div>
         <SeasonSelector currentSeasonId={currentSeason} setCurrentSeason={handleSeasonChange} />
       </header>
 
@@ -477,6 +496,7 @@ export const SeasonPage = () => {
               <LastRaceResults data={lastRaceData ?? undefined} seasonId={currentSeason} />
             </div>
           </div>
+          <div className="section-divider">Season Stats</div>
           <div className='seasons-row-two'>
             <PodiumsTable data={data ?? undefined} />
             <FastestLapTable data={data ?? undefined} />

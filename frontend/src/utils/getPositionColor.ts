@@ -45,25 +45,32 @@ const easeInPower = (t: number, power = 1.6) => Math.pow(Math.min(1, Math.max(0,
 
 /**
  * Returns a legend color for a finishing position "1".."20".
- * Three-stop gradient: brown (P20) → yellow (~P10) → red (P1).
+ * Four-stop semantic gradient:
+ *   P20 → near-black purple (backmarker)
+ *   ~P10 → deep crimson (points boundary)
+ *   ~P3  → vivid orange (podium glow)
+ *   P1   → gold (winner)
  */
 export function getPositionColor(positionString: string): string {
-  // much darker starting brown
-  const BROWN: RGB  = [40, 18, 6];      // near-black brown for worst finish
-  const YELLOW: RGB = [255, 199, 14];   // bright for top finishes
+  const VOID: RGB   = [18,  8, 28];    // near-black purple — back of the grid
+  const CRIMSON: RGB = [165, 22, 22];  // deep red — around the points cutoff
+  const ORANGE: RGB  = [255, 110, 20]; // vivid orange — podium territory
+  const GOLD: RGB    = [255, 199, 14]; // bright gold — winner
 
-  // Normalize 1..20 → t in [0..1], where 20→0 (worst) and 1→1 (best)
   const pos = parseInt(positionString, 10);
-  if (isNaN(pos) || pos < 1 || pos > 20) return toRgbString(BROWN);
+  if (isNaN(pos) || pos < 1 || pos > 20) return toRgbString(VOID);
 
-  const tLinear = (20 - pos) / 19; // 20→0, 1→1
-  const t = easeInPower(tLinear, 1.6); // keeps P20–P11 clustered, spreads P10–P1
+  const tLinear = (20 - pos) / 19; // 20→0 (worst), 1→1 (best)
+  const t = easeInPower(tLinear, 1.6);
 
-  // Two-stop interpolation (brown → yellow)
+  // Stop positions are in eased t-space:
+  //   P20 → t≈0.000, P10 → t≈0.343, P3 → t≈0.826, P1 → t=1.000
   const color = interpolateMultiStop(
     [
-      { at: 0.0, color: BROWN },
-      { at: 1.0, color: YELLOW },
+      { at: 0.000, color: VOID },
+      { at: 0.343, color: CRIMSON },
+      { at: 0.826, color: ORANGE },
+      { at: 1.000, color: GOLD },
     ],
     t
   );
