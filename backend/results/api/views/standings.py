@@ -26,8 +26,6 @@ class ConstructorStandingsView(APIView):
             .select_related("driver_season__team_season__team")
             .annotate(points_row=base_pts + fl_bonus)
             .values(
-                "driver_season__team_season_id",
-                "driver_season__team_season__display_name",
                 "driver_season__team_season__team__id",
                 "driver_season__team_season__team__team_name",
                 "driver_season__team_season__team__team_img",
@@ -53,21 +51,17 @@ class ConstructorStandingsView(APIView):
         data: List[Dict[str, Any]] = []
         for row in qs:
             team_id = row["driver_season__team_season__team__id"]
-            base_name = row["driver_season__team_season__team__team_name"]
-            season_display = row["driver_season__team_season__display_name"] or ""
-            display_name = season_display or base_name
+            display_name = row["driver_season__team_season__team__team_name"]
 
             data.append({
-                "team_season_id": row["driver_season__team_season_id"],
+                "team_season_id": None,
                 "team": {
                     "id": team_id,
-                    "name": base_name,
+                    "name": display_name,
                     "display_name": display_name,
                     "logo_image": row.get("driver_season__team_season__team__team_img"),
                 },
                 "points": row["points"] or 0,
-                # If you want to expose it to the UI later, uncomment the next line:
-                # "avg_finish": row["avg_finish"],
             })
 
         return Response(data)
