@@ -14,7 +14,7 @@ import './style.css'
 
 type MatrixProps = {
   data?: ResultsMatrixResponse;
-  seasonId: number;
+  seasonId?: number;
 };
 
 export function PositionLegend() {

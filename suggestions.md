@@ -8,7 +8,6 @@ CGR League v2 is a private Formula 1-style racing league statistics platform bui
 
 ## Potential Next Features or Improvements
 
-- **Pole position and bonus award scoring**: `pole_position`, `cleanest_driver`, and `most_overtakes` are stored on `RaceResult` but absent from `scoring.py` and standings aggregation. Decide if they award points and implement consistently, or explicitly document that they're display-only.
 - **Result submission UI**: Results are entered via raw SQL seed files. An authenticated admin form (or Django admin with inline `RaceResult` editing per `Race`) would make data entry far less error-prone and remove the SQL dependency.
 - **Cache expensive endpoints**: `SeasonResultsMatrixView`, `SeasonStandingsView`, and `ConstructorStandingsView` do heavy DB aggregation on every request. Add per-view caching with invalidation on result save — these are read-heavy and change only when a race is added.
 - **Season comparison view for drivers**: Extend `DriverHistoryView` or add a chart-backed page plotting points-per-race across seasons so progression over time is visible.
