@@ -15,9 +15,9 @@ export type HallOfFameDriver = {
   total_championships: number;
 };
 
-export function useHallOfFame(onlyHuman: boolean) {
+export function useHallOfFame(includeAI: boolean) {
   return useApiQuery<HallOfFameDriver[]>(
     `/api/hall-of-fame/`,
-    { params: { only_human: onlyHuman } }
+    { params: { include_ai: includeAI } }
   );
 }

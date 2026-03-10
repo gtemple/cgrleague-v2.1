@@ -56,8 +56,8 @@ const StatCard = ({ title, value, driver }: { title: string, value: number, driv
 );
 
 export function HallOfFamePage() {
-  const [onlyHuman, setOnlyHuman] = useState(true);
-  const { data, isLoading } = useHallOfFame(onlyHuman);
+  const [includeAI, setIncludeAI] = useState(true);
+  const { data, isLoading } = useHallOfFame(includeAI);
 
   const stats = useMemo(() => {
     if (!data) return null;
@@ -84,27 +84,27 @@ export function HallOfFamePage() {
           <label className="switch">
             <input 
               type="checkbox" 
-              checked={onlyHuman} 
-              onChange={() => setOnlyHuman(!onlyHuman)} 
+              checked={includeAI} 
+              onChange={() => setIncludeAI(!includeAI)} 
             />
             <span className="slider round"></span>
           </label>
-          <span className="toggle-label whitespace-nowrap">Humans Only</span>
+          <span className="toggle-label whitespace-nowrap">Include AI</span>
         </div>
       </div>
 
       <section className="hof-hero-section">
           <Podium 
-            label="All-Time Race Wins" 
-            drivers={stats.wins} 
-            metric="total_wins" 
+            label="Total Career Points" 
+            drivers={stats.points} 
+            metric="total_points" 
           />
       </section>
 
       <div className="hof-grid-stats">
         <Podium label="Most Championships" drivers={stats.championships} metric="total_championships" />
+        <Podium label="All-Time Race Wins" drivers={stats.wins} metric="total_wins" />
         <Podium label="Most Podiums" drivers={stats.podiums} metric="total_podiums" />
-        <Podium label="Total Career Points" drivers={stats.points} metric="total_points" />
       </div>
 
       <section className="hof-awards-section">

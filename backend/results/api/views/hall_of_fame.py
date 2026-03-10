@@ -16,11 +16,14 @@ class HallOfFameView(APIView):
     Includes wins, podiums, points, awards, and championships.
     """
     def get(self, request, *args, **kwargs):
+        # Default is to include AI (only_human=false), unless explicitly requested to filter
         only_human = request.query_params.get("only_human") == "true"
+        include_ai = request.query_params.get("include_ai", "true").lower() == "true"
 
         # 1. Base query for drivers
         drivers_qs = Driver.objects.all()
-        if only_human:
+        # legacy only_human support or newer include_ai parameter
+        if only_human or not include_ai:
             drivers_qs = drivers_qs.filter(human=True)
 
         # 2. Get race-level stats (Wins, Podiums, Awards, Points)
