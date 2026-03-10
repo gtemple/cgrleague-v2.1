@@ -102,6 +102,7 @@ CORS_ALLOWED_ORIGINS = DEV_ORIGINS + FRONTEND_ORIGINS
 # (You cannot wildcard in CORS_ALLOWED_ORIGINS, use regex)
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.netlify\.app$",
+    r"^https://(www\.)?cgr-league\.net$",
 ]
 
 # CSRF must use full scheme+host. Include frontend + backend hosts that serve forms/cookies.
