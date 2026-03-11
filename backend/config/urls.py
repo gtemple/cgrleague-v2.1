@@ -12,4 +12,5 @@ urlpatterns = [
     path("api/", include("tracks.api.urls")),
     path("api/", include("results.api.urls")),
     path("api/", include("drivers.api.urls")),
+    path("api/", include("articles.api.urls")),
 ]

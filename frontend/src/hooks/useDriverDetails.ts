@@ -24,6 +24,8 @@ export type DriverDetail = {
     races_completed: number;
     races: number;
     avg_finish: number | null;
+    ppr: number | null;
+    avg_positions_gained: number | null;
   };
 };
 

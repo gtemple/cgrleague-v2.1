@@ -1,13 +1,17 @@
+import { Link } from "react-router-dom";
 import { useNextRaceTeaser } from "../../hooks/useNextRaceTeaser";
+import { useLatestArticles } from "../../hooks/useArticles";
 import { SeasonStandingsTable } from "../../components/SeasonStandingsTable/index";
 import { ConstructorStandingsTable } from "../../components/ConstructorStandingsTable/index";
 import { displayImage } from "../../utils/displayImage";
+import { articleTypeLabel, formatArticleDate } from "../../utils/articleUtils";
 import './style.css';
 
 const CURRENT_SEASON = 7;
 
 export const HomePage = () => {
   const { data, isLoading } = useNextRaceTeaser({ includeSprints: true });
+  const { data: latestArticles, isLoading: articlesLoading } = useLatestArticles();
 
   const upcoming = data?.upcoming_race ?? null;
   const recentWinners = data?.recent_winners ?? [];
@@ -136,6 +140,45 @@ export const HomePage = () => {
           )}
         </div>
       </div>
+
+      {/* ── Latest Coverage ── */}
+      {(articlesLoading || latestArticles?.recap || latestArticles?.preview) && (
+        <section className="home-articles">
+          <div className="home-articles-header">
+            <span className="home-articles-label">Latest Coverage</span>
+            <Link to="/articles" className="home-articles-see-all">All articles →</Link>
+          </div>
+          <div className="home-articles-grid">
+            {articlesLoading ? (
+              [0, 1].map((i) => (
+                <div key={i} className="home-article-card home-article-card--skeleton">
+                  <div className="skeleton-line skeleton-line--short" />
+                  <div className="skeleton-line skeleton-line--title" />
+                  <div className="skeleton-line" />
+                </div>
+              ))
+            ) : (
+              [latestArticles?.recap, latestArticles?.preview]
+                .filter(Boolean)
+                .map((article) => article && (
+                  <Link key={article.id} to={`/articles/${article.id}`} className="home-article-card">
+                    <div className="home-article-top">
+                      <span className={`article-badge article-badge--${article.type.toLowerCase()}`}>
+                        {articleTypeLabel(article.type)}
+                      </span>
+                      <span className="home-article-race">
+                        R{article.race.round} · {article.race.track.name}
+                      </span>
+                    </div>
+                    <h3 className="home-article-title">{article.title}</h3>
+                    <p className="home-article-teaser">{article.teaser}</p>
+                    <div className="home-article-date">{formatArticleDate(article.generated_at)}</div>
+                  </Link>
+                ))
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

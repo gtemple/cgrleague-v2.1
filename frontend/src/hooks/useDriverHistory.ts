@@ -21,6 +21,11 @@ export type DriverHistoryRow = {
   best_finish: number | null;
   team_points: number;
   pop_share: number | null; // 0..100
+  ppr: number | null;
+  avg_positions_gained: number | null;
+  pole_to_win_rate: number | null;
+  points_finish_rate: number | null;
+  finish_rate: number | null;
 };
 
 export type DriverHistoryResponse = {

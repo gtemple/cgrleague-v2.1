@@ -8,6 +8,8 @@ import { DriverPage } from "./pages/DriverPage/index.tsx";
 import { DriversIndex } from "./pages/DriverPage/DriversIndex.tsx";
 import { RacePage } from "./pages/RacePage/index.tsx";
 import { HallOfFamePage } from "./pages/HallOfFamePage/index.tsx";
+import { ArticlesPage } from "./pages/ArticlesPage/index.tsx";
+import { ArticleDetailPage } from "./pages/ArticleDetailPage/index.tsx";
 
 
 function AppLayout() {
@@ -32,6 +34,8 @@ export default function App() {
         <Route path="/tracks/:trackId" element={<TrackPage />} />
         <Route path="/drivers" element={<DriversIndex />} />
         <Route path="/hall-of-fame" element={<HallOfFamePage />} />
+        <Route path="/articles" element={<ArticlesPage />} />
+        <Route path="/articles/:articleId" element={<ArticleDetailPage />} />
       </Route>
     </Routes>
   );
