@@ -24,6 +24,18 @@ class SeasonAdmin(admin.ModelAdmin):
     search_fields = ("game",)
     list_filter = ("game",)
     ordering = ("id",)
+    fieldsets = (
+        (None, {
+            "fields": ("game",),
+        }),
+        ("Article Notes", {
+            "fields": ("season_notes",),
+            "description": (
+                "Add season-level context here before generating season articles — "
+                "major storylines, rule changes, driver transfers, mid-season drama, etc."
+            ),
+        }),
+    )
     if RaceInline:
         inlines = [RaceInline]
 

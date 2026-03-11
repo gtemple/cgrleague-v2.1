@@ -32,6 +32,7 @@ class Article(models.Model):
     teaser = models.TextField()
     content = models.TextField()
     rivalry_callout = models.TextField(blank=True, default="")
+    preview_sidebar = models.JSONField(null=True, blank=True, default=None)
     generated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

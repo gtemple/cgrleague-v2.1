@@ -1,11 +1,43 @@
 import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useArticleDetail } from "../../hooks/useArticles";
+import { useArticleDetail, PreviewSidebar } from "../../hooks/useArticles";
 import { formatArticleDateLong, articleTypeLabel } from "../../utils/articleUtils";
 import { readingTime } from "../../utils/readingTime";
 import { displayImage } from "../../utils/displayImage";
 import { highlightDrivers } from "../../utils/highlightDrivers";
 import "./style.css";
+
+function PreviewSidebarPanel({ sidebar }: { sidebar: PreviewSidebar }) {
+  const { head_to_head: h2h, drivers_to_watch: dtw } = sidebar;
+  return (
+    <aside className="preview-sidebar">
+      <div className="preview-sidebar-section">
+        <div className="preview-sidebar-label">Head to Head</div>
+        <div className="preview-h2h">
+          <div className="preview-h2h-names">
+            <span className="preview-h2h-name">{h2h.driver_a}</span>
+            <span className="preview-h2h-vs">vs</span>
+            <span className="preview-h2h-name">{h2h.driver_b}</span>
+          </div>
+          <p className="preview-h2h-context">{h2h.context}</p>
+        </div>
+      </div>
+
+      <div className="preview-sidebar-section">
+        <div className="preview-sidebar-label">Drivers to Watch</div>
+        <div className="preview-dtw-list">
+          {dtw.map((driver, i) => (
+            <div key={i} className="preview-dtw-card">
+              <div className="preview-dtw-name">{driver.name}</div>
+              <div className="preview-dtw-stat">{driver.stat}</div>
+              <div className="preview-dtw-reason">{driver.reason}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </aside>
+  );
+}
 
 export function ArticleDetailPage() {
   const { articleId } = useParams<{ articleId: string }>();
@@ -15,7 +47,6 @@ export function ArticleDetailPage() {
     ? displayImage(article.race.track.img, "trackImage")
     : null;
 
-  // OG / page title
   useEffect(() => {
     if (!article) return;
 
@@ -74,6 +105,7 @@ export function ArticleDetailPage() {
     : null;
 
   const isSeason = article.type === "SEASON_RECAP" || article.type === "SEASON_PREVIEW";
+  const hasSidebar = article.type === "PREVIEW" && article.preview_sidebar != null;
 
   return (
     <div className="article-detail-page">
@@ -121,10 +153,14 @@ export function ArticleDetailPage() {
         </aside>
       )}
 
-      <div className="article-detail-content">
-        {article.content.split("\n\n").map((para, i) => (
-          <p key={i}>{highlightDrivers(para, article.human_driver_names, "driver-highlight")}</p>
-        ))}
+      <div className={`article-detail-body${hasSidebar ? " article-detail-body--with-sidebar" : ""}`}>
+        <div className="article-detail-content">
+          {article.content.split("\n\n").map((para, i) => (
+            <p key={i}>{highlightDrivers(para, article.human_driver_names, "driver-highlight")}</p>
+          ))}
+        </div>
+
+        {hasSidebar && <PreviewSidebarPanel sidebar={article.preview_sidebar!} />}
       </div>
     </div>
   );

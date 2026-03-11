@@ -27,6 +27,18 @@ class RaceAdmin(admin.ModelAdmin):
     search_fields = ("track__track_name",)
     ordering = ("season", "round", "is_sprint")
     actions = [_generate_articles_action]
+    fieldsets = (
+        (None, {
+            "fields": ("season", "track", "round", "is_sprint", "laps", "started_at"),
+        }),
+        ("Article Notes", {
+            "fields": ("race_notes",),
+            "description": (
+                "Add any race-specific context here before generating articles — "
+                "incidents, penalties, long pit stops, controversies, etc."
+            ),
+        }),
+    )
 
 @admin.register(RaceResult)
 class RaceResultAdmin(admin.ModelAdmin):

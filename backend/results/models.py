@@ -17,6 +17,14 @@ class Race(models.Model):
     is_sprint = models.BooleanField(default=False)
     laps = models.PositiveIntegerField(null=True, blank=True, help_text="Planned race distance (laps)")
     started_at = models.DateTimeField(null=True, blank=True)
+    race_notes = models.TextField(
+        blank=True,
+        default="",
+        help_text=(
+            "Optional notes injected into article prompts — e.g. incidents, long pit stops, "
+            "penalties, controversies, or anything the AI should know about."
+        ),
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -19,9 +19,27 @@ export interface ArticleSummary {
   reading_time_minutes: number;
 }
 
+export interface PreviewSidebarH2H {
+  driver_a: string;
+  driver_b: string;
+  context: string;
+}
+
+export interface PreviewSidebarDriver {
+  name: string;
+  reason: string;
+  stat: string;
+}
+
+export interface PreviewSidebar {
+  head_to_head: PreviewSidebarH2H;
+  drivers_to_watch: PreviewSidebarDriver[];
+}
+
 export interface ArticleDetail extends ArticleSummary {
   content: string;
   rivalry_callout: string;
+  preview_sidebar: PreviewSidebar | null;
   human_driver_names: string[];
 }
 

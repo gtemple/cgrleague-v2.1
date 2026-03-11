@@ -255,11 +255,13 @@ def generate_recap(race):
     track_winners = _get_track_winners(track, exclude_race=race)
     human_names = _get_human_driver_names(season)
 
+    notes_block = f"\nRACE NOTES (from the league admin — treat as factual context):\n{race.race_notes.strip()}\n" if race.race_notes.strip() else ""
+
     prompt = f"""Write a race recap article for the following CGR League race.
 
 RACE: Season {season.id} — Round {race.round} {kind} at {track.name} ({track.city}, {track.country})
 Track length: {track.distance}m
-
+{notes_block}
 RACE RESULTS:
 {_fmt_results(race)}
 
@@ -309,12 +311,14 @@ def generate_preview(next_race, after_race):
     driver_track_history = _get_driver_track_history(season, track)
     human_names = _get_human_driver_names(season)
 
+    notes_block = f"\nRACE NOTES (from the league admin — treat as factual context):\n{next_race.race_notes.strip()}\n" if next_race.race_notes.strip() else ""
+
     prompt = f"""Write a race preview article for the following upcoming CGR League race.
 
 UPCOMING RACE: Season {season.id} — Round {next_race.round} {kind} at {track.name} \
 ({track.city}, {track.country})
 Track length: {track.distance}m
-
+{notes_block}
 CURRENT CHAMPIONSHIP STANDINGS (after Round {after_race.round}):
 {_fmt_standings(standings)}
 
@@ -344,6 +348,12 @@ or approximate
         content=data["content"],
     )
     logger.info("Created PREVIEW article %d for %s", article.id, next_race)
+
+    sidebar = _generate_preview_sidebar(next_race, standings, driver_track_history)
+    if sidebar:
+        article.preview_sidebar = sidebar
+        article.save(update_fields=["preview_sidebar"])
+
     return article
 
 
@@ -369,6 +379,88 @@ def generate_articles_for_race(race_id):
     )
     preview = generate_preview(next_race, after_race=race) if next_race else None
     return recap, preview
+
+
+# ─── preview sidebar ─────────────────────────────────────────────────────────
+
+def _generate_preview_sidebar(next_race, standings, driver_track_history):
+    """
+    Third-pass prompt for race preview articles.
+    Returns a dict with 'head_to_head' and 'drivers_to_watch', or None on failure.
+
+    Expected shape:
+    {
+        "head_to_head": {
+            "driver_a": "Full Name",
+            "driver_b": "Full Name",
+            "context": "2-3 punchy sentences about this matchup"
+        },
+        "drivers_to_watch": [
+            {"name": "Full Name", "reason": "Why to watch", "stat": "One key stat"},
+            ...  // 3 drivers
+        ]
+    }
+    """
+    track = next_race.track
+
+    standings_block = _fmt_standings(standings)
+    history_block = _fmt_driver_track_history(driver_track_history)
+
+    prompt = f"""You are picking the highlights for a race preview sidebar for the upcoming \
+CGR League race at {track.name} (Season {next_race.season_id}, Round {next_race.round}).
+
+CHAMPIONSHIP STANDINGS:
+{standings_block}
+
+DRIVER HISTORY AT {track.name.upper()} (human drivers):
+{history_block}
+
+Your job:
+1. Pick the single best HEAD-TO-HEAD matchup — ideally two drivers close in the standings or \
+with a rivalry at this track. At least one should be a Human driver. Write 2–3 punchy sentences \
+about why this battle matters.
+
+2. Pick exactly 3 DRIVERS TO WATCH (mix of human and AI is fine). For each, write a short reason \
+(1 sentence) and a single key stat (e.g. "P1 here last season", "3 wins in last 4 races", \
+"yet to score at this track").
+
+Return JSON only — no markdown, no extra keys:
+{{
+  "head_to_head": {{
+    "driver_a": "Full Name",
+    "driver_b": "Full Name",
+    "context": "2-3 sentences"
+  }},
+  "drivers_to_watch": [
+    {{"name": "Full Name", "reason": "One sentence", "stat": "Key stat"}},
+    {{"name": "Full Name", "reason": "One sentence", "stat": "Key stat"}},
+    {{"name": "Full Name", "reason": "One sentence", "stat": "Key stat"}}
+  ]
+}}"""
+
+    try:
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            return None
+        client = anthropic.Anthropic(api_key=api_key)
+        message = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=800,
+            system=(
+                "You are a sports journalist. Always respond with valid JSON only — "
+                "no markdown fences, no extra text."
+            ),
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = message.content[0].text.strip().strip("`").removeprefix("json").strip()
+        data = json.loads(raw)
+        # Basic validation
+        if "head_to_head" in data and "drivers_to_watch" in data:
+            return data
+        return None
+    except Exception:
+        logger.warning("Preview sidebar generation failed for race %s", next_race)
+        return None
 
 
 # ─── season helpers ───────────────────────────────────────────────────────────
@@ -448,11 +540,14 @@ def generate_season_recap(season):
     human_names = _get_human_driver_names(season)
     race_count = Race.objects.filter(season=season).count()
 
+    notes_block = f"\nSEASON NOTES (from the league admin — treat as factual context):\n{season.season_notes.strip()}\n" if season.season_notes.strip() else ""
+
     prompt = f"""Write a season review article for CGR League Season {season.id} ({season.game}).
 
 SEASON OVERVIEW:
   Total rounds: {race_count}
   Game: {season.game}
+{notes_block}
 
 FINAL CHAMPIONSHIP STANDINGS:
 {_fmt_standings(final_standings)}
@@ -501,11 +596,14 @@ def generate_season_preview(season):
         for r in races
     ]
 
+    notes_block = f"\nSEASON NOTES (from the league admin — treat as factual context):\n{season.season_notes.strip()}\n" if season.season_notes.strip() else ""
+
     prompt = f"""Write a season preview article for the upcoming CGR League Season {season.id} ({season.game}).
 
 SEASON INFO:
   Total rounds: {race_count}
   Game: {season.game}
+{notes_block}
 
 SEASON CALENDAR:
 {chr(10).join(calendar_lines) if calendar_lines else '  Calendar not yet set.'}

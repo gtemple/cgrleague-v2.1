@@ -50,6 +50,7 @@ class ArticleDetailSerializer(serializers.Serializer):
     teaser = serializers.CharField()
     content = serializers.CharField()
     rivalry_callout = serializers.CharField()
+    preview_sidebar = serializers.JSONField(default=None)
     generated_at = serializers.DateTimeField()
     race = serializers.SerializerMethodField()
     season_id = serializers.SerializerMethodField()
