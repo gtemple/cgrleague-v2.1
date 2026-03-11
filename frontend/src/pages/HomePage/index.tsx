@@ -101,7 +101,7 @@ export const HomePage = () => {
             ) : (
               articles.map((article) => {
                 if (!article) return null;
-                const img = article.race.track.img
+                const img = article.race?.track.img
                   ? displayImage(article.race.track.img, "trackImage")
                   : null;
                 return (
@@ -110,12 +110,14 @@ export const HomePage = () => {
                     <div className="home-article-overlay" />
                     <div className="home-article-content">
                       <div className="home-article-top">
-                        <span className={`article-badge article-badge--${article.type.toLowerCase()}`}>
+                        <span className={`article-badge article-badge--${article.type.toLowerCase().replace("_", "-")}`}>
                           {articleTypeLabel(article.type)}
                         </span>
-                        <span className="home-article-race">
-                          R{article.race.round} · {article.race.track.name}
-                        </span>
+                        {article.race && (
+                          <span className="home-article-race">
+                            R{article.race.round} · {article.race.track.name}
+                          </span>
+                        )}
                       </div>
                       <h3 className="home-article-title">{article.title}</h3>
                       <p className="home-article-teaser">{article.teaser}</p>

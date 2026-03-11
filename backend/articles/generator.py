@@ -132,6 +132,39 @@ def _get_human_driver_names(season):
     return [_name(ds.driver) for ds in ds_list]
 
 
+def _get_name_collision_note(season):
+    """
+    Returns a prompt instruction block if any drivers in the season share a last name,
+    e.g. "J. Smith and T. Smith share the last name 'Smith'".
+    Returns "" if no collisions exist.
+    """
+    from collections import defaultdict
+    ds_list = (
+        DriverSeason.objects
+        .filter(season=season)
+        .select_related("driver")
+    )
+    by_last = defaultdict(list)
+    for ds in ds_list:
+        by_last[ds.driver.last_name].append(ds.driver)
+
+    pairs = []
+    for last_name, drivers in by_last.items():
+        if len(drivers) > 1:
+            names = " and ".join(
+                f"{d.first_name[0]}. {d.last_name}" if d.first_name else d.last_name
+                for d in sorted(drivers, key=lambda d: d.first_name or "")
+            )
+            pairs.append(f"  - {names} share the surname '{last_name}' — always write them as {names}")
+
+    if not pairs:
+        return ""
+    return (
+        "NAME COLLISIONS — these drivers share a surname; always use first initial + last name:\n"
+        + "\n".join(pairs)
+    )
+
+
 # ─── text formatters ─────────────────────────────────────────────────────────
 
 def _fmt_results(race):
@@ -254,8 +287,10 @@ def generate_recap(race):
     standings = _get_standings(season, race.round)
     track_winners = _get_track_winners(track, exclude_race=race)
     human_names = _get_human_driver_names(season)
+    collision_note = _get_name_collision_note(season)
 
     notes_block = f"\nRACE NOTES (from the league admin — treat as factual context):\n{race.race_notes.strip()}\n" if race.race_notes.strip() else ""
+    collision_block = f"\n{collision_note}" if collision_note else ""
 
     prompt = f"""Write a race recap article for the following CGR League race.
 
@@ -278,7 +313,7 @@ IMPORTANT RULES:
 approximate results
 - AI drivers may be mentioned naturally by name when relevant (battles, notable moments, etc.)
 - Discuss championship implications using the standings above
-- Highlight key moments: pole, fastest lap, DOTD, Cleanest Driver, Most Overtakes
+- Highlight key moments: pole, fastest lap, DOTD, Cleanest Driver, Most Overtakes{collision_block}
 - Length: 450–650 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
 
@@ -310,8 +345,10 @@ def generate_preview(next_race, after_race):
     track_winners = _get_track_winners(track, exclude_race=next_race)
     driver_track_history = _get_driver_track_history(season, track)
     human_names = _get_human_driver_names(season)
+    collision_note = _get_name_collision_note(season)
 
     notes_block = f"\nRACE NOTES (from the league admin — treat as factual context):\n{next_race.race_notes.strip()}\n" if next_race.race_notes.strip() else ""
+    collision_block = f"\n{collision_note}" if collision_note else ""
 
     prompt = f"""Write a race preview article for the following upcoming CGR League race.
 
@@ -335,7 +372,7 @@ IMPORTANT RULES:
 or approximate
 - AI drivers may be mentioned naturally by name when relevant
 - Discuss the championship stakes — who needs points, who's leading, who's within striking distance
-- Use track history to suggest who might have an edge
+- Use track history to suggest who might have an edge{collision_block}
 - Length: 450–650 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
 
@@ -539,8 +576,10 @@ def generate_season_recap(season):
     final_standings = _get_standings(season, up_to_round=9999)
     human_names = _get_human_driver_names(season)
     race_count = Race.objects.filter(season=season).count()
+    collision_note = _get_name_collision_note(season)
 
     notes_block = f"\nSEASON NOTES (from the league admin — treat as factual context):\n{season.season_notes.strip()}\n" if season.season_notes.strip() else ""
+    collision_block = f"\n{collision_note}" if collision_note else ""
 
     prompt = f"""Write a season review article for CGR League Season {season.id} ({season.game}).
 
@@ -564,7 +603,7 @@ IMPORTANT RULES:
 - Reference their EXACT final championship position and points — do not invent or approximate
 - AI drivers may be mentioned naturally by name when relevant
 - Cover the season arc: early leader, title battles, who faded, who improved
-- Highlight standout moments: dominant performances, comeback wins, controversies
+- Highlight standout moments: dominant performances, comeback wins, controversies{collision_block}
 - Length: 800–1100 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
 
@@ -584,6 +623,7 @@ def generate_season_preview(season):
     """Generate and save a SEASON_PREVIEW Article for an upcoming season."""
     human_names = _get_human_driver_names(season)
     final_standings = _get_standings(season, up_to_round=9999)
+    collision_note = _get_name_collision_note(season)
     races = (
         Race.objects
         .filter(season=season)
@@ -597,6 +637,7 @@ def generate_season_preview(season):
     ]
 
     notes_block = f"\nSEASON NOTES (from the league admin — treat as factual context):\n{season.season_notes.strip()}\n" if season.season_notes.strip() else ""
+    collision_block = f"\n{collision_note}" if collision_note else ""
 
     prompt = f"""Write a season preview article for the upcoming CGR League Season {season.id} ({season.game}).
 
@@ -617,7 +658,7 @@ IMPORTANT RULES:
 - Reference their championship standing and team from the roster above
 - AI drivers may be mentioned naturally by name when relevant
 - Build anticipation: rivalries to watch, title contenders, tracks to circle on the calendar
-- Discuss the format (sprint rounds, total rounds) and what it means for strategy
+- Discuss the format (sprint rounds, total rounds) and what it means for strategy{collision_block}
 - Length: 750–1000 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
 
