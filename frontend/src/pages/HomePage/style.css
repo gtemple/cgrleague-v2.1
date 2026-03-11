@@ -436,6 +436,28 @@
   .home-articles-grid {
     grid-template-columns: 1fr 1fr;
   }
+
+  .home-articles-grid--with-rankings {
+    grid-template-columns: 1fr 1fr 220px;
+  }
+}
+
+@media (min-width: 900px) {
+  .home-articles-grid--with-rankings {
+    grid-template-columns: 1fr 1fr 260px;
+  }
+}
+
+.home-article-card--rankings {
+  border-left: 3px solid rgba(255, 199, 14, 0.4);
+}
+
+.home-rankings-movers {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  justify-content: center;
 }
 
 /* ── Full-bleed article card ── */

@@ -80,49 +80,6 @@ function ArticleSeasonCard({ article }: { article: ArticleSummary }) {
   );
 }
 
-function ArticleCard({ article }: { article: ArticleSummary }) {
-  const trackImg = article.race?.track.img
-    ? displayImage(article.race.track.img, "trackImage")
-    : null;
-  const flagImg = article.race?.track.country
-    ? displayImage(article.race.track.country, "flags")
-    : null;
-  const badgeClass = `article-badge article-badge--${article.type.toLowerCase().replace("_", "-")}`;
-
-  return (
-    <Link to={`/articles/${article.id}`} className="article-card">
-      {trackImg && (
-        <div className="article-card-img">
-          <img src={trackImg} alt={article.race!.track.name} />
-        </div>
-      )}
-      <div className="article-card-body">
-        <div className="article-card-top">
-          <span className={badgeClass}>{articleTypeLabel(article.type)}</span>
-          {article.race && (
-            <span className="article-race-meta">
-              S{article.race.season_id} · R{article.race.round}
-              {article.race.is_sprint && <span className="article-sprint-tag">Sprint</span>}
-            </span>
-          )}
-        </div>
-        {article.race && (
-          <div className="article-track-name">
-            {flagImg && <img className="article-flag" src={flagImg} alt={article.race.track.country ?? ""} />}
-            {article.race.track.name}
-          </div>
-        )}
-        <h3 className="article-title">{article.title}</h3>
-        <p className="article-teaser">{article.teaser}</p>
-        <div className="article-card-footer">
-          <span className="article-date">{formatArticleDate(article.generated_at)}</span>
-          <span className="article-reading-time">{readingTime(article.reading_time_minutes)}</span>
-          <span className="article-read-more">Read →</span>
-        </div>
-      </div>
-    </Link>
-  );
-}
 
 function PowerRankingsCard({ article }: { article: ArticleSummary }) {
   const movers = article.biggest_movers ?? [];
@@ -165,30 +122,53 @@ function PowerRankingsCard({ article }: { article: ArticleSummary }) {
 
 // ─── grouping logic ───────────────────────────────────────────────────────────
 
+interface RoundGroup {
+  round: number;
+  raceArticles: ArticleSummary[];
+  rankingsArticle: ArticleSummary | null;
+}
+
 interface SeasonGroup {
   seasonId: number;
   game: string | null;
   seasonArticles: ArticleSummary[];
-  rankingsArticles: ArticleSummary[];
-  raceArticles: ArticleSummary[];
+  rounds: RoundGroup[];
+  totalCount: number;
 }
 
 function groupBySeasonDesc(articles: ArticleSummary[]): SeasonGroup[] {
-  const map = new Map<number, ArticleSummary[]>();
+  const seasonMap = new Map<number, ArticleSummary[]>();
   for (const a of articles) {
     const sid = a.season_id ?? 0;
-    if (!map.has(sid)) map.set(sid, []);
-    map.get(sid)!.push(a);
+    if (!seasonMap.has(sid)) seasonMap.set(sid, []);
+    seasonMap.get(sid)!.push(a);
   }
-  return [...map.entries()]
+  return [...seasonMap.entries()]
     .sort(([a], [b]) => b - a)
-    .map(([seasonId, items]) => ({
-      seasonId,
-      game: items.find((a) => a.season_game)?.season_game ?? null,
-      seasonArticles: items.filter((a) => a.type === "SEASON_RECAP" || a.type === "SEASON_PREVIEW"),
-      rankingsArticles: items.filter((a) => a.type === "POWER_RANKINGS"),
-      raceArticles: items.filter((a) => a.type === "RECAP" || a.type === "PREVIEW"),
-    }));
+    .map(([seasonId, items]) => {
+      const seasonArticles = items.filter(
+        (a) => a.type === "SEASON_RECAP" || a.type === "SEASON_PREVIEW"
+      );
+      const roundMap = new Map<number, { raceArticles: ArticleSummary[]; rankingsArticle: ArticleSummary | null }>();
+      for (const a of items) {
+        if (a.type === "SEASON_RECAP" || a.type === "SEASON_PREVIEW") continue;
+        const round = a.race?.round ?? 0;
+        if (!roundMap.has(round)) roundMap.set(round, { raceArticles: [], rankingsArticle: null });
+        const g = roundMap.get(round)!;
+        if (a.type === "POWER_RANKINGS") g.rankingsArticle = a;
+        else g.raceArticles.push(a);
+      }
+      const rounds = [...roundMap.entries()]
+        .sort(([a], [b]) => b - a)
+        .map(([round, g]) => ({ round, ...g }));
+      return {
+        seasonId,
+        game: items.find((a) => a.season_game)?.season_game ?? null,
+        seasonArticles,
+        rounds,
+        totalCount: items.length,
+      };
+    });
 }
 
 // ─── page ─────────────────────────────────────────────────────────────────────
@@ -259,7 +239,7 @@ export function ArticlesPage() {
                   {group.game && <span className="articles-season-game">{group.game}</span>}
                 </div>
                 <span className="articles-season-count">
-                  {group.seasonArticles.length + group.rankingsArticles.length + group.raceArticles.length} article{group.seasonArticles.length + group.rankingsArticles.length + group.raceArticles.length !== 1 ? "s" : ""}
+                  {group.totalCount} article{group.totalCount !== 1 ? "s" : ""}
                 </span>
               </div>
 
@@ -272,24 +252,20 @@ export function ArticlesPage() {
                 </div>
               )}
 
-              {/* Power rankings articles */}
-              {group.rankingsArticles.length > 0 && (
-                <div className="articles-grid articles-grid--rankings">
-                  {group.rankingsArticles.map((a) => (
-                    <PowerRankingsCard key={a.id} article={a} />
-                  ))}
-                </div>
-              )}
-
-              {/* Race articles: featured first, rest in grid */}
-              {group.raceArticles.length > 0 && (
-                <div className="articles-grid">
-                  <ArticleFeaturedCard article={group.raceArticles[0]} />
-                  {group.raceArticles.slice(1).map((a) => (
-                    <ArticleCard key={a.id} article={a} />
-                  ))}
-                </div>
-              )}
+              {/* Per-round groups: race articles + rankings side by side */}
+              {group.rounds.map((roundGroup) => (
+                roundGroup.raceArticles.length > 0 && (
+                  <div key={roundGroup.round} className="articles-race-row">
+                    {roundGroup.raceArticles.map((a) => (
+                      <ArticleFeaturedCard key={a.id} article={a} />
+                    ))}
+                    {roundGroup.rankingsArticle
+                      ? <PowerRankingsCard article={roundGroup.rankingsArticle} />
+                      : <div className="articles-rankings-placeholder" />
+                    }
+                  </div>
+                )
+              ))}
             </div>
           ))}
         </div>

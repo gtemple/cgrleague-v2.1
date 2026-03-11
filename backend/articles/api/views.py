@@ -50,7 +50,9 @@ class LatestArticlesView(APIView):
         qs = Article.objects.select_related("race", "race__track", "season")
         recap = qs.filter(type=Article.RECAP).first()
         preview = qs.filter(type=Article.PREVIEW).first()
+        rankings = qs.filter(type=Article.POWER_RANKINGS).first()
         return Response({
             "recap": ArticleListSerializer(recap).data if recap else None,
             "preview": ArticleListSerializer(preview).data if preview else None,
+            "rankings": ArticleListSerializer(rankings).data if rankings else None,
         })

@@ -51,6 +51,8 @@ export interface RankingsEntry {
   driver_id: number;
   name: string;
   team: string;
+  team_color: string;
+  profile_image: string;
   is_human: boolean;
   score: number;
   blurb: string;
@@ -78,6 +80,7 @@ export interface ArticleDetail extends ArticleSummary {
 export interface LatestArticles {
   recap: ArticleSummary | null;
   preview: ArticleSummary | null;
+  rankings: ArticleSummary | null;
 }
 
 export function useArticleList() {

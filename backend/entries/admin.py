@@ -24,11 +24,9 @@ class DriverSeasonForm(forms.ModelForm):
 
 @admin.register(TeamSeason)
 class TeamSeasonAdmin(admin.ModelAdmin):
-    list_display = ("id", "season", "team", "display_name")
+    list_display = ("id", "season", "team", "display_name", "color")
     list_filter = ("season", "team")
     search_fields = ("display_name", "team__team_name", "season__game")
-
-    # nice: when using autocomplete_fields from other admins, this speeds things up
     ordering = ("season_id", "team__team_name")
 
 @admin.register(DriverSeason)

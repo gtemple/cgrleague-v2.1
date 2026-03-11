@@ -52,12 +52,13 @@ function formChipClass(pos: number | null): string {
   return "pr-form-chip";
 }
 
-function DriverCard({ entry, maxScore }: { entry: RankingsEntry; maxScore: number }) {
+function DriverCard({ entry }: { entry: RankingsEntry }) {
   const delta = entry.prev_rank != null ? entry.prev_rank - entry.rank : null;
-  const pct = maxScore > 0 ? (entry.score / maxScore) * 100 : 0;
+  const avatarUrl = entry.profile_image ? displayImage(entry.profile_image, "driver") : null;
+  const borderColor = entry.team_color || (entry.is_human ? "rgba(255,199,14,0.5)" : "rgba(255,255,255,0.1)");
 
   return (
-    <div className={`pr-card${entry.is_human ? " pr-card--human" : ""}`}>
+    <div className="pr-card" style={{ borderLeftColor: borderColor }}>
       <div className="pr-rank">
         <span className={`pr-rank-num${entry.rank <= 3 ? " pr-rank-num--top3" : ""}`}>
           {entry.rank}
@@ -71,32 +72,28 @@ function DriverCard({ entry, maxScore }: { entry: RankingsEntry; maxScore: numbe
         )}
       </div>
 
+      <div className="pr-avatar">
+        {avatarUrl
+          ? <img src={avatarUrl} alt={entry.name} />
+          : <div className="pr-avatar-placeholder" style={{ background: borderColor }} />
+        }
+      </div>
+
       <div className="pr-header">
-        <div>
+        <div className="pr-name-team">
           <span className="pr-name">{entry.name}</span>
-          {" "}
-          <span className="pr-team">{entry.team}</span>
+          <span className="pr-team" style={entry.team_color ? { color: entry.team_color } : undefined}>
+            {entry.team}
+          </span>
         </div>
-        <div className="pr-meta">
-          {entry.championship_pos != null && (
-            <span className="pr-champ-pos">P{entry.championship_pos} championship</span>
-          )}
-          <span className="pr-score-label">{entry.score}</span>
-        </div>
+        {entry.championship_pos != null && (
+          <span className="pr-champ-pos">P{entry.championship_pos} in standings</span>
+        )}
       </div>
 
       <div className="pr-body">
-        <div className="pr-score-bar-wrap">
-          <div className="pr-score-bar-track">
-            <div
-              className={`pr-score-bar-fill${entry.is_human ? "" : " pr-score-bar-fill--ai"}`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-        </div>
-
         <div className="pr-form">
-          <span className="pr-form-label">Last {entry.recent_finishes.length}</span>
+          <span className="pr-form-label">Recent</span>
           {entry.recent_finishes.map((pos, i) => (
             <span key={i} className={formChipClass(pos)}>
               {pos != null ? `P${pos}` : "–"}
@@ -111,11 +108,10 @@ function DriverCard({ entry, maxScore }: { entry: RankingsEntry; maxScore: numbe
 }
 
 function PowerRankingsLayout({ data }: { data: RankingsData }) {
-  const maxScore = data.rankings[0]?.score ?? 100;
   return (
     <div className="pr-grid">
       {data.rankings.map((entry) => (
-        <DriverCard key={entry.driver_id} entry={entry} maxScore={maxScore} />
+        <DriverCard key={entry.driver_id} entry={entry} />
       ))}
     </div>
   );

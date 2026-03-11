@@ -22,7 +22,7 @@ export const HomePage = () => {
   const trackImg = track?.image ? displayImage(track.image, "trackImage") : null;
   const flagImg = track?.country ? displayImage(track.country, "flags") : null;
 
-  const articles = [latestArticles?.recap, latestArticles?.preview].filter(Boolean);
+  const articles = [latestArticles?.recap, latestArticles?.preview, latestArticles?.rankings].filter(Boolean);
 
   return (
     <div className="home">
@@ -93,7 +93,7 @@ export const HomePage = () => {
             <Link to="/articles" className="home-articles-see-all">All articles →</Link>
           </div>
 
-          <div className="home-articles-grid">
+          <div className={`home-articles-grid${latestArticles?.rankings ? " home-articles-grid--with-rankings" : ""}`}>
             {articlesLoading ? (
               [0, 1].map((i) => (
                 <div key={i} className="home-article-card home-article-card--skeleton" />
@@ -101,16 +101,22 @@ export const HomePage = () => {
             ) : (
               articles.map((article) => {
                 if (!article) return null;
+                const isRankings = article.type === "POWER_RANKINGS";
                 const img = article.race?.track.img
                   ? displayImage(article.race.track.img, "trackImage")
                   : null;
+                const movers = article.biggest_movers ?? [];
                 return (
-                  <Link key={article.id} to={`/articles/${article.id}`} className="home-article-card">
+                  <Link
+                    key={article.id}
+                    to={`/articles/${article.id}`}
+                    className={`home-article-card${isRankings ? " home-article-card--rankings" : ""}`}
+                  >
                     {img && <img className="home-article-bg" src={img} alt="" aria-hidden="true" />}
                     <div className="home-article-overlay" />
                     <div className="home-article-content">
                       <div className="home-article-top">
-                        <span className={`article-badge article-badge--${article.type.toLowerCase().replace("_", "-")}`}>
+                        <span className={`article-badge article-badge--${article.type.toLowerCase().replace(/_/g, "-")}`}>
                           {articleTypeLabel(article.type)}
                         </span>
                         {article.race && (
@@ -120,10 +126,23 @@ export const HomePage = () => {
                         )}
                       </div>
                       <h3 className="home-article-title">{article.title}</h3>
-                      <p className="home-article-teaser">{article.teaser}</p>
+                      {isRankings && movers.length > 0 ? (
+                        <div className="home-rankings-movers">
+                          {movers.map((m) => (
+                            <span
+                              key={m.name}
+                              className={`rankings-mover-chip rankings-mover-chip--${m.delta > 0 ? "up" : "down"}`}
+                            >
+                              {m.delta > 0 ? "▲" : "▼"}{Math.abs(m.delta)} {m.name.split(" ").pop()}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="home-article-teaser">{article.teaser}</p>
+                      )}
                       <div className="home-article-footer">
                         <span className="home-article-date">{formatArticleDate(article.generated_at)}</span>
-                        <span className="home-article-read">Read article →</span>
+                        <span className="home-article-read">{isRankings ? "View rankings →" : "Read article →"}</span>
                       </div>
                     </div>
                   </Link>

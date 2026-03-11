@@ -501,27 +501,54 @@
 }
 
 /* ═══════════════════════════════════════
-   POWER RANKINGS CARD
+   RACE ROW (race articles + rankings)
 ═══════════════════════════════════════ */
 
-.articles-grid--rankings {
+/* Mobile: stack */
+.articles-race-row {
+  display: grid;
   grid-template-columns: 1fr;
+  gap: 12px;
 }
 
+/* ≥640px: race articles side by side, rankings stacked below */
 @media (min-width: 640px) {
-  .articles-grid--rankings {
-    grid-template-columns: repeat(2, 1fr);
+  .articles-race-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* rankings card spans both columns on tablet */
+  .articles-race-row .article-card--rankings {
+    grid-column: 1 / -1;
   }
 }
 
-@media (min-width: 900px) {
-  .articles-grid--rankings {
-    grid-template-columns: repeat(3, 1fr);
+/* ≥860px: all three in one row — race articles equal, rankings narrower */
+@media (min-width: 860px) {
+  .articles-race-row {
+    grid-template-columns: 1fr 1fr 230px;
   }
+
+  .articles-race-row .article-card--rankings {
+    grid-column: auto;
+  }
+
+  /* Featured cards don't span when in this flat row */
+  .articles-race-row .article-card--featured {
+    grid-column: auto;
+  }
+}
+
+.articles-rankings-placeholder {
+  /* holds the third column without rendering anything visible */
 }
 
 .article-card--rankings {
   border-left: 3px solid rgba(255, 199, 14, 0.4);
+}
+
+.article-card--rankings .article-card-footer {
+  margin-top: auto;
 }
 
 .article-card--rankings:hover {

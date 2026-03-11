@@ -758,11 +758,17 @@ def _compute_rankings(race, driver_seasons, completed_races):
             ds.team_season.team.team_name
             if ds.team_season and ds.team_season.team else "—"
         )
+        team_color = (
+            ds.team_season.color
+            if ds.team_season and ds.team_season.color else ""
+        )
         champ_pos, champ_pts = champ_map.get(name, (None, 0))
         scored.append({
             "driver_id": ds.driver_id,
             "name": name,
             "team": team_name,
+            "team_color": team_color,
+            "profile_image": ds.driver.profile_image or "",
             "is_human": ds.driver.human,
             "score": score,
             "recent_finishes": finishes[-5:],
@@ -776,13 +782,16 @@ def _compute_rankings(race, driver_seasons, completed_races):
     return scored
 
 
-def _generate_rankings_blurbs(race, ranked_drivers):
+def _generate_rankings_blurbs(race, ranked_drivers, completed_races):
     """
     Generate 1-2 sentence blurbs for every driver. Returns {name: blurb}.
+    When it's the first race of the season, includes previous season final standings as context.
     """
     season = race.season
     collision_note = _get_name_collision_note(season)
     collision_block = f"\n{collision_note}" if collision_note else ""
+
+    is_first_race = len(completed_races) == 1
 
     lines = []
     for d in ranked_drivers:
@@ -790,18 +799,49 @@ def _generate_rankings_blurbs(race, ranked_drivers):
         human_tag = " (Human)" if d["is_human"] else " (AI)"
         lines.append(
             f"  #{d['rank']} {d['name']}{human_tag} ({d['team']}) — "
-            f"Score: {d['score']}/100 | Recent: {recent_str} | "
+            f"Recent results: {recent_str} | "
             f"Championship: P{d['championship_pos'] or '?'} ({d['championship_points']} pts)"
         )
+
+    prev_season_block = ""
+    if is_first_race:
+        try:
+            prev_season = Season.objects.get(pk=season.id - 1)
+            prev_standings = _get_standings(prev_season, up_to_round=9999)
+            current_names = {d["name"] for d in ranked_drivers}
+            returning = [r for r in prev_standings if r["name"] in current_names]
+            if returning:
+                prev_lines = "\n".join(
+                    f"  P{r['pos']} {r['name']} ({r['team']}) — {r['points']} pts"
+                    for r in returning
+                )
+                prev_season_block = (
+                    f"\n\nPREVIOUS SEASON (Season {prev_season.id}) FINAL STANDINGS "
+                    f"(returning drivers only):\n{prev_lines}\n"
+                    f"Use this as background context — mention prior season performance "
+                    f"where relevant since this is the very first race of a new season."
+                )
+        except Season.DoesNotExist:
+            pass
+
+    first_race_note = (
+        " This is the first race of the season, so lean on pre-season expectations "
+        "and prior season form rather than a large results sample."
+        if is_first_race else ""
+    )
 
     prompt = (
         f"You are writing power ranking blurbs for CGR League Season {season.id} "
         f"after Round {race.round} at {race.track.name}.\n\n"
-        f"POWER RANKINGS (sorted by current form score):\n"
+        f"POWER RANKINGS (ordered by current form):\n"
         + "\n".join(lines)
+        + prev_season_block
         + f"\n\nFor EACH driver listed, write exactly 1–2 punchy sentences capturing their "
-        f"current form and story. Be specific — reference their recent results, score, and "
-        f"trajectory. Human drivers get slightly more narrative; AI drivers can be more analytical."
+        f"current form and story, as if you are a sports writer ranking them yourself. "
+        f"Be specific — reference their recent results, championship position, and trajectory."
+        f"{first_race_note} "
+        f"Never mention scores, algorithms, or numerical ratings — write like it is your editorial opinion. "
+        f"Human drivers get slightly more narrative; AI drivers can be more analytical."
         f"{collision_block}\n\n"
         f"Return JSON only — one object, driver names as keys, blurb strings as values:\n"
         f'{{\"Driver Full Name\": \"1-2 sentence blurb.\", ...}}'
@@ -874,7 +914,7 @@ def generate_power_rankings(race):
     for d in ranked:
         d["prev_rank"] = prev_rank_map.get(d["name"])
 
-    blurbs = _generate_rankings_blurbs(race, ranked)
+    blurbs = _generate_rankings_blurbs(race, ranked, completed_races)
 
     # Biggest movers (top 3 by absolute rank change, filtered to those with a prev_rank)
     movers = sorted(
@@ -898,6 +938,8 @@ def generate_power_rankings(race):
             "driver_id": d["driver_id"],
             "name": d["name"],
             "team": d["team"],
+            "team_color": d["team_color"],
+            "profile_image": d["profile_image"],
             "is_human": d["is_human"],
             "score": d["score"],
             "blurb": blurbs.get(d["name"], ""),

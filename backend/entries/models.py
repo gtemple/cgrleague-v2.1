@@ -6,6 +6,7 @@ class TeamSeason(models.Model):
     team   = models.ForeignKey("teams.Team",     on_delete=models.CASCADE, related_name="season_entries")
     # Optional per-season overrides (display name, livery, sponsor, etc.)
     display_name = models.CharField(max_length=255, blank=True)  # e.g. "Sauber Kick" in 2024
+    color = models.CharField(max_length=7, blank=True, default="", help_text="Hex color, e.g. #e8002d")
 
     class Meta:
         db_table = "team_seasons"
