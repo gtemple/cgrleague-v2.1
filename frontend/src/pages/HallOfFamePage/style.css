@@ -40,7 +40,7 @@
 }
 
 .hof-title {
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 5vw, 2rem);
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.02em;
@@ -220,6 +220,21 @@
   .hof-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+@media (max-width: 480px) {
+  .hof-podium-stage {
+    gap: 4px;
+    padding: 16px 8px 0;
+  }
+  .hof-rank-1 .hof-podium-step { height: 90px; }
+  .hof-rank-2 .hof-podium-step { height: 65px; }
+  .hof-rank-3 .hof-podium-step { height: 48px; }
+  .hof-avatar-lg { width: 64px; height: 64px; }
+  .hof-podium-value { font-size: 1.1rem; }
+  .hof-filter-tabs { flex-wrap: wrap; }
+  .hof-header { padding: 14px 16px; }
+  .hof-awards-grid { grid-template-columns: 1fr 1fr; }
 }
 
 .hof-lb-rows {

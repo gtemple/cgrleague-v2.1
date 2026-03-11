@@ -26,7 +26,7 @@
 
 .race-title {
   margin: 0;
-  font-size: 28px;
+  font-size: clamp(20px, 5vw, 28px);
   font-weight: 800;
 }
 .race-subtitle {
@@ -113,6 +113,22 @@
   position: sticky;
   top: 0;
   z-index: 2;
+}
+
+@media (max-width: 600px) {
+  .race-table thead th {
+    top: calc(var(--nav-h, 56px) + 4px);
+    font-size: 13px;
+    padding: 8px 8px;
+  }
+  .race-table tbody td {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+  .race-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 
 .race-table tbody td {

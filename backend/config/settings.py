@@ -11,16 +11,6 @@ load_dotenv(BASE_DIR.parent / ".env")
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
 
-# --- HOSTS ---
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    # Render service hostname for your backend
-    "cgrleague-v2-1.onrender.com",
-]
-# Optionally allow more hosts via env (comma-separated)
-EXTRA_ALLOWED = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
-ALLOWED_HOSTS.extend(EXTRA_ALLOWED)
 
 INSTALLED_APPS = [
     "corsheaders",
@@ -90,11 +80,16 @@ DEV_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    os.getenv("EXTERNAL_HOST", "cgrleague-v2-1.onrender.com"),
-]
+ALLOWED_HOSTS = (
+    ["*"]
+    if DEBUG
+    else [
+        "localhost",
+        "127.0.0.1",
+        "backend",  # Docker service name used by Vite proxy
+        os.getenv("EXTERNAL_HOST", "cgrleague-v2-1.onrender.com"),
+    ]
+)
 
 CORS_ALLOWED_ORIGINS = DEV_ORIGINS + FRONTEND_ORIGINS
 

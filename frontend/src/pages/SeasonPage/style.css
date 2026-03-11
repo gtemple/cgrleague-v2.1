@@ -292,20 +292,46 @@ h2 {
    PAGE LAYOUT
 ═══════════════════════════════════════ */
 
-.seasons-row-one {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  justify-content: center;
+/* Mobile tab switcher — hidden on desktop */
+.mobile-tab-bar {
+  display: none;
 }
 
-.seasons-row-two {
+.season-content {
   display: flex;
-  gap: 24px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.section-standings {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Desktop: CSS grid with named areas */
+@media (min-width: 900px) {
+  .season-content {
+    display: grid;
+    grid-template-areas:
+      "grid  standings"
+      "stats stats";
+    grid-template-columns: 1fr minmax(260px, 320px);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .section-grid      { grid-area: grid; }
+  .section-standings { grid-area: standings; }
+  .section-stats {
+    grid-area: stats;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .section-stats .section-divider { grid-column: 1 / -1; }
 }
 
 /* ═══════════════════════════════════════
@@ -458,8 +484,8 @@ h2 {
 }
 
 .matrix-chart-cell {
-  width: 40px;
-  height: 40px;
+  width: var(--cell);
+  height: var(--cell);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -768,75 +794,55 @@ h2 {
 }
 
 /* ═══════════════════════════════════════
-   MOBILE (≤ 1000px)
+   MOBILE TAB SWITCHER (≤ 599px only)
 ═══════════════════════════════════════ */
 
-@media (max-width: 1000px) {
-
-  :root {
-    --bg: #08090f;
-    --panel: #0d1018;
-    --border: rgba(255,255,255,.14);
-    --muted: rgba(255,255,255,.6);
-    --text: #fff;
-    --radius: 10px;
-    --pad: 14px;
-    --gap: 10px;
-    --cell: 28px;
-    --firstcol: 52px;
-    --cell-gap: 4px;
-  }
-
-  * { box-sizing: border-box; }
-  img { display: block; max-width: 100%; height: auto; }
-
-  .container {
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 12px 24px;
-  }
-
-  .border {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: var(--pad);
-    margin: 8px 0;
-  }
-
-  h1, h2 { margin: 0; color: var(--text); }
-  h1 { font-size: 1.25rem; font-weight: 700; }
-  h2 { font-size: 1rem; font-weight: 600; }
-
-  button {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
+@media (max-width: 599px) {
+  .mobile-tab-bar {
+    display: flex;
     border-radius: 10px;
-    background: #141622;
-    color: var(--text);
-    font-size: .9rem;
-    font-weight: 500;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
   }
 
-  button.active {
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.3);
-    color: #fff;
-    font-weight: 600;
-  }
-
-  /* Season pill tabs on mobile */
-  .season-tabs {
-    gap: 5px;
-  }
-
-  .season-tab {
+  .mobile-tab {
+    flex: 1;
     width: auto;
-    padding: 5px 11px;
-    font-size: 0.75rem;
+    padding: 11px 6px;
+    background: transparent;
+    border: none;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
   }
+
+  .mobile-tab:last-child { border-right: none; }
+
+  .mobile-tab-active {
+    background: rgba(255,255,255,0.12) !important;
+    color: #fff !important;
+  }
+
+  .mobile-hidden { display: none !important; }
+}
+
+/* ═══════════════════════════════════════
+   MOBILE (≤ 599px) — matrix + components
+═══════════════════════════════════════ */
+
+@media (max-width: 599px) {
+  :root {
+    --cell: 30px;
+    --firstcol: 52px;
+    --cell-gap: 3px;
+  }
+
+  .season-title { font-size: 1.25rem; }
 
   .season-header {
     display: grid;
@@ -845,29 +851,16 @@ h2 {
     align-items: center;
   }
 
-  .season-title { font-size: 1.25rem; }
-
-  .season-container {
-    display: grid;
-    gap: 16px;
-  }
-
-  .seasons-row-one,
-  .seasons-row-two,
-  .seasons-side-tables {
-    display: grid;
-    gap: 16px;
-  }
-
-  .matrix-chart-container {
-    display: grid;
-    gap: 12px;
+  .season-tab {
+    width: auto;
+    padding: 5px 11px;
+    font-size: 0.75rem;
   }
 
   .matrix-chart-inner {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 10px 12px 14px;
+    padding: 10px 10px 14px;
   }
 
   .matrix-chart-row {
@@ -880,12 +873,12 @@ h2 {
   .matrix-chart-cell {
     width: var(--cell);
     height: var(--cell);
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: .75rem;
+    font-size: .7rem;
     font-weight: 700;
     overflow: hidden;
     background: #0f1220;
@@ -897,7 +890,7 @@ h2 {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: .9rem;
+    font-size: .8rem;
   }
 
   .matrix-chart-race-header-cell,
@@ -905,7 +898,7 @@ h2 {
     position: sticky;
     left: 0;
     z-index: 3;
-    background: var(--panel);
+    background: #0d1018;
   }
 
   .matrix-chart-race-header-cell { width: var(--firstcol); }
@@ -931,49 +924,30 @@ h2 {
     gap: 2px;
   }
 
-  .matrix-chart-flag-image-container img { width: 18px; }
+  .matrix-chart-flag-image-container img { width: 16px; }
 
-  .round-label { font-size: 8px; }
+  .round-label { font-size: 7px; }
 
-  .sprint-indicator {
-    font-size: .6rem;
-    color: var(--muted);
-  }
+  .sprint-indicator { font-size: .55rem; }
 
-  .matrix-chart-tooltip { display: none; }
-
-  .matrix-chart-cell-content:hover .matrix-chart-tooltip {
-    display: block;
-    position: absolute;
-    z-index: 10;
-    left: 50%;
-    bottom: 110%;
-    transform: translateX(-50%);
-    background: #181f2a;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 10px;
-    white-space: nowrap;
-    font-size: .9rem;
-  }
+  /* Tooltips don't work well on touch */
+  .matrix-chart-tooltip { display: none !important; }
 
   .matrix-chart-total-cell {
     margin-left: 6px;
-    min-width: 50px;
-    text-align: right;
+    min-width: 44px;
     font-weight: 700;
-    font-size: .9rem;
-    color: var(--text);
+    font-size: .85rem;
   }
 
   .matrix-chart-footer {
-    display: grid;
-    gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .filter-row {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: wrap;
     gap: 8px;
   }
 
@@ -982,85 +956,101 @@ h2 {
     width: auto;
   }
 
-  .position-legend-box {
-    height: 22px;
-    font-size: .6rem;
-  }
-
-  .avatar-sm {
-    width: 26px;
-    height: 26px;
-  }
-
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-  }
+  .avatar-sm { width: 26px; height: 26px; }
 
   .table td {
-    padding: 10px 6px;
-    border-bottom: 1px solid var(--border);
-    font-size: .95rem;
+    padding: 8px 6px;
+    font-size: .9rem;
   }
 
-  .table tr:last-child td { border-bottom: none; }
-  .table td:last-child { text-align: right; font-weight: 700; }
+  .stat-bar-cell { width: 90px; }
 
-  .last-race-container { align-items: stretch; }
-
-  .last-race-result {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
-  }
-
-  .last-race-driver-info { display: flex; align-items: center; gap: 10px; }
-  .team-name { color: var(--muted); font-weight: 500; }
-
-  .track-image {
-    width: calc(100% - 32px);
-    margin: 8px 16px 4px;
-    height: 60px;
-  }
-
-  .track-image img {
-    width: 100%; height: 100%; border-radius: 6px;
-    box-shadow: 0 4px 16px rgba(0,0,0,.18);
-  }
-
-  /* Bar charts on mobile */
-  .stat-bar-cell { width: 100px; }
-  .stat-bar-wrap { height: 18px; }
-
-  .fastest-lap { color: rgba(231,109,255,.9); }
-  .pole-position { outline: 1px solid #4dff2a; outline-offset: -1px; }
-
+  .track-image { height: 60px; }
 }
 
-@media (min-width: 600px) {
+/* ═══════════════════════════════════════
+   TABLET (600–899px)
+═══════════════════════════════════════ */
+
+@media (min-width: 600px) and (max-width: 899px) {
   :root { --cell: 32px; }
-  .season-header { grid-template-columns: 1fr auto; }
-  .matrix-chart-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  .season-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .season-title { font-size: 1.5rem; }
+
+  .matrix-chart-inner {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .matrix-chart-row {
+    display: inline-grid;
+    grid-auto-flow: column;
+    gap: var(--cell-gap);
+    align-items: center;
+  }
+
+  .matrix-chart-race-header-cell,
+  .matrix-driver-cell {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: #0d1018;
+  }
+
+  .section-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .section-stats .section-divider { grid-column: 1 / -1; }
 }
+
+/* ═══════════════════════════════════════
+   DESKTOP (≥ 900px)
+═══════════════════════════════════════ */
 
 @media (min-width: 900px) {
   :root { --cell: 40px; }
 
-  .season-container { gap: 20px; }
-
-  .seasons-row-one {
-    grid-template-columns: 1fr minmax(260px, 320px);
-    align-items: start;
-  }
-
-  .seasons-side-tables { grid-auto-rows: min-content; }
-
-  .seasons-row-two {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .matrix-chart-title { font-size: 1.25rem; }
   .matrix-chart-flag-image-container img { width: 26px; }
   .position-legend-box { width: 18px; height: 30px; }
+
+  /* Rows stretch to fill the card — race cells absorb the extra space */
+  .matrix-chart-row {
+    width: 100%;
+  }
+
+  .matrix-chart-race-header-cell,
+  .matrix-driver-cell {
+    flex: 0 0 var(--firstcol);
+    width: var(--firstcol);
+  }
+
+  /* Race columns expand evenly to fill remaining width */
+  .matrix-chart-cell,
+  .matrix-chart-flag-image-container {
+    flex: 1;
+    min-width: var(--cell);
+    width: auto;
+  }
+
+  .matrix-chart-cell {
+    height: var(--cell);
+  }
+
+  .matrix-chart-total-cell {
+    flex: 0 0 72px;
+    margin-left: 0;
+    text-align: right;
+    padding-right: 8px;
+  }
 }

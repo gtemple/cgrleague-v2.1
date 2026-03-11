@@ -27,7 +27,7 @@
 }
 
 .hero-name {
-  font-size: 46px;
+  font-size: clamp(26px, 6vw, 46px);
   font-weight: 400;
 }
 
@@ -69,12 +69,13 @@ width: 100%
 
 .hero-second-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 18px;
+  gap: 10px;
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 4px;
-  padding: 8px 32px;
+  padding: 8px 16px;
   margin: 12px auto;
   width: fit-content;
 }
@@ -142,6 +143,33 @@ width: 100%
   }
   .stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hero-top-row {
+    margin: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .driver-picker {
+    margin-left: 0;
+    width: 100%;
+  }
+  .driver-picker .driver-select {
+    width: 100%;
+    min-width: unset;
+  }
+  .hero-second-row {
+    width: 100%;
+    padding: 8px;
+    gap: 8px;
+  }
+  .hero-highlight-container {
+    flex: 1 1 calc(25% - 8px);
+    min-width: 70px;
   }
 }
 
@@ -216,6 +244,80 @@ width: 100%
   background: rgba(255,255,255,0.12);
 }
 .team-name { font-weight: 700; }
+
+/* ── Info tooltip (used in table headers) ── */
+.info-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  cursor: help;
+  vertical-align: middle;
+}
+
+.info-tooltip-icon {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.45);
+  font-size: 8px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.info-tooltip-text {
+  display: none;
+  position: absolute;
+  top: 140%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #181f2a;
+  color: rgba(255,255,255,0.85);
+  font-size: 11px;
+  font-weight: 400;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 100;
+  border: 1px solid rgba(255,255,255,0.12);
+  pointer-events: none;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.info-tooltip:hover .info-tooltip-text {
+  display: block;
+}
+
+/* Elevate the parent <th> above sibling sticky cells when its tooltip is open */
+.history-table thead th:has(.info-tooltip:hover) {
+  z-index: 20;
+}
+
+/* Hero label tooltip */
+.hero-info-tooltip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.45);
+  font-size: 8px;
+  font-weight: 700;
+  cursor: help;
+  vertical-align: middle;
+}
+
+/* Positive/negative colouring for avg positions */
+.stat-positive { color: #4dff8a; }
+.stat-negative { color: #ff6b6b; }
 
 /* Mobile tweaks */
 @media (max-width: 640px) {

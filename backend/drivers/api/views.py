@@ -99,9 +99,31 @@ class DriverDetailView(APIView):
 
             # average finish position across classified results (NULL ignored)
             avg_finish=Avg("finish_position"),
+
+            # advanced stats
+            points_finishes=Count(Case(
+                When(finish_position__isnull=False, finish_position__lte=10, then=1),
+                output_field=IntegerField(),
+            )),
+            pole_wins=Count(Case(
+                When(pole_position=True, finish_position=1, then=1),
+                output_field=IntegerField(),
+            )),
+            avg_positions_gained=Avg(
+                ExpressionWrapper(
+                    F("grid_position") - F("finish_position"),
+                    output_field=FloatField(),
+                ),
+                filter=Q(grid_position__isnull=False, finish_position__isnull=False, status="FIN"),
+            ),
         )
 
         total_points = int(agg["base_points"]) + int(agg["fl_bonus_points"])
+        races = int(agg["races_count"] or 0)
+        poles = int(agg["poles"] or 0)
+        races_completed = int(agg["races_completed"] or 0)
+        points_finishes = int(agg["points_finishes"] or 0)
+        pole_wins = int(agg["pole_wins"] or 0)
 
         payload = {
             "driver": serialize_driver(driver),
@@ -116,13 +138,19 @@ class DriverDetailView(APIView):
                 "podiums": int(agg["podiums"] or 0),
                 "dnfs": int(agg["dnfs"] or 0),
                 "fastest_laps": int(agg["fastest_laps"] or 0),
-                "poles": int(agg["poles"] or 0),
+                "poles": poles,
                 "dotds": int(agg["dotds"] or 0),
                 "cleanest_awards": int(agg["cleanest_awards"] or 0),
                 "most_overtakes_awards": int(agg["most_overtakes_awards"] or 0),
-                "races_completed": int(agg["races_completed"] or 0),
-                "races": int(agg["races_count"] or 0),
+                "races_completed": races_completed,
+                "races": races,
                 "avg_finish": (float(agg["avg_finish"]) if agg["avg_finish"] is not None else None),
+                # advanced
+                "ppr": round(total_points / races, 2) if races > 0 else None,
+                "points_finish_rate": round(points_finishes / races * 100, 1) if races > 0 else None,
+                "finish_rate": round(races_completed / races * 100, 1) if races > 0 else None,
+                "pole_to_win_rate": round(pole_wins / poles * 100, 1) if poles > 0 else None,
+                "avg_positions_gained": round(float(agg["avg_positions_gained"]), 2) if agg["avg_positions_gained"] is not None else None,
             },
         }
         return Response(payload)
@@ -158,6 +186,24 @@ class DriverHistoryView(APIView):
             .values("total")[:1]
         )
 
+        # Subquery: avg positions gained per driver-season
+        avg_pg_subq = (
+            RaceResult.objects
+            .filter(
+                driver_season=OuterRef("pk"),
+                grid_position__isnull=False,
+                finish_position__isnull=False,
+                status="FIN",
+            )
+            .annotate(gained=ExpressionWrapper(
+                F("grid_position") - F("finish_position"),
+                output_field=FloatField(),
+            ))
+            .values("driver_season")
+            .annotate(avg_pg=Avg("gained"))
+            .values("avg_pg")[:1]
+        )
+
         qs = (
             DriverSeason.objects
             .filter(driver_id=driver_id)
@@ -182,6 +228,12 @@ class DriverHistoryView(APIView):
             # Finishing stats (classified only)
             .annotate(avg_finish=Avg("results__finish_position", filter=Q(results__finish_position__isnull=False)))
             .annotate(best_finish=Min("results__finish_position"))
+            # Advanced stats
+            .annotate(points_finishes=Coalesce(Count("results", filter=Q(
+                results__finish_position__isnull=False, results__finish_position__lte=10)), 0))
+            .annotate(pole_wins=Coalesce(Count("results", filter=Q(
+                results__pole_position=True, results__finish_position=1)), 0))
+            .annotate(avg_positions_gained=Subquery(avg_pg_subq, output_field=FloatField()))
             # Team season presentation
             .annotate(team_name=F("team_season__team__team_name"))
             .annotate(team_logo=F("team_season__team__team_img"))
@@ -200,6 +252,11 @@ class DriverHistoryView(APIView):
         for ds in rows:
             team_points = int(ds.team_points or 0)
             points = int(ds.points or 0)
+            races = int(ds.races or 0)
+            poles = int(ds.poles or 0)
+            races_completed = int(ds.races_completed or 0)
+            points_finishes = int(ds.points_finishes or 0)
+            pole_wins = int(ds.pole_wins or 0)
             pop_share = (points * 100.0 / team_points) if team_points > 0 else None
 
             history.append({
@@ -221,19 +278,25 @@ class DriverHistoryView(APIView):
                 },
                 "wins": int(ds.wins or 0),
                 "podiums": int(ds.podiums or 0),
-                "poles": int(ds.poles or 0),
+                "poles": poles,
                 "fastest_laps": int(ds.fastest_laps or 0),
                 "dotds": int(ds.dotds or 0),
                 "cleanest_awards": int(ds.cleanest_awards or 0),
                 "most_overtakes_awards": int(ds.most_overtakes_awards or 0),
                 "dnfs": int(ds.dnfs or 0),
                 "laps": int(ds.laps or 0),
-                "races": int(ds.races or 0),
-                "races_completed": int(ds.races_completed or 0),
+                "races": races,
+                "races_completed": races_completed,
                 "avg_finish": float(ds.avg_finish) if ds.avg_finish is not None else None,
                 "best_finish": int(ds.best_finish) if ds.best_finish is not None else None,
                 "team_points": team_points,
-                "pop_share": pop_share,  # percentage (0..100), or None if no team points
+                "pop_share": pop_share,
+                # advanced
+                "ppr": round(points / races, 2) if races > 0 else None,
+                "points_finish_rate": round(points_finishes / races * 100, 1) if races > 0 else None,
+                "finish_rate": round(races_completed / races * 100, 1) if races > 0 else None,
+                "pole_to_win_rate": round(pole_wins / poles * 100, 1) if poles > 0 else None,
+                "avg_positions_gained": round(float(ds.avg_positions_gained), 2) if ds.avg_positions_gained is not None else None,
             })
 
         return Response({

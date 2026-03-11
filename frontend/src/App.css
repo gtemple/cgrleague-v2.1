@@ -9,3 +9,10 @@
   padding: 2rem;
   padding-top: 80px;
 }
+
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+    padding-top: 72px;
+  }
+}

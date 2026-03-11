@@ -41,7 +41,6 @@ export const DriverPage = () => {
 
       {!isLoading && !error && driver && totals && (
         <>
-          {console.log(data)}
           <section className="driver-hero">
             <div className="hero-top-row">
               <div className="portrait-wrap">
@@ -132,6 +131,21 @@ export const DriverPage = () => {
               <div className='hero-highlight-container'>
                 <div className='hero-highlight-number'>{totals.laps}</div>
                 <div className='hero-highlight-label'>Laps Completed</div>
+              </div>
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>{totals.ppr != null ? totals.ppr.toFixed(1) : '—'}</div>
+                <div className='hero-highlight-label'>Pts / Race</div>
+              </div>
+              <div className='hero-highlight-container'>
+                <div className='hero-highlight-number'>
+                  {totals.avg_positions_gained != null
+                    ? (totals.avg_positions_gained >= 0 ? '+' : '') + totals.avg_positions_gained.toFixed(1)
+                    : '—'}
+                </div>
+                <div className='hero-highlight-label'>
+                  Avg Pos +/−
+                  <span className="hero-info-tooltip" title="Grid position has been recorded from Season 7">?</span>
+                </div>
               </div>
             </div>
 

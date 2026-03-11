@@ -450,10 +450,13 @@ const LastRaceResults = ({ data, seasonId }: { data?: SeasonLastRaceResponse; se
   );
 }
 
+type MobileTab = 'grid' | 'standings' | 'stats';
+
 export const SeasonPage = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [currentSeason, setCurrentSeason] = useState(Number(params?.seasonId) || 6);
+  const [mobileTab, setMobileTab] = useState<MobileTab>('grid');
 
   const handleSeasonChange = (season: number) => {
     setCurrentSeason(season);
@@ -488,20 +491,37 @@ export const SeasonPage = () => {
       {errorMessage && <p style={{ color: "crimson" }}>Failed to load results: {errorMessage}</p>}
 
       {!isLoading && !errorMessage && (
-        <div className='season-container'>
-          <div className='seasons-row-one'>
-            <MatrixChart data={data ?? undefined} seasonId={currentSeason} />
-            <div className='seasons-side-tables'>
-              <ConstructorsTable data={data ?? undefined} />
-              <LastRaceResults data={lastRaceData ?? undefined} seasonId={currentSeason} />
-            </div>
+        <div className='season-content'>
+
+          {/* Mobile-only tab switcher */}
+          <div className="mobile-tab-bar">
+            {(['grid', 'standings', 'stats'] as MobileTab[]).map(tab => (
+              <button
+                key={tab}
+                className={`mobile-tab${mobileTab === tab ? ' mobile-tab-active' : ''}`}
+                onClick={() => setMobileTab(tab)}
+              >
+                {tab === 'grid' ? 'Grid' : tab === 'standings' ? 'Standings' : 'Stats'}
+              </button>
+            ))}
           </div>
-          <div className="section-divider">Season Stats</div>
-          <div className='seasons-row-two'>
+
+          <div className={`section-grid${mobileTab !== 'grid' ? ' mobile-hidden' : ''}`}>
+            <MatrixChart data={data ?? undefined} seasonId={currentSeason} />
+          </div>
+
+          <div className={`section-standings${mobileTab !== 'standings' ? ' mobile-hidden' : ''}`}>
+            <ConstructorsTable data={data ?? undefined} />
+            <LastRaceResults data={lastRaceData ?? undefined} seasonId={currentSeason} />
+          </div>
+
+          <div className={`section-stats${mobileTab !== 'stats' ? ' mobile-hidden' : ''}`}>
+            <div className="section-divider">Season Stats</div>
             <PodiumsTable data={data ?? undefined} />
             <FastestLapTable data={data ?? undefined} />
             <DotdsTable data={data ?? undefined} />
           </div>
+
         </div>
       )}
     </div>
