@@ -1,5 +1,24 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from .models import Race, RaceResult
+
+
+def _generate_articles_action(modeladmin, request, queryset):
+    if queryset.count() != 1:
+        modeladmin.message_user(request, "Select exactly one race.", level=messages.WARNING)
+        return
+    race = queryset.first()
+    try:
+        from articles.generator import generate_articles_for_race
+        recap, preview = generate_articles_for_race(race.id)
+        msg = f'RECAP created: "{recap.title}"'
+        if preview:
+            msg += f' | PREVIEW created: "{preview.title}"'
+        modeladmin.message_user(request, msg, level=messages.SUCCESS)
+    except Exception as e:
+        modeladmin.message_user(request, f"Error: {e}", level=messages.ERROR)
+
+_generate_articles_action.short_description = "Generate articles for selected race"
+
 
 @admin.register(Race)
 class RaceAdmin(admin.ModelAdmin):
@@ -7,6 +26,7 @@ class RaceAdmin(admin.ModelAdmin):
     list_filter = ("season", "is_sprint", "track")
     search_fields = ("track__track_name",)
     ordering = ("season", "round", "is_sprint")
+    actions = [_generate_articles_action]
 
 @admin.register(RaceResult)
 class RaceResultAdmin(admin.ModelAdmin):
