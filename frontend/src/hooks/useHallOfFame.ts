@@ -4,7 +4,7 @@ export type HallOfFameDriver = {
   id: number;
   first_name: string;
   last_name: string;
-  driver_img: string | null;
+  profile_image: string | null;
   total_wins: number;
   total_podiums: number;
   total_points: number;

@@ -8,8 +8,8 @@ import "./style.css";
 
 const DriverAvatar = ({ driver, size = "md" }: { driver: HallOfFameDriver; size?: "sm" | "md" | "lg" }) => (
   <div className={`hof-avatar hof-avatar-${size}`}>
-    {driver.driver_img
-      ? <img src={displayImage(driver.driver_img, "driver")} alt={driver.last_name} />
+    {driver.profile_image
+      ? <img src={displayImage(driver.profile_image, "driver")} alt={driver.last_name} />
       : null}
   </div>
 );
