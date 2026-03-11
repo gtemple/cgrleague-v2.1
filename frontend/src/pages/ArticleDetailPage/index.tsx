@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useArticleDetail } from "../../hooks/useArticles";
 import { formatArticleDateLong, articleTypeLabel } from "../../utils/articleUtils";
+import { readingTime } from "../../utils/readingTime";
 import { displayImage } from "../../utils/displayImage";
 import { highlightDrivers } from "../../utils/highlightDrivers";
 import "./style.css";
@@ -8,6 +10,39 @@ import "./style.css";
 export function ArticleDetailPage() {
   const { articleId } = useParams<{ articleId: string }>();
   const { data: article, isLoading, error } = useArticleDetail(articleId!);
+
+  const trackImg = article?.race.track.img
+    ? displayImage(article.race.track.img, "trackImage")
+    : null;
+
+  // OG / page title
+  useEffect(() => {
+    if (!article) return;
+
+    const prev = document.title;
+    document.title = `${article.title} — CGR League`;
+
+    const setMeta = (property: string, content: string) => {
+      let el = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    setMeta("og:title", article.title);
+    setMeta("og:description", article.teaser);
+    setMeta("og:type", "article");
+    if (trackImg) {
+      setMeta("og:image", window.location.origin + trackImg);
+    }
+
+    return () => {
+      document.title = prev;
+    };
+  }, [article, trackImg]);
 
   if (isLoading) {
     return (
@@ -34,9 +69,6 @@ export function ArticleDetailPage() {
     );
   }
 
-  const trackImg = article.race.track.img
-    ? displayImage(article.race.track.img, "trackImage")
-    : null;
   const flagImg = article.race.track.country
     ? displayImage(article.race.track.country, "flags")
     : null;
@@ -67,8 +99,19 @@ export function ArticleDetailPage() {
           {article.race.track.name}
         </div>
         <h1 className="article-detail-title">{article.title}</h1>
-        <div className="article-detail-date">{formatArticleDateLong(article.generated_at)}</div>
+        <div className="article-detail-byline">
+          <span className="article-detail-date">{formatArticleDateLong(article.generated_at)}</span>
+          <span className="article-detail-dot">·</span>
+          <span className="article-detail-reading-time">{readingTime(article.reading_time_minutes)}</span>
+        </div>
       </header>
+
+      {article.rivalry_callout && (
+        <aside className="rivalry-callout">
+          <div className="rivalry-callout-label">Battle of the Race</div>
+          <p className="rivalry-callout-text">{article.rivalry_callout}</p>
+        </aside>
+      )}
 
       <div className="article-detail-content">
         {article.content.split("\n\n").map((para, i) => (

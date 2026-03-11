@@ -15,10 +15,12 @@ export interface ArticleSummary {
   teaser: string;
   generated_at: string;
   race: ArticleRace;
+  reading_time_minutes: number;
 }
 
 export interface ArticleDetail extends ArticleSummary {
   content: string;
+  rivalry_callout: string;
   human_driver_names: string[];
 }
 

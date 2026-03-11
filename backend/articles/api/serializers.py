@@ -23,6 +23,11 @@ class ArticleListSerializer(serializers.Serializer):
     teaser = serializers.CharField()
     generated_at = serializers.DateTimeField()
     race = RaceSlimSerializer()
+    reading_time_minutes = serializers.SerializerMethodField()
+
+    def get_reading_time_minutes(self, obj):
+        words = len(obj.content.split())
+        return max(1, round(words / 200))
 
 
 class ArticleDetailSerializer(serializers.Serializer):
@@ -31,5 +36,11 @@ class ArticleDetailSerializer(serializers.Serializer):
     title = serializers.CharField()
     teaser = serializers.CharField()
     content = serializers.CharField()
+    rivalry_callout = serializers.CharField()
     generated_at = serializers.DateTimeField()
     race = RaceSlimSerializer()
+    reading_time_minutes = serializers.SerializerMethodField()
+
+    def get_reading_time_minutes(self, obj):
+        words = len(obj.content.split())
+        return max(1, round(words / 200))

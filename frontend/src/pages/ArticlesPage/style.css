@@ -4,12 +4,48 @@
   gap: 20px;
 }
 
+.articles-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .articles-heading {
   margin: 0;
   font-size: 22px;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.02em;
+}
+
+.articles-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.articles-filter-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.articles-filter-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.articles-filter-btn--active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
 }
 
 .articles-empty {
@@ -187,6 +223,12 @@
 }
 
 .article-date {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  flex: 1;
+}
+
+.article-reading-time {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.3);
 }

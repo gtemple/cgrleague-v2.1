@@ -142,9 +142,53 @@
   letter-spacing: -0.02em;
 }
 
+.article-detail-byline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .article-detail-date {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.35);
+}
+
+.article-detail-dot {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.article-detail-reading-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ═══════════════════════════════════════
+   RIVALRY CALLOUT
+═══════════════════════════════════════ */
+
+.rivalry-callout {
+  border-left: 3px solid rgba(255, 199, 14, 0.5);
+  background: rgba(255, 199, 14, 0.05);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+}
+
+.rivalry-callout-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 199, 14, 0.7);
+  margin-bottom: 6px;
+}
+
+.rivalry-callout-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.75);
+  font-style: italic;
 }
 
 /* ═══════════════════════════════════════

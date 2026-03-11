@@ -216,6 +216,32 @@ def _call_claude(user_prompt):
         return json.loads(cleaned)
 
 
+# ─── rivalry callout ─────────────────────────────────────────────────────────
+
+def _generate_rivalry_callout(race):
+    """
+    Second-pass prompt: extract the single best on-track battle from the race.
+    Returns a plain-text description string, or "" on failure.
+    """
+    prompt = f"""Based on these race results from a CGR League race at {race.track.name} \
+(Season {race.season_id}, Round {race.round}), identify the single most compelling \
+on-track battle or storyline between two specific drivers.
+
+RACE RESULTS:
+{_fmt_results(race)}
+
+Write exactly 2–3 punchy sentences describing the key battle — the positions at stake, \
+the tension, and the outcome. Use the drivers' real names. Be vivid and specific.
+
+Return JSON only: {{"driver_a": "Full Name", "driver_b": "Full Name", "description": "2-3 sentences"}}"""
+    try:
+        data = _call_claude(prompt)
+        return data.get("description", "")
+    except Exception:
+        logger.warning("Rivalry callout generation failed for race %s", race)
+        return ""
+
+
 # ─── article generators ───────────────────────────────────────────────────────
 
 def generate_recap(race):
@@ -262,6 +288,12 @@ approximate results
         content=data["content"],
     )
     logger.info("Created RECAP article %d for %s", article.id, race)
+
+    rivalry = _generate_rivalry_callout(race)
+    if rivalry:
+        article.rivalry_callout = rivalry
+        article.save(update_fields=["rivalry_callout"])
+
     return article
 
 

@@ -18,6 +18,7 @@ class Article(models.Model):
     title = models.CharField(max_length=300)
     teaser = models.TextField()
     content = models.TextField()
+    rivalry_callout = models.TextField(blank=True, default="")
     generated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
