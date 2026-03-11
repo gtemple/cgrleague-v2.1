@@ -160,21 +160,34 @@ export const HomePage = () => {
             ) : (
               [latestArticles?.recap, latestArticles?.preview]
                 .filter(Boolean)
-                .map((article) => article && (
-                  <Link key={article.id} to={`/articles/${article.id}`} className="home-article-card">
-                    <div className="home-article-top">
-                      <span className={`article-badge article-badge--${article.type.toLowerCase()}`}>
-                        {articleTypeLabel(article.type)}
-                      </span>
-                      <span className="home-article-race">
-                        R{article.race.round} · {article.race.track.name}
-                      </span>
-                    </div>
-                    <h3 className="home-article-title">{article.title}</h3>
-                    <p className="home-article-teaser">{article.teaser}</p>
-                    <div className="home-article-date">{formatArticleDate(article.generated_at)}</div>
-                  </Link>
-                ))
+                .map((article) => {
+                  if (!article) return null;
+                  const trackImg = article.race.track.img
+                    ? displayImage(article.race.track.img, "trackImage")
+                    : null;
+                  return (
+                    <Link key={article.id} to={`/articles/${article.id}`} className="home-article-card">
+                      {trackImg && (
+                        <div className="home-article-img">
+                          <img src={trackImg} alt={article.race.track.name} />
+                        </div>
+                      )}
+                      <div className="home-article-body">
+                        <div className="home-article-top">
+                          <span className={`article-badge article-badge--${article.type.toLowerCase()}`}>
+                            {articleTypeLabel(article.type)}
+                          </span>
+                          <span className="home-article-race">
+                            R{article.race.round} · {article.race.track.name}
+                          </span>
+                        </div>
+                        <h3 className="home-article-title">{article.title}</h3>
+                        <p className="home-article-teaser">{article.teaser}</p>
+                        <div className="home-article-date">{formatArticleDate(article.generated_at)}</div>
+                      </div>
+                    </Link>
+                  );
+                })
             )}
           </div>
         </section>

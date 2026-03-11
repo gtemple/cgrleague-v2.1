@@ -134,11 +134,12 @@ def _get_human_driver_names(season):
 # ─── text formatters ─────────────────────────────────────────────────────────
 
 def _fmt_results(race):
+    from django.db.models import F as _F
     results = (
         RaceResult.objects
         .filter(race=race)
         .select_related("driver_season__driver", "driver_season__team_season__team")
-        .order_by("finish_position", "driver_season__driver__last_name")
+        .order_by(_F("finish_position").asc(nulls_last=True), "driver_season__driver__last_name")
     )
     lines = []
     for r in results:
@@ -153,7 +154,7 @@ def _fmt_results(race):
         if r.cleanest_driver: flags.append("Cleanest Driver")
         if r.most_overtakes:  flags.append("Most Overtakes")
         flag_str = f" [{', '.join(flags)}]" if flags else ""
-        human_tag = "" if driver.human else " [AI]"
+        human_tag = " (Human)" if driver.human else ""
         lines.append(
             f"  P{pos} (Grid {grid}): {_name(driver)}{human_tag} ({team.team_name})"
             f" — {r.points} pts, {r.status}{flag_str}"
@@ -164,7 +165,7 @@ def _fmt_results(race):
 def _fmt_standings(rows):
     lines = []
     for s in rows:
-        human_tag = "" if s["is_human"] else " [AI]"
+        human_tag = " (Human)" if s["is_human"] else ""
         lines.append(f"  P{s['pos']}: {s['name']}{human_tag} ({s['team']}) — {s['points']} pts")
     return "\n".join(lines)
 
@@ -242,12 +243,13 @@ PREVIOUS RACE WINNERS AT {track.name.upper()}:
 {_fmt_track_winners(track_winners)}
 
 IMPORTANT RULES:
-- You MUST write at least one meaningful, specific paragraph about EACH of these human drivers \
-(tagged without [AI]): {', '.join(human_names)}
-- Reference their actual finishing position, points scored, and anything notable about their race
+- You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
+{', '.join(human_names)}
+- Reference their EXACT finishing position and points from the results above — do not invent or \
+approximate results
+- AI drivers may be mentioned naturally by name when relevant (battles, notable moments, etc.)
 - Discuss championship implications using the standings above
 - Highlight key moments: pole, fastest lap, DOTD, Cleanest Driver, Most Overtakes
-- Ignore [AI]-tagged drivers entirely
 - Length: 450–650 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
 
@@ -290,9 +292,11 @@ DRIVER HISTORY AT THIS TRACK (human drivers only):
 {_fmt_driver_track_history(driver_track_history)}
 
 IMPORTANT RULES:
-- You MUST write at least one meaningful, specific paragraph about EACH of these human drivers: \
+- You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
 {', '.join(human_names)}
-- Reference their championship position, points, and any relevant track history
+- Reference their EXACT championship position and points from the standings above — do not invent \
+or approximate
+- AI drivers may be mentioned naturally by name when relevant
 - Discuss the championship stakes — who needs points, who's leading, who's within striking distance
 - Use track history to suggest who might have an edge
 - Length: 450–650 words, paragraphs separated by \\n\\n

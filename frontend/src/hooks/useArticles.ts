@@ -5,7 +5,7 @@ export interface ArticleRace {
   round: number;
   is_sprint: boolean;
   season_id: number;
-  track: { id: number; name: string };
+  track: { id: number; name: string; img: string | null; country: string | null };
 }
 
 export interface ArticleSummary {
@@ -19,6 +19,7 @@ export interface ArticleSummary {
 
 export interface ArticleDetail extends ArticleSummary {
   content: string;
+  human_driver_names: string[];
 }
 
 export interface LatestArticles {

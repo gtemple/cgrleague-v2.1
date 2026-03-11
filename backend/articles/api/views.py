@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from entries.models import DriverSeason
 from ..models import Article
 from .serializers import ArticleListSerializer, ArticleDetailSerializer
 
@@ -15,10 +16,20 @@ class ArticleListView(APIView):
 class ArticleDetailView(APIView):
     def get(self, request, article_id):
         article = get_object_or_404(
-            Article.objects.select_related("race", "race__track"),
+            Article.objects.select_related("race", "race__track", "race__season"),
             pk=article_id,
         )
-        return Response(ArticleDetailSerializer(article).data)
+        data = ArticleDetailSerializer(article).data
+        human_drivers = (
+            DriverSeason.objects
+            .filter(season=article.race.season, driver__human=True)
+            .select_related("driver")
+        )
+        data["human_driver_names"] = [
+            f"{ds.driver.first_name} {ds.driver.last_name}".strip()
+            for ds in human_drivers
+        ]
+        return Response(data)
 
 
 class LatestArticlesView(APIView):
