@@ -18,6 +18,7 @@ from django.db.models.functions import Coalesce
 from entries.models import DriverSeason
 from results.models import Race, RaceResult
 from results.api.views.utils import points_case, fl_bonus_case
+from seasons.models import Season
 from .models import Article
 
 logger = logging.getLogger(__name__)
@@ -195,7 +196,7 @@ def _fmt_driver_track_history(by_driver):
 
 # ─── Claude call ─────────────────────────────────────────────────────────────
 
-def _call_claude(user_prompt):
+def _call_claude(user_prompt, max_tokens=1800):
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
@@ -203,7 +204,7 @@ def _call_claude(user_prompt):
     client = anthropic.Anthropic(api_key=api_key)
     message = client.messages.create(
         model="claude-opus-4-6",
-        max_tokens=1800,
+        max_tokens=max_tokens,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_prompt}],
     )
@@ -368,3 +369,180 @@ def generate_articles_for_race(race_id):
     )
     preview = generate_preview(next_race, after_race=race) if next_race else None
     return recap, preview
+
+
+# ─── season helpers ───────────────────────────────────────────────────────────
+
+def _get_all_season_results(season):
+    """All race results for a season, ordered by round then finish position."""
+    from django.db.models import F as _F
+    return (
+        RaceResult.objects
+        .filter(race__season=season)
+        .select_related(
+            "race__track",
+            "driver_season__driver",
+            "driver_season__team_season__team",
+        )
+        .order_by("race__round", _F("finish_position").asc(nulls_last=True))
+    )
+
+
+def _fmt_season_results(season):
+    """Compact per-race summary for each round."""
+    results = _get_all_season_results(season)
+
+    by_round = {}
+    for r in results:
+        rnd = r.race.round
+        if rnd not in by_round:
+            by_round[rnd] = {"race": r.race, "lines": []}
+        driver = r.driver_season.driver
+        pos = r.finish_position or "DNF"
+        human_tag = " (Human)" if driver.human else ""
+        by_round[rnd]["lines"].append(
+            f"    P{pos}: {_name(driver)}{human_tag} — {r.points} pts"
+        )
+
+    sections = []
+    for rnd in sorted(by_round):
+        race = by_round[rnd]["race"]
+        kind = "Sprint" if race.is_sprint else "GP"
+        sections.append(f"  Round {rnd} {kind} — {race.track.name}:")
+        sections.extend(by_round[rnd]["lines"])
+    return "\n".join(sections)
+
+
+def _get_season_highlights(season):
+    """Pole sitters, fastest laps, DOTD, wins per driver."""
+    results = _get_all_season_results(season)
+    wins, poles, fls, dotds = {}, {}, {}, {}
+    for r in results:
+        name = _name(r.driver_season.driver)
+        if r.finish_position == 1:
+            wins[name] = wins.get(name, 0) + 1
+        if r.pole_position:
+            poles[name] = poles.get(name, 0) + 1
+        if r.fastest_lap:
+            fls[name] = fls.get(name, 0) + 1
+        if r.dotd:
+            dotds[name] = dotds.get(name, 0) + 1
+
+    lines = []
+    if wins:
+        lines.append("  Wins: " + ", ".join(f"{n} ({c})" for n, c in sorted(wins.items(), key=lambda x: -x[1])))
+    if poles:
+        lines.append("  Poles: " + ", ".join(f"{n} ({c})" for n, c in sorted(poles.items(), key=lambda x: -x[1])))
+    if fls:
+        lines.append("  Fastest Laps: " + ", ".join(f"{n} ({c})" for n, c in sorted(fls.items(), key=lambda x: -x[1])))
+    if dotds:
+        lines.append("  Driver of the Day: " + ", ".join(f"{n} ({c})" for n, c in sorted(dotds.items(), key=lambda x: -x[1])))
+    return "\n".join(lines) if lines else "  No highlights available."
+
+
+# ─── season article generators ────────────────────────────────────────────────
+
+def generate_season_recap(season):
+    """Generate and save a SEASON_RECAP Article for a completed season."""
+    final_standings = _get_standings(season, up_to_round=9999)
+    human_names = _get_human_driver_names(season)
+    race_count = Race.objects.filter(season=season).count()
+
+    prompt = f"""Write a season review article for CGR League Season {season.id} ({season.game}).
+
+SEASON OVERVIEW:
+  Total rounds: {race_count}
+  Game: {season.game}
+
+FINAL CHAMPIONSHIP STANDINGS:
+{_fmt_standings(final_standings)}
+
+SEASON HIGHLIGHTS (wins, poles, fastest laps, DOTD):
+{_get_season_highlights(season)}
+
+ROUND-BY-ROUND RESULTS:
+{_fmt_season_results(season)}
+
+IMPORTANT RULES:
+- You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
+{', '.join(human_names)}
+- Reference their EXACT final championship position and points — do not invent or approximate
+- AI drivers may be mentioned naturally by name when relevant
+- Cover the season arc: early leader, title battles, who faded, who improved
+- Highlight standout moments: dominant performances, comeback wins, controversies
+- Length: 800–1100 words, paragraphs separated by \\n\\n
+- Return valid JSON only, no markdown fences"""
+
+    data = _call_claude(prompt, max_tokens=3200)
+    article = Article.objects.create(
+        season=season,
+        type=Article.SEASON_RECAP,
+        title=data["title"],
+        teaser=data["teaser"],
+        content=data["content"],
+    )
+    logger.info("Created SEASON_RECAP article %d for Season %s", article.id, season.id)
+    return article
+
+
+def generate_season_preview(season):
+    """Generate and save a SEASON_PREVIEW Article for an upcoming season."""
+    human_names = _get_human_driver_names(season)
+    final_standings = _get_standings(season, up_to_round=9999)
+    races = (
+        Race.objects
+        .filter(season=season)
+        .select_related("track")
+        .order_by("round")
+    )
+    race_count = races.count()
+    calendar_lines = [
+        f"  Round {r.round}{'(Sprint)' if r.is_sprint else ''}: {r.track.name} ({r.track.city}, {r.track.country})"
+        for r in races
+    ]
+
+    prompt = f"""Write a season preview article for the upcoming CGR League Season {season.id} ({season.game}).
+
+SEASON INFO:
+  Total rounds: {race_count}
+  Game: {season.game}
+
+SEASON CALENDAR:
+{chr(10).join(calendar_lines) if calendar_lines else '  Calendar not yet set.'}
+
+DRIVER ROSTER AND CURRENT STANDINGS/HISTORY:
+{_fmt_standings(final_standings)}
+
+IMPORTANT RULES:
+- You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
+{', '.join(human_names)}
+- Reference their championship standing and team from the roster above
+- AI drivers may be mentioned naturally by name when relevant
+- Build anticipation: rivalries to watch, title contenders, tracks to circle on the calendar
+- Discuss the format (sprint rounds, total rounds) and what it means for strategy
+- Length: 750–1000 words, paragraphs separated by \\n\\n
+- Return valid JSON only, no markdown fences"""
+
+    data = _call_claude(prompt, max_tokens=3200)
+    article = Article.objects.create(
+        season=season,
+        type=Article.SEASON_PREVIEW,
+        title=data["title"],
+        teaser=data["teaser"],
+        content=data["content"],
+    )
+    logger.info("Created SEASON_PREVIEW article %d for Season %s", article.id, season.id)
+    return article
+
+
+def generate_articles_for_season(season_id, recap=True, preview=True):
+    """
+    Generate season-level articles for the given season_id.
+    recap=True  → SEASON_RECAP  (use after season ends)
+    preview=True → SEASON_PREVIEW (use before season starts)
+    Returns (recap_article_or_None, preview_article_or_None).
+    """
+    season = Season.objects.get(pk=season_id)
+    recap_article = generate_season_recap(season) if recap else None
+    preview_article = generate_season_preview(season) if preview else None
+    return recap_article, preview_article

@@ -22,8 +22,21 @@ class ArticleListSerializer(serializers.Serializer):
     title = serializers.CharField()
     teaser = serializers.CharField()
     generated_at = serializers.DateTimeField()
-    race = RaceSlimSerializer()
+    race = serializers.SerializerMethodField()
+    season_id = serializers.SerializerMethodField()
     reading_time_minutes = serializers.SerializerMethodField()
+
+    def get_race(self, obj):
+        if obj.race_id is None:
+            return None
+        return RaceSlimSerializer(obj.race).data
+
+    def get_season_id(self, obj):
+        if obj.season_id is not None:
+            return obj.season_id
+        if obj.race_id is not None:
+            return obj.race.season_id
+        return None
 
     def get_reading_time_minutes(self, obj):
         words = len(obj.content.split())
@@ -38,8 +51,21 @@ class ArticleDetailSerializer(serializers.Serializer):
     content = serializers.CharField()
     rivalry_callout = serializers.CharField()
     generated_at = serializers.DateTimeField()
-    race = RaceSlimSerializer()
+    race = serializers.SerializerMethodField()
+    season_id = serializers.SerializerMethodField()
     reading_time_minutes = serializers.SerializerMethodField()
+
+    def get_race(self, obj):
+        if obj.race_id is None:
+            return None
+        return RaceSlimSerializer(obj.race).data
+
+    def get_season_id(self, obj):
+        if obj.season_id is not None:
+            return obj.season_id
+        if obj.race_id is not None:
+            return obj.race.season_id
+        return None
 
     def get_reading_time_minutes(self, obj):
         words = len(obj.content.split())

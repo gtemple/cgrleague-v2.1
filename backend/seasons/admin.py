@@ -1,5 +1,5 @@
 # seasons/admin.py
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import Count
 from .models import Season
 
@@ -24,8 +24,6 @@ class SeasonAdmin(admin.ModelAdmin):
     search_fields = ("game",)
     list_filter = ("game",)
     ordering = ("id",)
-    actions = ["export_csv"]
-
     if RaceInline:
         inlines = [RaceInline]
 
@@ -74,3 +72,33 @@ class SeasonAdmin(admin.ModelAdmin):
         return response
 
     export_csv.short_description = "Export selected seasons to CSV"
+
+    def _generate_season_recap_action(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(request, "Select exactly one season.", level=messages.WARNING)
+            return
+        season = queryset.first()
+        try:
+            from articles.generator import generate_season_recap
+            article = generate_season_recap(season)
+            self.message_user(request, f"Season Recap created: [{article.id}] {article.title}", level=messages.SUCCESS)
+        except Exception as e:
+            self.message_user(request, f"Generation failed: {e}", level=messages.ERROR)
+
+    _generate_season_recap_action.short_description = "Generate Season Recap article"
+
+    def _generate_season_preview_action(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(request, "Select exactly one season.", level=messages.WARNING)
+            return
+        season = queryset.first()
+        try:
+            from articles.generator import generate_season_preview
+            article = generate_season_preview(season)
+            self.message_user(request, f"Season Preview created: [{article.id}] {article.title}", level=messages.SUCCESS)
+        except Exception as e:
+            self.message_user(request, f"Generation failed: {e}", level=messages.ERROR)
+
+    _generate_season_preview_action.short_description = "Generate Season Preview article"
+
+    actions = ["export_csv", "_generate_season_recap_action", "_generate_season_preview_action"]

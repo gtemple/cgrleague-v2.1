@@ -10,11 +10,12 @@ export interface ArticleRace {
 
 export interface ArticleSummary {
   id: number;
-  type: "RECAP" | "PREVIEW";
+  type: "RECAP" | "PREVIEW" | "SEASON_RECAP" | "SEASON_PREVIEW";
   title: string;
   teaser: string;
   generated_at: string;
-  race: ArticleRace;
+  race: ArticleRace | null;
+  season_id: number | null;
   reading_time_minutes: number;
 }
 

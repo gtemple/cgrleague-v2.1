@@ -11,7 +11,7 @@ export function ArticleDetailPage() {
   const { articleId } = useParams<{ articleId: string }>();
   const { data: article, isLoading, error } = useArticleDetail(articleId!);
 
-  const trackImg = article?.race.track.img
+  const trackImg = article?.race?.track.img
     ? displayImage(article.race.track.img, "trackImage")
     : null;
 
@@ -69,9 +69,11 @@ export function ArticleDetailPage() {
     );
   }
 
-  const flagImg = article.race.track.country
+  const flagImg = article.race?.track.country
     ? displayImage(article.race.track.country, "flags")
     : null;
+
+  const isSeason = article.type === "SEASON_RECAP" || article.type === "SEASON_PREVIEW";
 
   return (
     <div className="article-detail-page">
@@ -79,25 +81,31 @@ export function ArticleDetailPage() {
 
       {trackImg && (
         <div className="article-detail-hero">
-          <img src={trackImg} alt={article.race.track.name} />
+          <img src={trackImg} alt={article.race!.track.name} />
           <div className="article-detail-hero-overlay" />
         </div>
       )}
 
       <header className="article-detail-header">
         <div className="article-detail-top">
-          <span className={`article-badge article-badge--${article.type.toLowerCase()}`}>
+          <span className={`article-badge article-badge--${article.type.toLowerCase().replace("_", "-")}`}>
             {articleTypeLabel(article.type)}
           </span>
-          <span className="article-detail-race-meta">
-            Season {article.race.season_id} · Round {article.race.round}
-            {article.race.is_sprint && <span className="article-sprint-tag">Sprint</span>}
-          </span>
+          {isSeason ? (
+            <span className="article-detail-race-meta">Season {article.season_id}</span>
+          ) : article.race && (
+            <span className="article-detail-race-meta">
+              Season {article.race.season_id} · Round {article.race.round}
+              {article.race.is_sprint && <span className="article-sprint-tag">Sprint</span>}
+            </span>
+          )}
         </div>
-        <div className="article-detail-track">
-          {flagImg && <img className="article-detail-flag" src={flagImg} alt={article.race.track.country ?? ""} />}
-          {article.race.track.name}
-        </div>
+        {article.race && (
+          <div className="article-detail-track">
+            {flagImg && <img className="article-detail-flag" src={flagImg} alt={article.race.track.country ?? ""} />}
+            {article.race.track.name}
+          </div>
+        )}
         <h1 className="article-detail-title">{article.title}</h1>
         <div className="article-detail-byline">
           <span className="article-detail-date">{formatArticleDateLong(article.generated_at)}</span>

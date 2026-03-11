@@ -1,5 +1,10 @@
-export function articleTypeLabel(type: "RECAP" | "PREVIEW"): string {
-  return type === "RECAP" ? "Race Recap" : "Race Preview";
+export function articleTypeLabel(type: "RECAP" | "PREVIEW" | "SEASON_RECAP" | "SEASON_PREVIEW"): string {
+  switch (type) {
+    case "RECAP": return "Race Recap";
+    case "PREVIEW": return "Race Preview";
+    case "SEASON_RECAP": return "Season Review";
+    case "SEASON_PREVIEW": return "Season Preview";
+  }
 }
 
 export function formatArticleDate(iso: string): string {

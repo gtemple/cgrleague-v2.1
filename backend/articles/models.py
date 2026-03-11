@@ -4,17 +4,30 @@ from django.db import models
 class Article(models.Model):
     RECAP = "RECAP"
     PREVIEW = "PREVIEW"
+    SEASON_RECAP = "SEASON_RECAP"
+    SEASON_PREVIEW = "SEASON_PREVIEW"
     TYPE_CHOICES = [
         (RECAP, "Race Recap"),
         (PREVIEW, "Race Preview"),
+        (SEASON_RECAP, "Season Recap"),
+        (SEASON_PREVIEW, "Season Preview"),
     ]
 
     race = models.ForeignKey(
         "results.Race",
         on_delete=models.CASCADE,
         related_name="articles",
+        null=True,
+        blank=True,
     )
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    season = models.ForeignKey(
+        "seasons.Season",
+        on_delete=models.CASCADE,
+        related_name="articles",
+        null=True,
+        blank=True,
+    )
+    type = models.CharField(max_length=15, choices=TYPE_CHOICES)
     title = models.CharField(max_length=300)
     teaser = models.TextField()
     content = models.TextField()
