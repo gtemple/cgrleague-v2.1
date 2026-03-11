@@ -4,6 +4,10 @@
   gap: 20px;
 }
 
+/* ═══════════════════════════════════════
+   PAGE HEADER
+═══════════════════════════════════════ */
+
 .articles-page-header {
   display: flex;
   align-items: center;
@@ -54,25 +58,259 @@
 }
 
 /* ═══════════════════════════════════════
-   ARTICLE LIST
+   SEASON GROUPS
 ═══════════════════════════════════════ */
 
-.articles-list {
+.articles-seasons {
   display: flex;
   flex-direction: column;
+  gap: 40px;
+}
+
+.articles-season-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.articles-season-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.articles-season-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.articles-season-number {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.articles-season-game {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.articles-season-count {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* ═══════════════════════════════════════
+   GRID
+═══════════════════════════════════════ */
+
+.articles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
-@media (min-width: 768px) {
-  .articles-list {
-    display: grid;
+@media (min-width: 640px) {
+  .articles-grid {
     grid-template-columns: 1fr 1fr;
-    align-items: start;
+  }
+}
+
+/* Featured card spans full width */
+.article-card--featured {
+  grid-column: 1 / -1;
+}
+
+/* Season pinned grid: always 1 col on mobile, up to 2 on desktop */
+.articles-grid--season-pinned {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .articles-grid--season-pinned {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
 /* ═══════════════════════════════════════
-   ARTICLE CARD
+   FEATURED RACE CARD
+═══════════════════════════════════════ */
+
+.article-card--featured {
+  position: relative;
+  height: 260px;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 640px) {
+  .article-card--featured {
+    height: 300px;
+  }
+}
+
+.article-card-featured-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  filter: brightness(0.5);
+  transition: transform 0.4s, filter 0.4s;
+}
+
+.article-card--featured:hover .article-card-featured-bg {
+  transform: scale(1.03);
+  filter: brightness(0.62);
+}
+
+/* Season featured variant — gradient background instead of photo */
+.article-card--featured-season {
+  border: none;
+}
+
+.article-card--featured-season-recap {
+  background: linear-gradient(135deg, rgba(90, 40, 160, 0.7) 0%, rgba(20, 5, 50, 0.95) 100%);
+  border: 1px solid rgba(160, 100, 240, 0.2);
+}
+
+.article-card--featured-season-preview {
+  background: linear-gradient(135deg, rgba(20, 100, 80, 0.7) 0%, rgba(5, 30, 30, 0.95) 100%);
+  border: 1px solid rgba(40, 180, 140, 0.2);
+}
+
+.article-card-featured-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(5, 5, 20, 0.05) 0%,
+    rgba(5, 5, 20, 0.45) 45%,
+    rgba(5, 5, 20, 0.92) 100%
+  );
+}
+
+/* No overlay needed for season featured cards (already dark gradient) */
+.article-card--featured-season .article-card-featured-overlay {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(5, 5, 20, 0.5) 100%
+  );
+}
+
+.article-card-featured-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px 22px;
+  gap: 6px;
+}
+
+.article-title--featured {
+  margin: 0;
+  font-size: clamp(17px, 3vw, 24px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.article-teaser--featured {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.article-track-name--light {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ═══════════════════════════════════════
+   SEASON PINNED CARD
+═══════════════════════════════════════ */
+
+.article-card--season-pinned {
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  background: rgba(5, 5, 20, 0.7);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.article-card--season-pinned:hover {
+  background: rgba(10, 10, 30, 0.85);
+}
+
+.article-card--season-pinned-recap {
+  border: 1px solid rgba(160, 100, 240, 0.2);
+}
+
+.article-card--season-pinned-preview {
+  border: 1px solid rgba(40, 180, 140, 0.2);
+}
+
+.article-card--season-pinned:hover.article-card--season-pinned-recap {
+  border-color: rgba(160, 100, 240, 0.4);
+}
+
+.article-card--season-pinned:hover.article-card--season-pinned-preview {
+  border-color: rgba(40, 180, 140, 0.4);
+}
+
+.season-pinned-banner {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.article-card--season-pinned-recap .season-pinned-banner {
+  background: linear-gradient(135deg, rgba(90, 40, 160, 0.45) 0%, rgba(30, 10, 70, 0.6) 100%);
+  border-bottom: 1px solid rgba(160, 100, 240, 0.15);
+}
+
+.article-card--season-pinned-preview .season-pinned-banner {
+  background: linear-gradient(135deg, rgba(20, 100, 80, 0.45) 0%, rgba(5, 40, 40, 0.6) 100%);
+  border-bottom: 1px solid rgba(40, 180, 140, 0.15);
+}
+
+.season-pinned-num {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #fff;
+  opacity: 0.15;
+  line-height: 1;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════
+   REGULAR RACE CARD
 ═══════════════════════════════════════ */
 
 .article-card {
@@ -87,20 +325,14 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
-.article-card:hover {
+.article-card:not(.article-card--featured):not(.article-card--season-pinned):hover {
   border-color: rgba(255, 255, 255, 0.18);
   background: rgba(10, 10, 30, 0.85);
 }
 
-.article-card--skeleton {
-  pointer-events: none;
-  gap: 10px;
-  padding: 16px;
-}
-
 .article-card-img {
   width: 100%;
-  height: 140px;
+  height: 155px;
   overflow: hidden;
   flex: 0 0 auto;
 }
@@ -110,12 +342,12 @@
   height: 100%;
   object-fit: cover;
   object-position: center 40%;
-  filter: brightness(0.75);
+  filter: brightness(0.72);
   transition: transform 0.3s, filter 0.3s;
 }
 
 .article-card:hover .article-card-img img {
-  transform: scale(1.03);
+  transform: scale(1.04);
   filter: brightness(0.85);
 }
 
@@ -124,6 +356,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 14px 16px 16px;
+  flex: 1;
 }
 
 .article-card-top {
@@ -170,6 +403,12 @@
   border: 1px solid rgba(40, 180, 140, 0.3);
 }
 
+.article-badge--power-rankings {
+  background: rgba(255, 199, 14, 0.15);
+  color: #f3c14b;
+  border: 1px solid rgba(255, 199, 14, 0.3);
+}
+
 .article-race-meta {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
@@ -209,7 +448,7 @@
 
 .article-title {
   margin: 0;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: #e9edf3;
   line-height: 1.3;
@@ -219,12 +458,13 @@
 .article-teaser {
   margin: 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.5);
   line-height: 1.55;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex: 1;
 }
 
 .article-card-footer {
@@ -232,6 +472,8 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .article-date {
@@ -243,37 +485,140 @@
 .article-reading-time {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.3);
+  margin-right: 10px;
 }
 
 .article-read-more {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.35);
 }
 
-.article-card:hover .article-read-more {
+.article-card:hover .article-read-more,
+.article-card--featured:hover .article-read-more,
+.article-card--season-pinned:hover .article-read-more {
   color: rgba(255, 255, 255, 0.8);
 }
 
 /* ═══════════════════════════════════════
-   SKELETON LINES
+   POWER RANKINGS CARD
 ═══════════════════════════════════════ */
 
-.skeleton-line {
-  height: 14px;
+.articles-grid--rankings {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .articles-grid--rankings {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .articles-grid--rankings {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.article-card--rankings {
+  border-left: 3px solid rgba(255, 199, 14, 0.4);
+}
+
+.article-card--rankings:hover {
+  border-left-color: rgba(255, 199, 14, 0.7);
+}
+
+.rankings-movers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+
+.rankings-movers-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+  margin-right: 2px;
+}
+
+.rankings-mover-chip {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.rankings-mover-chip--up {
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.rankings-mover-chip--down {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+/* ═══════════════════════════════════════
+   SKELETON
+═══════════════════════════════════════ */
+
+.articles-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.skeleton-season-header {
+  height: 28px;
+  width: 160px;
   border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.article-card--skeleton {
+  pointer-events: none;
+  min-height: 180px;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.07) 0%,
-    rgba(255, 255, 255, 0.03) 50%,
-    rgba(255, 255, 255, 0.07) 100%
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.05) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.article-card--skeleton-featured {
+  grid-column: 1 / -1;
+  height: 260px;
+  border-radius: 12px;
+  min-height: unset;
+}
+
+@media (min-width: 640px) {
+  .article-card--skeleton-featured { height: 300px; }
+}
+
+.skeleton-img {
+  height: 155px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.skeleton-line {
+  height: 13px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .skeleton-line--short { width: 40%; }
-.skeleton-line--title { height: 20px; width: 85%; }
+.skeleton-line--title { height: 18px; width: 85%; }
 
 @keyframes shimmer {
   0%   { background-position: 200% 0; }

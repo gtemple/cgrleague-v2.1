@@ -315,13 +315,15 @@ h2 {
   .season-content {
     display: grid;
     grid-template-areas:
-      "grid  standings"
-      "stats stats";
+      "timeline  timeline"
+      "grid      standings"
+      "stats     stats";
     grid-template-columns: 1fr minmax(260px, 320px);
     gap: 24px;
     align-items: start;
   }
 
+  .season-content > .ct-card { grid-area: timeline; }
   .section-grid      { grid-area: grid; }
   .section-standings { grid-area: standings; }
   .section-stats {

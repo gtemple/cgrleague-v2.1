@@ -7,6 +7,7 @@ import type { ResultsMatrixResponse } from "../../hooks/useSeasonResultsMatrix";
 import { getPositionColor } from "../../utils/getPositionColor";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
+import { ChampionshipTimeline } from "../../components/ChampionshipTimeline/index";
 
 import './style.css'
 
@@ -84,6 +85,7 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
               <div className="round-label">R{row.round}</div>
             </Link>
           ))}
+          <div className="matrix-chart-total-cell" aria-hidden="true" />
         </div>
         {results.map((row, driverIndex) => {
           const driver = row.driver_info;
@@ -492,6 +494,9 @@ export const SeasonPage = () => {
 
       {!isLoading && !errorMessage && (
         <div className='season-content'>
+
+          {/* Championship timeline — always visible above the tabs */}
+          <ChampionshipTimeline seasonId={currentSeason} />
 
           {/* Mobile-only tab switcher */}
           <div className="mobile-tab-bar">

@@ -1,0 +1,218 @@
+.ct-card {
+  background: rgba(5, 5, 20, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+
+.ct-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ct-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.01em;
+}
+
+.ct-view-modes {
+  display: flex;
+  gap: 4px;
+}
+
+.ct-toggle-btn {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.ct-toggle-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.ct-toggle-btn--active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* ═══════════════════════════════════════
+   TOOLTIP
+═══════════════════════════════════════ */
+
+.ct-tooltip {
+  background: rgba(8, 8, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.ct-tooltip-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.ct-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 0;
+}
+
+.ct-tooltip-row--human .ct-tooltip-name {
+  color: #fff;
+  font-weight: 600;
+}
+
+.ct-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.ct-tooltip-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  flex: 1;
+}
+
+.ct-tooltip-pts {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════
+   LEGEND
+═══════════════════════════════════════ */
+
+.ct-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 14px;
+}
+
+.ct-legend-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ct-legend-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.ct-legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ct-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 4px 10px 4px 8px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.ct-legend-item:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.ct-legend-item--ai {
+  opacity: 0.65;
+}
+
+.ct-legend-item--hidden {
+  opacity: 0.3;
+}
+
+.ct-legend-line {
+  width: 16px;
+  height: 2.5px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.ct-legend-line--dashed {
+  /* Simulate dashed appearance */
+  background: repeating-linear-gradient(
+    to right,
+    currentColor 0px,
+    currentColor 4px,
+    transparent 4px,
+    transparent 7px
+  ) !important;
+  height: 2px;
+}
+
+.ct-legend-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ct-legend-pts {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════
+   SKELETON
+═══════════════════════════════════════ */
+
+.ct-skeleton {
+  height: 320px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: ct-shimmer 1.4s infinite;
+}
+
+@keyframes ct-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

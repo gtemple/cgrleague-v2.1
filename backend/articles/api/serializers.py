@@ -24,7 +24,9 @@ class ArticleListSerializer(serializers.Serializer):
     generated_at = serializers.DateTimeField()
     race = serializers.SerializerMethodField()
     season_id = serializers.SerializerMethodField()
+    season_game = serializers.SerializerMethodField()
     reading_time_minutes = serializers.SerializerMethodField()
+    biggest_movers = serializers.SerializerMethodField()
 
     def get_race(self, obj):
         if obj.race_id is None:
@@ -38,9 +40,21 @@ class ArticleListSerializer(serializers.Serializer):
             return obj.race.season_id
         return None
 
+    def get_season_game(self, obj):
+        if obj.season_id is not None:
+            return obj.season.game
+        if obj.race_id is not None:
+            return obj.race.season.game
+        return None
+
     def get_reading_time_minutes(self, obj):
-        words = len(obj.content.split())
+        words = len(obj.content.split()) if obj.content else 0
         return max(1, round(words / 200))
+
+    def get_biggest_movers(self, obj):
+        if obj.type != "POWER_RANKINGS" or not obj.rankings_data:
+            return None
+        return obj.rankings_data.get("biggest_movers", [])
 
 
 class ArticleDetailSerializer(serializers.Serializer):
@@ -51,6 +65,7 @@ class ArticleDetailSerializer(serializers.Serializer):
     content = serializers.CharField()
     rivalry_callout = serializers.CharField()
     preview_sidebar = serializers.JSONField(default=None)
+    rankings_data = serializers.JSONField(default=None)
     generated_at = serializers.DateTimeField()
     race = serializers.SerializerMethodField()
     season_id = serializers.SerializerMethodField()
@@ -69,5 +84,5 @@ class ArticleDetailSerializer(serializers.Serializer):
         return None
 
     def get_reading_time_minutes(self, obj):
-        words = len(obj.content.split())
+        words = len(obj.content.split()) if obj.content else 0
         return max(1, round(words / 200))

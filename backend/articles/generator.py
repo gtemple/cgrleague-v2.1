@@ -674,6 +674,270 @@ IMPORTANT RULES:
     return article
 
 
+# ─── power rankings ───────────────────────────────────────────────────────────
+
+RECENCY_WEIGHTS = [0.35, 0.25, 0.20, 0.12, 0.08]
+
+
+def _pos_score(pos, n_drivers):
+    if pos is None:
+        return 0.0
+    return max(0.0, 1.0 - (pos - 1) / max(n_drivers - 1, 1))
+
+
+def _compute_rankings(race, driver_seasons, completed_races):
+    """
+    Compute power ranking scores for all drivers up to the given race.
+    Returns a list of dicts sorted by score descending.
+    """
+    from collections import defaultdict
+
+    n_drivers = max(len(driver_seasons), 1)
+
+    results_qs = (
+        RaceResult.objects
+        .filter(race__in=completed_races)
+        .values("driver_season_id", "race_id", "finish_position", "grid_position", "fastest_lap")
+    )
+    by_driver_race = defaultdict(dict)
+    for row in results_qs:
+        by_driver_race[row["driver_season_id"]][row["race_id"]] = {
+            "finish": row["finish_position"],
+            "grid": row["grid_position"],
+            "fl": row["fastest_lap"],
+        }
+
+    season = race.season
+    standings = _get_standings(season, race.round)
+    champ_map = {row["name"]: (row["pos"], row["points"]) for row in standings}
+
+    scored = []
+    for ds in driver_seasons:
+        dr = by_driver_race.get(ds.id, {})
+        finishes, grids, fl_flags = [], [], []
+
+        for r in completed_races:
+            res = dr.get(r.id)
+            if res:
+                finishes.append(res["finish"])
+                if res["grid"] and res["finish"]:
+                    grids.append((res["grid"], res["finish"]))
+                fl_flags.append(bool(res["fl"]))
+            else:
+                finishes.append(None)
+                fl_flags.append(False)
+
+        # Recent form: last ≤5 races, most-recent first
+        recent_pairs = list(zip(finishes[-5:], fl_flags[-5:]))[::-1]
+        r_score, w_sum = 0.0, 0.0
+        for i, (pos, _) in enumerate(recent_pairs):
+            if i >= len(RECENCY_WEIGHTS):
+                break
+            w = RECENCY_WEIGHTS[i]
+            r_score += w * _pos_score(pos, n_drivers)
+            w_sum += w
+        recent_score = r_score / w_sum if w_sum else 0.0
+
+        valid = [p for p in finishes if p is not None]
+        season_avg = (
+            sum(_pos_score(p, n_drivers) for p in valid) / len(valid)
+            if valid else 0.0
+        )
+
+        gains = [(g - f) / max(n_drivers - 1, 1) for g, f in grids]
+        gain_score = max(0.0, min(1.0, 0.5 + (sum(gains) / len(gains) if gains else 0.0)))
+
+        fl_count = sum(fl for _, fl in recent_pairs)
+        fl_bonus = min(fl_count * 0.03, 0.09)
+
+        raw = (0.55 * recent_score + 0.30 * season_avg + 0.15 * gain_score) * (1 + fl_bonus)
+        score = round(min(raw, 1.0) * 100, 1)
+
+        name = _name(ds.driver)
+        team_name = (
+            ds.team_season.team.team_name
+            if ds.team_season and ds.team_season.team else "—"
+        )
+        champ_pos, champ_pts = champ_map.get(name, (None, 0))
+        scored.append({
+            "driver_id": ds.driver_id,
+            "name": name,
+            "team": team_name,
+            "is_human": ds.driver.human,
+            "score": score,
+            "recent_finishes": finishes[-5:],
+            "championship_pos": champ_pos,
+            "championship_points": champ_pts,
+        })
+
+    scored.sort(key=lambda x: -x["score"])
+    for i, d in enumerate(scored):
+        d["rank"] = i + 1
+    return scored
+
+
+def _generate_rankings_blurbs(race, ranked_drivers):
+    """
+    Generate 1-2 sentence blurbs for every driver. Returns {name: blurb}.
+    """
+    season = race.season
+    collision_note = _get_name_collision_note(season)
+    collision_block = f"\n{collision_note}" if collision_note else ""
+
+    lines = []
+    for d in ranked_drivers:
+        recent_str = ", ".join(f"P{p}" if p else "DNS" for p in d["recent_finishes"])
+        human_tag = " (Human)" if d["is_human"] else " (AI)"
+        lines.append(
+            f"  #{d['rank']} {d['name']}{human_tag} ({d['team']}) — "
+            f"Score: {d['score']}/100 | Recent: {recent_str} | "
+            f"Championship: P{d['championship_pos'] or '?'} ({d['championship_points']} pts)"
+        )
+
+    prompt = (
+        f"You are writing power ranking blurbs for CGR League Season {season.id} "
+        f"after Round {race.round} at {race.track.name}.\n\n"
+        f"POWER RANKINGS (sorted by current form score):\n"
+        + "\n".join(lines)
+        + f"\n\nFor EACH driver listed, write exactly 1–2 punchy sentences capturing their "
+        f"current form and story. Be specific — reference their recent results, score, and "
+        f"trajectory. Human drivers get slightly more narrative; AI drivers can be more analytical."
+        f"{collision_block}\n\n"
+        f"Return JSON only — one object, driver names as keys, blurb strings as values:\n"
+        f'{{\"Driver Full Name\": \"1-2 sentence blurb.\", ...}}'
+    )
+
+    try:
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            return {}
+        client = anthropic.Anthropic(api_key=api_key)
+        message = client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=2800,
+            system=(
+                "You are a sports journalist. Always respond with valid JSON only — "
+                "no markdown fences, no extra text. Keys are exact driver names as given."
+            ),
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = message.content[0].text.strip().strip("`").removeprefix("json").strip()
+        return json.loads(raw)
+    except Exception:
+        logger.warning("Rankings blurb generation failed for race %s", race)
+        return {}
+
+
+def generate_power_rankings(race):
+    """
+    Generate and save a POWER_RANKINGS Article for a completed race.
+    Computes form-based rankings for all drivers up to this race, generates AI blurbs,
+    and stores everything in rankings_data. Replaces any existing article for this race.
+    """
+    season = race.season
+
+    all_races = list(Race.objects.filter(season=season).order_by("round", "is_sprint"))
+    target_idx = next((i for i, r in enumerate(all_races) if r.id == race.id), -1)
+    if target_idx < 0:
+        raise ValueError(f"Race {race.id} not found in season")
+
+    completed_race_ids = set(
+        RaceResult.objects.filter(race__season=season)
+        .values_list("race_id", flat=True).distinct()
+    )
+    completed_races = [
+        r for r in all_races[:target_idx + 1] if r.id in completed_race_ids
+    ]
+    if not completed_races:
+        raise ValueError("No completed races found up to this point")
+
+    driver_seasons = list(
+        DriverSeason.objects.filter(season=season)
+        .select_related("driver", "team_season__team")
+    )
+
+    ranked = _compute_rankings(race, driver_seasons, completed_races)
+
+    # Rank delta vs previous power rankings article for this season
+    prev_article = (
+        Article.objects
+        .filter(race__season=season, type=Article.POWER_RANKINGS)
+        .exclude(race=race)
+        .order_by("-race__round", "-race__is_sprint")
+        .first()
+    )
+    prev_rank_map = {}
+    if prev_article and prev_article.rankings_data:
+        for entry in prev_article.rankings_data.get("rankings", []):
+            prev_rank_map[entry["name"]] = entry["rank"]
+
+    for d in ranked:
+        d["prev_rank"] = prev_rank_map.get(d["name"])
+
+    blurbs = _generate_rankings_blurbs(race, ranked)
+
+    # Biggest movers (top 3 by absolute rank change, filtered to those with a prev_rank)
+    movers = sorted(
+        [d for d in ranked if d["prev_rank"] is not None],
+        key=lambda x: -abs(x["prev_rank"] - x["rank"]),
+    )[:3]
+    biggest_movers = [
+        {
+            "name": d["name"],
+            "rank": d["rank"],
+            "prev_rank": d["prev_rank"],
+            "delta": d["prev_rank"] - d["rank"],
+        }
+        for d in movers
+    ]
+
+    rankings_payload = [
+        {
+            "rank": d["rank"],
+            "prev_rank": d["prev_rank"],
+            "driver_id": d["driver_id"],
+            "name": d["name"],
+            "team": d["team"],
+            "is_human": d["is_human"],
+            "score": d["score"],
+            "blurb": blurbs.get(d["name"], ""),
+            "recent_finishes": d["recent_finishes"],
+            "championship_pos": d["championship_pos"],
+            "championship_points": d["championship_points"],
+        }
+        for d in ranked
+    ]
+
+    rankings_data = {
+        "race_round": race.round,
+        "is_sprint": race.is_sprint,
+        "track_name": race.track.name,
+        "rankings": rankings_payload,
+        "biggest_movers": biggest_movers,
+    }
+
+    leader = ranked[0]["name"] if ranked else "Unknown"
+    kind = " (Sprint)" if race.is_sprint else ""
+    title = f"Power Rankings — After Round {race.round}{kind}: {race.track.name}"
+    teaser = (
+        f"{leader} leads the power standings after {race.track.name}. "
+        f"See how every driver ranks on current form."
+    )
+
+    # Replace any existing power rankings article for this exact race
+    Article.objects.filter(race=race, type=Article.POWER_RANKINGS).delete()
+
+    article = Article.objects.create(
+        race=race,
+        type=Article.POWER_RANKINGS,
+        title=title,
+        teaser=teaser,
+        rankings_data=rankings_data,
+    )
+    logger.info("Created POWER_RANKINGS article %d for %s", article.id, race)
+    return article
+
+
 def generate_articles_for_season(season_id, recap=True, preview=True):
     """
     Generate season-level articles for the given season_id.

@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useArticleDetail } from "../../hooks/useArticles";
-import type { PreviewSidebar } from "../../hooks/useArticles";
+import type { PreviewSidebar, RankingsData, RankingsEntry } from "../../hooks/useArticles";
 import { formatArticleDateLong, articleTypeLabel } from "../../utils/articleUtils";
 import { readingTime } from "../../utils/readingTime";
 import { displayImage } from "../../utils/displayImage";
 import { highlightDrivers } from "../../utils/highlightDrivers";
 import "./style.css";
+import "./power-rankings.css";
 
 function PreviewSidebarPanel({ sidebar }: { sidebar: PreviewSidebar }) {
   const { head_to_head: h2h, drivers_to_watch: dtw } = sidebar;
@@ -39,6 +40,88 @@ function PreviewSidebarPanel({ sidebar }: { sidebar: PreviewSidebar }) {
     </aside>
   );
 }
+
+// ─── power rankings components ────────────────────────────────────────────────
+
+function formChipClass(pos: number | null): string {
+  if (pos === null) return "pr-form-chip pr-form-chip--dns";
+  if (pos === 1) return "pr-form-chip pr-form-chip--p1";
+  if (pos === 2) return "pr-form-chip pr-form-chip--p2";
+  if (pos === 3) return "pr-form-chip pr-form-chip--p3";
+  if (pos <= 10) return "pr-form-chip pr-form-chip--pts";
+  return "pr-form-chip";
+}
+
+function DriverCard({ entry, maxScore }: { entry: RankingsEntry; maxScore: number }) {
+  const delta = entry.prev_rank != null ? entry.prev_rank - entry.rank : null;
+  const pct = maxScore > 0 ? (entry.score / maxScore) * 100 : 0;
+
+  return (
+    <div className={`pr-card${entry.is_human ? " pr-card--human" : ""}`}>
+      <div className="pr-rank">
+        <span className={`pr-rank-num${entry.rank <= 3 ? " pr-rank-num--top3" : ""}`}>
+          {entry.rank}
+        </span>
+        {delta !== null ? (
+          <span className={`pr-delta pr-delta--${delta > 0 ? "up" : delta < 0 ? "down" : "same"}`}>
+            {delta > 0 ? `▲${delta}` : delta < 0 ? `▼${Math.abs(delta)}` : "—"}
+          </span>
+        ) : (
+          <span className="pr-delta pr-delta--same">NEW</span>
+        )}
+      </div>
+
+      <div className="pr-header">
+        <div>
+          <span className="pr-name">{entry.name}</span>
+          {" "}
+          <span className="pr-team">{entry.team}</span>
+        </div>
+        <div className="pr-meta">
+          {entry.championship_pos != null && (
+            <span className="pr-champ-pos">P{entry.championship_pos} championship</span>
+          )}
+          <span className="pr-score-label">{entry.score}</span>
+        </div>
+      </div>
+
+      <div className="pr-body">
+        <div className="pr-score-bar-wrap">
+          <div className="pr-score-bar-track">
+            <div
+              className={`pr-score-bar-fill${entry.is_human ? "" : " pr-score-bar-fill--ai"}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="pr-form">
+          <span className="pr-form-label">Last {entry.recent_finishes.length}</span>
+          {entry.recent_finishes.map((pos, i) => (
+            <span key={i} className={formChipClass(pos)}>
+              {pos != null ? `P${pos}` : "–"}
+            </span>
+          ))}
+        </div>
+
+        {entry.blurb && <p className="pr-blurb">{entry.blurb}</p>}
+      </div>
+    </div>
+  );
+}
+
+function PowerRankingsLayout({ data }: { data: RankingsData }) {
+  const maxScore = data.rankings[0]?.score ?? 100;
+  return (
+    <div className="pr-grid">
+      {data.rankings.map((entry) => (
+        <DriverCard key={entry.driver_id} entry={entry} maxScore={maxScore} />
+      ))}
+    </div>
+  );
+}
+
+// ─── article detail page ──────────────────────────────────────────────────────
 
 export function ArticleDetailPage() {
   const { articleId } = useParams<{ articleId: string }>();
@@ -106,6 +189,7 @@ export function ArticleDetailPage() {
     : null;
 
   const isSeason = article.type === "SEASON_RECAP" || article.type === "SEASON_PREVIEW";
+  const isRankings = article.type === "POWER_RANKINGS";
   const hasSidebar = article.type === "PREVIEW" && article.preview_sidebar != null;
 
   return (
@@ -121,7 +205,7 @@ export function ArticleDetailPage() {
 
       <header className="article-detail-header">
         <div className="article-detail-top">
-          <span className={`article-badge article-badge--${article.type.toLowerCase().replace("_", "-")}`}>
+          <span className={`article-badge article-badge--${article.type.toLowerCase().replace(/_/g, "-")}`}>
             {articleTypeLabel(article.type)}
           </span>
           {isSeason ? (
@@ -154,15 +238,19 @@ export function ArticleDetailPage() {
         </aside>
       )}
 
-      <div className={`article-detail-body${hasSidebar ? " article-detail-body--with-sidebar" : ""}`}>
-        <div className="article-detail-content">
-          {article.content.split("\n\n").map((para, i) => (
-            <p key={i}>{highlightDrivers(para, article.human_driver_names, "driver-highlight")}</p>
-          ))}
-        </div>
+      {isRankings && article.rankings_data ? (
+        <PowerRankingsLayout data={article.rankings_data} />
+      ) : (
+        <div className={`article-detail-body${hasSidebar ? " article-detail-body--with-sidebar" : ""}`}>
+          <div className="article-detail-content">
+            {article.content.split("\n\n").map((para, i) => (
+              <p key={i}>{highlightDrivers(para, article.human_driver_names, "driver-highlight")}</p>
+            ))}
+          </div>
 
-        {hasSidebar && <PreviewSidebarPanel sidebar={article.preview_sidebar!} />}
-      </div>
+          {hasSidebar && <PreviewSidebarPanel sidebar={article.preview_sidebar!} />}
+        </div>
+      )}
     </div>
   );
 }

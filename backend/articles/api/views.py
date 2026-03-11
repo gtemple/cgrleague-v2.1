@@ -9,7 +9,7 @@ from .serializers import ArticleListSerializer, ArticleDetailSerializer
 
 class ArticleListView(APIView):
     def get(self, request):
-        articles = Article.objects.select_related("race", "race__track", "season").all()
+        articles = Article.objects.select_related("race", "race__track", "race__season", "season").all()
         return Response(ArticleListSerializer(articles, many=True).data)
 
 

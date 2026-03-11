@@ -6,11 +6,13 @@ class Article(models.Model):
     PREVIEW = "PREVIEW"
     SEASON_RECAP = "SEASON_RECAP"
     SEASON_PREVIEW = "SEASON_PREVIEW"
+    POWER_RANKINGS = "POWER_RANKINGS"
     TYPE_CHOICES = [
         (RECAP, "Race Recap"),
         (PREVIEW, "Race Preview"),
         (SEASON_RECAP, "Season Recap"),
         (SEASON_PREVIEW, "Season Preview"),
+        (POWER_RANKINGS, "Power Rankings"),
     ]
 
     race = models.ForeignKey(
@@ -30,9 +32,10 @@ class Article(models.Model):
     type = models.CharField(max_length=15, choices=TYPE_CHOICES)
     title = models.CharField(max_length=300)
     teaser = models.TextField()
-    content = models.TextField()
+    content = models.TextField(blank=True, default="")
     rivalry_callout = models.TextField(blank=True, default="")
     preview_sidebar = models.JSONField(null=True, blank=True, default=None)
+    rankings_data = models.JSONField(null=True, blank=True, default=None)
     generated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
