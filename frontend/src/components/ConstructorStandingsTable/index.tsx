@@ -45,7 +45,7 @@ export function ConstructorStandingsTable({ seasonId }: { seasonId: number }) {
           const logo = displayImage(logoKey, "team");
 
           return (
-            <div key={row.team_season_id} className={`standings-row pos-${Math.min(pos, 4)}`}>
+            <div key={row.team.id ?? row.team.name} className={`standings-row pos-${Math.min(pos, 4)}`}>
               <span className="standings-pos">{pos}</span>
               <div className="standings-team-logo-wrap">
                 {logo

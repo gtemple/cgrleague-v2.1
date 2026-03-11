@@ -22,6 +22,8 @@ export const HomePage = () => {
   const trackImg = track?.image ? displayImage(track.image, "trackImage") : null;
   const flagImg = track?.country ? displayImage(track.country, "flags") : null;
 
+  const articles = [latestArticles?.recap, latestArticles?.preview].filter(Boolean);
+
   return (
     <div className="home">
 
@@ -83,6 +85,53 @@ export const HomePage = () => {
         </div>
       </section>
 
+      {/* ── Latest Coverage ── */}
+      {(articlesLoading || articles.length > 0) && (
+        <section className="home-articles">
+          <div className="home-articles-header">
+            <span className="home-articles-label">Latest Coverage</span>
+            <Link to="/articles" className="home-articles-see-all">All articles →</Link>
+          </div>
+
+          <div className="home-articles-grid">
+            {articlesLoading ? (
+              [0, 1].map((i) => (
+                <div key={i} className="home-article-card home-article-card--skeleton" />
+              ))
+            ) : (
+              articles.map((article) => {
+                if (!article) return null;
+                const img = article.race.track.img
+                  ? displayImage(article.race.track.img, "trackImage")
+                  : null;
+                return (
+                  <Link key={article.id} to={`/articles/${article.id}`} className="home-article-card">
+                    {img && <img className="home-article-bg" src={img} alt="" aria-hidden="true" />}
+                    <div className="home-article-overlay" />
+                    <div className="home-article-content">
+                      <div className="home-article-top">
+                        <span className={`article-badge article-badge--${article.type.toLowerCase()}`}>
+                          {articleTypeLabel(article.type)}
+                        </span>
+                        <span className="home-article-race">
+                          R{article.race.round} · {article.race.track.name}
+                        </span>
+                      </div>
+                      <h3 className="home-article-title">{article.title}</h3>
+                      <p className="home-article-teaser">{article.teaser}</p>
+                      <div className="home-article-footer">
+                        <span className="home-article-date">{formatArticleDate(article.generated_at)}</span>
+                        <span className="home-article-read">Read article →</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
+            )}
+          </div>
+        </section>
+      )}
+
       {/* ── Dashboard grid ── */}
       <div className="home-grid">
         <SeasonStandingsTable seasonId={CURRENT_SEASON} />
@@ -141,57 +190,6 @@ export const HomePage = () => {
         </div>
       </div>
 
-      {/* ── Latest Coverage ── */}
-      {(articlesLoading || latestArticles?.recap || latestArticles?.preview) && (
-        <section className="home-articles">
-          <div className="home-articles-header">
-            <span className="home-articles-label">Latest Coverage</span>
-            <Link to="/articles" className="home-articles-see-all">All articles →</Link>
-          </div>
-          <div className="home-articles-grid">
-            {articlesLoading ? (
-              [0, 1].map((i) => (
-                <div key={i} className="home-article-card home-article-card--skeleton">
-                  <div className="skeleton-line skeleton-line--short" />
-                  <div className="skeleton-line skeleton-line--title" />
-                  <div className="skeleton-line" />
-                </div>
-              ))
-            ) : (
-              [latestArticles?.recap, latestArticles?.preview]
-                .filter(Boolean)
-                .map((article) => {
-                  if (!article) return null;
-                  const trackImg = article.race.track.img
-                    ? displayImage(article.race.track.img, "trackImage")
-                    : null;
-                  return (
-                    <Link key={article.id} to={`/articles/${article.id}`} className="home-article-card">
-                      {trackImg && (
-                        <div className="home-article-img">
-                          <img src={trackImg} alt={article.race.track.name} />
-                        </div>
-                      )}
-                      <div className="home-article-body">
-                        <div className="home-article-top">
-                          <span className={`article-badge article-badge--${article.type.toLowerCase()}`}>
-                            {articleTypeLabel(article.type)}
-                          </span>
-                          <span className="home-article-race">
-                            R{article.race.round} · {article.race.track.name}
-                          </span>
-                        </div>
-                        <h3 className="home-article-title">{article.title}</h3>
-                        <p className="home-article-teaser">{article.teaser}</p>
-                        <div className="home-article-date">{formatArticleDate(article.generated_at)}</div>
-                      </div>
-                    </Link>
-                  );
-                })
-            )}
-          </div>
-        </section>
-      )}
     </div>
   );
 };

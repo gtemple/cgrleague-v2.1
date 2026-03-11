@@ -423,7 +423,7 @@
 }
 
 .home-articles-see-all:hover {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .home-articles-grid {
@@ -438,55 +438,74 @@
   }
 }
 
+/* ── Full-bleed article card ── */
+
 .home-article-card {
-  display: flex;
-  flex-direction: column;
-  background: rgba(5, 5, 20, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  display: block;
+  height: 260px;
   border-radius: 10px;
+  overflow: hidden;
   text-decoration: none;
   color: inherit;
-  overflow: hidden;
-  transition: border-color 0.15s, background 0.15s;
+  background: rgba(5, 5, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.home-article-card:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(10, 10, 30, 0.85);
+@media (min-width: 640px) {
+  .home-article-card {
+    height: 300px;
+  }
 }
 
 .home-article-card--skeleton {
   pointer-events: none;
-  gap: 10px;
-  padding: 14px 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
 }
 
-.home-article-img {
-  width: 100%;
-  height: 100px;
-  overflow: hidden;
-  flex: 0 0 auto;
-}
-
-.home-article-img img {
+.home-article-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center 40%;
+  filter: brightness(0.55);
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+
+.home-article-card:hover .home-article-bg {
+  transform: scale(1.05);
   filter: brightness(0.7);
-  transition: transform 0.3s, filter 0.3s;
 }
 
-.home-article-card:hover .home-article-img img {
-  transform: scale(1.04);
-  filter: brightness(0.85);
+.home-article-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(5, 5, 20, 0.97) 0%,
+    rgba(5, 5, 20, 0.6)  45%,
+    rgba(5, 5, 20, 0.1)  100%
+  );
 }
 
-.home-article-body {
+.home-article-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 7px;
-  padding: 12px 14px 14px;
 }
 
 .home-article-top {
@@ -506,20 +525,20 @@
 }
 
 .article-badge--recap {
-  background: rgba(239, 100, 60, 0.18);
+  background: rgba(239, 100, 60, 0.25);
   color: #f08060;
-  border: 1px solid rgba(239, 100, 60, 0.3);
+  border: 1px solid rgba(239, 100, 60, 0.4);
 }
 
 .article-badge--preview {
-  background: rgba(80, 140, 240, 0.18);
+  background: rgba(80, 140, 240, 0.25);
   color: #7aaaf5;
-  border: 1px solid rgba(80, 140, 240, 0.3);
+  border: 1px solid rgba(80, 140, 240, 0.4);
 }
 
 .home-article-race {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.45);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -527,42 +546,47 @@
 
 .home-article-title {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: #e9edf3;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
-.home-article-teaser {
-  margin: 0;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  line-height: 1.55;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.home-article-date {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.25);
+.home-article-teaser {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-article-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-top: 2px;
 }
 
-.skeleton-line {
-  height: 14px;
-  border-radius: 6px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.07) 0%,
-    rgba(255, 255, 255, 0.03) 50%,
-    rgba(255, 255, 255, 0.07) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+.home-article-date {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.skeleton-line--short { width: 35%; }
-.skeleton-line--title { height: 18px; width: 80%; }
+.home-article-read {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  transition: color 0.15s;
+}
+
+.home-article-card:hover .home-article-read {
+  color: rgba(255, 255, 255, 0.9);
+}

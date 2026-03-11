@@ -4,7 +4,7 @@ from rest_framework import serializers
 class TrackSlimSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
-    img = serializers.CharField(source="img", default=None)
+    img = serializers.CharField(default=None)
     country = serializers.CharField(default=None)
 
 
