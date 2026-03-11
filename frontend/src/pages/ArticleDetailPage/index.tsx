@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useArticleDetail, PreviewSidebar } from "../../hooks/useArticles";
+import { useArticleDetail } from "../../hooks/useArticles";
+import type { PreviewSidebar } from "../../hooks/useArticles";
 import { formatArticleDateLong, articleTypeLabel } from "../../utils/articleUtils";
 import { readingTime } from "../../utils/readingTime";
 import { displayImage } from "../../utils/displayImage";
