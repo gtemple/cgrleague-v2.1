@@ -8,98 +8,101 @@ import "./DriversIndex.css";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-function posLabel(pos: number) {
-  if (pos === 1) return "P1";
-  if (pos === 2) return "P2";
-  if (pos === 3) return "P3";
-  return `P${pos}`;
+function posBadgeClass(pos: number) {
+  if (pos === 1) return "dix-pos dix-pos--1";
+  if (pos === 2) return "dix-pos dix-pos--2";
+  if (pos === 3) return "dix-pos dix-pos--3";
+  return "dix-pos";
 }
 
-function finishLabel(pos: number | null) {
-  if (pos === null) return "—";
-  return `P${pos}`;
-}
+// ─── Standings row ────────────────────────────────────────────────────────────
 
-// ─── Human spotlight card ─────────────────────────────────────────────────────
-
-function SpotlightCard({ entry }: { entry: HumanSpotlightEntry }) {
+function StandingsRow({ entry }: { entry: HumanSpotlightEntry }) {
   const { driver, position, points, wins, team, last_finish } = entry;
   const avatarUrl = driver.profile_image ? displayImage(driver.profile_image, "driver") : null;
   const flagUrl = driver.country_of_representation
     ? displayImage(driver.country_of_representation, "flags")
     : null;
   const logoUrl = team?.logo_image ? displayImage(team.logo_image, "team") : null;
-  const accentColor = team?.color || "rgba(255,199,14,0.6)";
+  const accentColor = team?.color || null;
 
   return (
-    <Link to={`/drivers/${driver.id}`} className="dix-spotlight-card" style={{ "--accent": accentColor } as React.CSSProperties}>
-      <div className="dix-spotlight-pos" style={{ color: accentColor }}>{posLabel(position)}</div>
-
-      <div className="dix-spotlight-avatar">
-        {avatarUrl
-          ? <img src={avatarUrl} alt={driver.display_name} />
-          : <div className="dix-spotlight-avatar-placeholder" />
-        }
-      </div>
-
-      <div className="dix-spotlight-info">
-        <div className="dix-spotlight-name">
-          {flagUrl && <img className="dix-flag" src={flagUrl} alt={driver.country_of_representation ?? ""} />}
-          {driver.display_name}
+    <Link
+      to={`/drivers/${driver.id}`}
+      className={`dix-row${position === 1 ? " dix-row--first" : ""}`}
+      style={position === 1 && accentColor ? { "--row-accent": accentColor } as React.CSSProperties : undefined}
+    >
+      <div className="dix-row-left">
+        <span className={posBadgeClass(position)}>P{position}</span>
+        <div className="dix-row-avatar">
+          {avatarUrl
+            ? <img src={avatarUrl} alt={driver.display_name} />
+            : <div className="dix-row-avatar-placeholder" />
+          }
         </div>
-        {team && (
-          <div className="dix-spotlight-team">
-            {logoUrl && <img className="dix-team-logo" src={logoUrl} alt={team.display_name ?? ""} />}
-            <span>{team.display_name ?? team.name}</span>
+        <div className="dix-row-identity">
+          <div className="dix-row-name">
+            {flagUrl && <img className="dix-flag" src={flagUrl} alt={driver.country_of_representation ?? ""} />}
+            {driver.display_name}
           </div>
-        )}
+          {team && (
+            <div className="dix-row-team">
+              {logoUrl && <img className="dix-team-logo" src={logoUrl} alt={team.display_name ?? ""} />}
+              {team.display_name ?? team.name}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="dix-spotlight-stats">
-        <div className="dix-spotlight-stat">
-          <span className="dix-spotlight-stat-value">{points}</span>
-          <span className="dix-spotlight-stat-label">PTS</span>
+      <div className="dix-row-stats">
+        <div className="dix-row-stat">
+          <span className="dix-row-stat-value">{points}</span>
+          <span className="dix-row-stat-label">PTS</span>
         </div>
-        <div className="dix-spotlight-stat">
-          <span className="dix-spotlight-stat-value">{wins}</span>
-          <span className="dix-spotlight-stat-label">WINS</span>
+        <div className="dix-row-stat">
+          <span className={`dix-row-stat-value${wins > 0 ? " dix-row-stat-value--wins" : ""}`}>{wins}</span>
+          <span className="dix-row-stat-label">W</span>
         </div>
-        <div className="dix-spotlight-stat">
-          <span className={`dix-spotlight-stat-value${last_finish === 1 ? " dix-spotlight-stat-value--gold" : ""}`}>
-            {finishLabel(last_finish)}
+        <div className="dix-row-stat">
+          <span className={`dix-row-stat-value${last_finish === 1 ? " dix-row-stat-value--gold" : ""}`}>
+            {last_finish !== null ? `P${last_finish}` : "—"}
           </span>
-          <span className="dix-spotlight-stat-label">LAST</span>
+          <span className="dix-row-stat-label">LAST</span>
         </div>
       </div>
     </Link>
   );
 }
 
-// ─── All-time leader tile ─────────────────────────────────────────────────────
+// ─── Record tile ──────────────────────────────────────────────────────────────
 
-const LEADER_LABELS: Record<string, string> = {
-  points: "Points",
-  wins: "Wins",
-  podiums: "Podiums",
-  poles: "Poles",
+const RECORD_LABELS: Record<string, string> = {
+  points:       "All-time Points",
+  wins:         "All-time Wins",
+  podiums:      "All-time Podiums",
+  poles:        "All-time Poles",
   fastest_laps: "Fastest Laps",
 };
 
-function LeaderTile({ stat, entry }: { stat: string; entry: LeaderEntry }) {
+function RecordTile({ stat, entry }: { stat: string; entry: LeaderEntry }) {
   const { driver, value } = entry;
   const avatarUrl = driver.profile_image ? displayImage(driver.profile_image, "driver") : null;
 
   return (
-    <Link to={`/drivers/${driver.id}`} className="dix-leader-tile">
-      <div className="dix-leader-label">{LEADER_LABELS[stat]}</div>
-      <div className="dix-leader-avatar">
-        {avatarUrl
-          ? <img src={avatarUrl} alt={driver.display_name} />
-          : <div className="dix-leader-avatar-placeholder" />
-        }
+    <Link to={`/drivers/${driver.id}`} className="dix-record">
+      <div className="dix-record-left">
+        <span className="dix-record-label">{RECORD_LABELS[stat]}</span>
+        <span className="dix-record-value">{value.toLocaleString()}</span>
       </div>
-      <div className="dix-leader-name">{driver.display_name}</div>
-      <div className="dix-leader-value">{value.toLocaleString()}</div>
+      <div className="dix-record-right">
+        <div className="dix-record-avatar">
+          {avatarUrl
+            ? <img src={avatarUrl} alt={driver.display_name} />
+            : <div className="dix-record-avatar-placeholder" />
+          }
+        </div>
+        <span className="dix-record-name">{driver.display_name}</span>
+      </div>
     </Link>
   );
 }
@@ -107,7 +110,7 @@ function LeaderTile({ stat, entry }: { stat: string; entry: LeaderEntry }) {
 // ─── Driver grid card ─────────────────────────────────────────────────────────
 
 function DriverGridCard({ entry }: { entry: AllDriverEntry }) {
-  const { driver, is_human, career_points, career_wins } = entry;
+  const { driver, is_human, career_points, career_wins, career_races } = entry;
   const avatarUrl = driver.profile_image ? displayImage(driver.profile_image, "driver") : null;
   const flagUrl = driver.country_of_representation
     ? displayImage(driver.country_of_representation, "flags")
@@ -130,8 +133,9 @@ function DriverGridCard({ entry }: { entry: AllDriverEntry }) {
           {driver.display_name}
         </div>
         <div className="dix-grid-stats">
-          <span>{career_points.toLocaleString()} pts</span>
+          <span className="dix-grid-pts">{career_points.toLocaleString()} pts</span>
           {career_wins > 0 && <span className="dix-grid-wins">{career_wins}W</span>}
+          <span className="dix-grid-races">{career_races}R</span>
         </div>
       </div>
     </Link>
@@ -140,69 +144,109 @@ function DriverGridCard({ entry }: { entry: AllDriverEntry }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+type GridMode = "human" | "all";
+
 export const DriversIndex = () => {
   const { data, isLoading, error } = useDriversHomepage();
   const [search, setSearch] = useState("");
+  const [gridMode, setGridMode] = useState<GridMode>("human");
 
   if (isLoading) return <Loader label="Loading drivers…" full />;
   if (error || !data) return <div style={{ color: "crimson", padding: 20 }}>Failed to load drivers.</div>;
 
   const { human_spotlight, leaders, all_drivers, latest_season_id } = data;
+  const humanDrivers = all_drivers.filter((d) => d.is_human);
+  const leaderEntries = Object.entries(leaders).filter(([, v]) => v !== null) as [string, LeaderEntry][];
+
+  const baseList = gridMode === "human"
+    ? humanDrivers
+    : [
+        ...all_drivers.filter((d) => d.is_human),
+        ...all_drivers.filter((d) => !d.is_human),
+      ];
 
   const filtered = search.trim()
-    ? all_drivers.filter((d) =>
+    ? baseList.filter((d) =>
         d.driver.display_name.toLowerCase().includes(search.toLowerCase())
       )
-    : all_drivers;
-
-  const leaderEntries = Object.entries(leaders).filter(([, v]) => v !== null) as [string, LeaderEntry][];
+    : baseList;
 
   return (
     <div className="dix-page">
 
-      {/* ── Human Spotlight ── */}
+      {/* ── Hero ── */}
+      <div className="dix-hero">
+        <div className="dix-hero-left">
+          <span className="dix-hero-eyebrow">CGR League</span>
+          <h1 className="dix-hero-title">Drivers</h1>
+        </div>
+        <div className="dix-hero-right">
+          {latest_season_id && (
+            <div className="dix-hero-badge">Season {latest_season_id}</div>
+          )}
+          <div className="dix-hero-badge">{all_drivers.length} drivers</div>
+        </div>
+      </div>
+
+      {/* ── Current Season ── */}
       {human_spotlight.length > 0 && (
         <section className="dix-section">
           <div className="dix-section-header">
-            <h2 className="dix-section-title">Human Drivers</h2>
+            <h2 className="dix-section-title">Current Season</h2>
             {latest_season_id && (
-              <span className="dix-section-sub">Season {latest_season_id} standings</span>
+              <span className="dix-section-sub">Season {latest_season_id} · Human drivers</span>
             )}
           </div>
-          <div className="dix-spotlight-grid">
+          <div className="dix-standings">
             {human_spotlight.map((entry) => (
-              <SpotlightCard key={entry.driver.id} entry={entry} />
+              <StandingsRow key={entry.driver.id} entry={entry} />
             ))}
           </div>
         </section>
       )}
 
-      {/* ── All-time Leaders ── */}
+      {/* ── All-time Records ── */}
       {leaderEntries.length > 0 && (
         <section className="dix-section">
           <div className="dix-section-header">
-            <h2 className="dix-section-title">All-time Leaders</h2>
+            <h2 className="dix-section-title">All-time Records</h2>
             <span className="dix-section-sub">Human drivers</span>
           </div>
-          <div className="dix-leaders-strip">
+          <div className="dix-records">
             {leaderEntries.map(([stat, entry]) => (
-              <LeaderTile key={stat} stat={stat} entry={entry} />
+              <RecordTile key={stat} stat={stat} entry={entry} />
             ))}
           </div>
         </section>
       )}
 
-      {/* ── Full Grid ── */}
+      {/* ── Driver Grid ── */}
       <section className="dix-section">
         <div className="dix-section-header">
-          <h2 className="dix-section-title">All Drivers</h2>
-          <input
-            className="dix-search"
-            type="search"
-            placeholder="Search…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <h2 className="dix-section-title">Drivers</h2>
+          <div className="dix-grid-controls">
+            <div className="dix-toggle">
+              <button
+                className={`dix-toggle-btn${gridMode === "human" ? " dix-toggle-btn--active" : ""}`}
+                onClick={() => setGridMode("human")}
+              >
+                Human
+              </button>
+              <button
+                className={`dix-toggle-btn${gridMode === "all" ? " dix-toggle-btn--active" : ""}`}
+                onClick={() => setGridMode("all")}
+              >
+                All
+              </button>
+            </div>
+            <input
+              className="dix-search"
+              type="search"
+              placeholder="Search…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
         <div className="dix-driver-grid">
           {filtered.map((entry) => (
