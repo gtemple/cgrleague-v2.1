@@ -227,6 +227,17 @@
   white-space: nowrap;
 }
 
+.dp-bio {
+  position: relative;
+  z-index: 1;
+  padding: 16px 24px 20px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.55);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-style: italic;
+}
+
 .dp-stat-label {
   font-size: 9px;
   font-weight: 700;

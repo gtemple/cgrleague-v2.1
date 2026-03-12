@@ -9,6 +9,7 @@ export type DriverDetail = {
     display_name: string;
     profile_image: string | null;
     country_of_representation: string | null;
+    bio: string | null;
   };
   totals: {
     points: number;

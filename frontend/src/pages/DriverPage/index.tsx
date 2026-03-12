@@ -136,6 +136,10 @@ export const DriverPage = () => {
                 </div>
               ))}
             </div>
+          {driver.bio && (
+            <div className="dp-bio">{driver.bio}</div>
+          )}
+
           </header>
 
           {/* ══════════════════════ HISTORY ══════════════════════ */}

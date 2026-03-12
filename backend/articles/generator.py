@@ -1050,3 +1050,147 @@ def generate_articles_for_season(season_id, recap=True, preview=True):
     recap_article = generate_season_recap(season) if recap else None
     preview_article = generate_season_preview(season) if preview else None
     return recap_article, preview_article
+
+
+def generate_driver_bio(driver_id):
+    """
+    Generate and save a short career biography for a driver.
+    Writes the result directly to Driver.bio and returns the Driver.
+    """
+    from collections import defaultdict
+    from drivers.models import Driver
+    from results.scoring import points_for_result
+
+    driver = Driver.objects.get(pk=driver_id)
+    driver_name = _name(driver)
+
+    # ── Career stats across all results ─────────────────────────────────────
+    results_qs = (
+        RaceResult.objects
+        .filter(driver_season__driver=driver, race__is_sprint=False)
+        .select_related("race__track", "race__season", "driver_season__team_season__team")
+        .order_by("race__season_id", "race__round")
+    )
+
+    total_points = 0
+    wins = 0
+    podiums = 0
+    poles = 0
+    fastest_laps = 0
+    dotds = 0
+    dnfs = 0
+    races = 0
+    finishes = []
+
+    track_pts: dict = defaultdict(int)
+    track_wins: dict = defaultdict(int)
+    track_names: dict = {}
+
+    seasons_set = set()
+    team_by_season: dict = defaultdict(set)
+
+    for rr in results_qs:
+        races += 1
+        total_points += int(points_for_result(rr))
+        seasons_set.add(rr.race.season_id)
+
+        team_name = (
+            rr.driver_season.team_season.team.team_name
+            if rr.driver_season.team_season and rr.driver_season.team_season.team
+            else None
+        )
+        if team_name:
+            team_by_season[rr.race.season_id].add(team_name)
+
+        tid = rr.race.track_id
+        track_pts[tid] += int(points_for_result(rr))
+        track_names[tid] = rr.race.track.name
+
+        fp = rr.finish_position
+        status = (rr.status or "").upper()
+        if fp == 1:
+            wins += 1
+            track_wins[tid] += 1
+        if fp is not None and fp <= 3:
+            podiums += 1
+        if fp is not None:
+            finishes.append(fp)
+        if status and status != "FIN":
+            dnfs += 1
+        if getattr(rr, "pole_position", False):
+            poles += 1
+        if getattr(rr, "fastest_lap", False):
+            fastest_laps += 1
+        if getattr(rr, "dotd", False):
+            dotds += 1
+
+    avg_finish = round(sum(finishes) / len(finishes), 1) if finishes else None
+    num_seasons = len(seasons_set)
+
+    # Best 3 tracks by points
+    best_tracks = sorted(track_pts.items(), key=lambda x: -x[1])[:3]
+    best_track_lines = [
+        f"  {track_names[tid]}: {pts} pts, {track_wins[tid]} wins"
+        for tid, pts in best_tracks
+    ]
+
+    # Season history
+    season_lines = []
+    for sid in sorted(seasons_set):
+        teams = ", ".join(sorted(team_by_season[sid])) or "unknown team"
+        season_lines.append(f"  Season {sid}: {teams}")
+
+    prompt = f"""Write a short career biography for {driver_name}, a driver in CGR League \
+(a private Formula 1-style racing league played on a video game simulator).
+
+CAREER OVERVIEW:
+  Seasons competed: {num_seasons}
+  Total races: {races}
+  Total points: {total_points}
+  Wins: {wins}
+  Podiums: {podiums}
+  Poles: {poles}
+  Fastest laps: {fastest_laps}
+  Driver of the Day awards: {dotds}
+  DNFs: {dnfs}
+  Average finish position: {avg_finish if avg_finish is not None else "N/A"}
+
+SEASON HISTORY:
+{chr(10).join(season_lines) or "  No seasons recorded"}
+
+BEST TRACKS (by points scored):
+{chr(10).join(best_track_lines) or "  No track data"}
+
+Write 2–4 punchy sentences. Focus on what makes this driver distinctive — their strengths, \
+consistency or volatility, standout achievements, and trajectory across seasons. \
+Do not just list the stats back; interpret them into a character description.
+
+Return JSON only: {{"bio": "<the biography text>"}}"""
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
+
+    client = anthropic.Anthropic(api_key=api_key)
+    message = client.messages.create(
+        model="claude-opus-4-6",
+        max_tokens=400,
+        system=(
+            "You are a sports journalist covering CGR League. Write in an engaging, analytical "
+            "style — punchy sentences, specific references to achievements. "
+            "Always respond with valid JSON only (no markdown fences)."
+        ),
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = message.content[0].text.strip()
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        cleaned = raw.strip("`").removeprefix("json").strip()
+        data = json.loads(cleaned)
+
+    bio_text = data.get("bio", "").strip()
+    driver.bio = bio_text
+    driver.save(update_fields=["bio"])
+    logger.info("Generated bio for driver %d (%s)", driver.id, driver_name)
+    return driver

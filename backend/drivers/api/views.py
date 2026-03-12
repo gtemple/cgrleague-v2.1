@@ -33,6 +33,7 @@ def serialize_driver(d: Driver) -> Dict[str, Any]:
         "display_name": display,
         "profile_image": getattr(d, "profile_image", None),
         "country_of_representation": getattr(d, "country_of_representation", None),
+        "bio": getattr(d, "bio", None),
     }
 
 

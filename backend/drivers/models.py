@@ -10,6 +10,7 @@ class Driver(models.Model):
     date_of_birth = models.DateField()
     human = models.BooleanField(default=True)
     profile_image = models.TextField(null=True, blank=True)
+    bio = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = "drivers"
