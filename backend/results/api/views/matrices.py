@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+from django.core.cache import cache
 from django.db.models import Count, Q
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -7,6 +8,7 @@ from rest_framework.views import APIView
 from entries.models import DriverSeason
 from results.models import Race, RaceResult
 from results.scoring import points_for_result
+from results.cache import CACHE_TTL, key_matrix
 from .utils import initials_for
 
 class SeasonResultsMatrixView(APIView):
@@ -14,6 +16,11 @@ class SeasonResultsMatrixView(APIView):
 
     def get(self, request, season_id: int):
         include_sprints = str(request.GET.get("include_sprints", "")).lower() in ("1", "true", "yes")
+
+        ck = key_matrix(season_id, include_sprints)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
 
         races_qs = (
             Race.objects.filter(season_id=season_id)
@@ -218,12 +225,12 @@ class SeasonResultsMatrixView(APIView):
 
         constructor_results.sort(key=ctor_sort_key)
 
-        return Response(
-            {
-                "season_id": int(season_id),
-                "races": races_payload,
-                "results": results,
-                "points_leaderboard": points_leaderboard,
-                "constructor_results": constructor_results,
-            }
-        )
+        data = {
+            "season_id": int(season_id),
+            "races": races_payload,
+            "results": results,
+            "points_leaderboard": points_leaderboard,
+            "constructor_results": constructor_results,
+        }
+        cache.set(ck, data, timeout=CACHE_TTL)
+        return Response(data)

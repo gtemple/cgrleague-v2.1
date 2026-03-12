@@ -142,3 +142,10 @@ TEMPLATES = [
 ]
 
 STATIC_URL = "static/"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "TIMEOUT": 86400,  # 24 h; explicit invalidation happens on every RaceResult save/delete
+    }
+}

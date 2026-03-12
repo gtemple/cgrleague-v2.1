@@ -21,14 +21,7 @@ CGR League v2 is a private Formula 1-style racing league statistics platform bui
 - **`human` flag on `Driver` is undocumented**: The field exists with no comment or migration note explaining what non-human drivers represent. Document or enforce its semantics.
 - **`teams` and `seasons` apps have no API layer**: They appear in `INSTALLED_APPS` and the URL conf but only expose bare list views with no serializer depth, making them difficult to extend or consume consistently.
 
-## CSS Architecture (Review Before Acting)
 
-These require a bit more thought / design agreement before touching:
-
-- **Centralize shared styles**: `.border`, `h2`, and `button` base styles are each defined in `SeasonPage/style.css` and then partially re-defined in the mobile breakpoint block and `TrackPage/style.css`. Whichever stylesheet loads last wins silently. Moving them to `index.css` or a new `src/styles/base.css` would make the cascade predictable.
-- **Consolidate `.container` padding logic**: `App.css` sets `padding-top: 80px` and `NavBar/style.css` overrides it to `calc(var(--nav-h) + 12px)` for `main.container`. These two rules do the same job and the specificity hack is fragile. One definition in one place would be cleaner.
-- **CSS custom property system**: Colors (`rgb(10, 12, 20)`, `rgba(255,255,255,0.2)`, `rgba(5,5,20,0.6)`, etc.) are scattered as raw values across every CSS file. Centralizing them as `--color-bg`, `--color-surface`, `--color-border` etc. in `:root` would make global theme changes a one-line edit.
-- **`SeasonPage/style.css` mobile block wraps `:root`**: The `@media (max-width: 1000px)` block contains a `:root { ... }` with CSS variable definitions. Variables defined inside a media query only apply at that viewport width — so `--bg`, `--panel`, `--border` etc. are undefined on desktop. These should be defined unconditionally in `:root` and only their values changed inside the breakpoint.
 
 ## Inbox Ideas That Might Apply
 
@@ -73,11 +66,3 @@ None of the current inbox ideas are a strong fit.
   12. Driver milestones
   Auto-detect and surface milestones — first win, 10th points finish, pole record.
   Could be surfaced in articles or as a feed on the homepage.
-
-  13. Constructor/team pages
-  Currently teams exist in standings but have no dedicated page. A team page with
-  roster, season history, win record would round things out.
-
-   ● Here's what's happening with the current algorithm. Let me trace through P1, P1,
-  P20, P1 (assuming ~20 drivers):
-

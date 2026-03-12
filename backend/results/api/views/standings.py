@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+from django.core.cache import cache
 from django.db.models import Sum, F, Avg, Value, Q, FloatField
 from django.db.models.functions import Coalesce
 from rest_framework.views import APIView
@@ -7,6 +8,7 @@ from rest_framework import status
 
 from entries.models import DriverSeason
 from results.models import RaceResult
+from results.cache import CACHE_TTL, key_season_standings, key_constructor_standings
 from .utils import points_case, fl_bonus_case, serialize_team
 
 
@@ -17,6 +19,11 @@ class ConstructorStandingsView(APIView):
     Tie-breaker: lower average finish (better) wins; unknown averages sort last.
     """
     def get(self, request, season_id: int, *args, **kwargs):
+        ck = key_constructor_standings(season_id)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
         base_pts = points_case(prefix="")  # RaceResult fields live on this model
         fl_bonus = fl_bonus_case(prefix="")
 
@@ -64,6 +71,7 @@ class ConstructorStandingsView(APIView):
                 "points": row["points"] or 0,
             })
 
+        cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data)
 
 
@@ -72,6 +80,11 @@ class SeasonStandingsView(APIView):
     Driver standings with tie-breaker on average finish (lower is better).
     """
     def get(self, request, season_id: int, *args, **kwargs):
+        ck = key_season_standings(season_id)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
         qs = (
             DriverSeason.objects
             .filter(season_id=season_id)
@@ -129,4 +142,5 @@ class SeasonStandingsView(APIView):
                 # "avg_finish": ds.avg_finish,
             })
 
+        cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data, status=status.HTTP_200_OK)

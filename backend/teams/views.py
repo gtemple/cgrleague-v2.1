@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.db.models import Sum, Count, Case, When, Value, IntegerField, Q, F
 from django.db.models.functions import Coalesce
@@ -10,6 +11,7 @@ from .models import Team
 from entries.models import TeamSeason, DriverSeason
 from results.models import RaceResult
 from results.api.views.utils import points_case, fl_bonus_case, serialize_driver
+from results.cache import CACHE_TTL, key_team_detail
 
 
 def list_teams(request):
@@ -21,6 +23,11 @@ class TeamDetailView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, team_id: int, *args, **kwargs):
+        ck = key_team_detail(team_id)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
         team = get_object_or_404(Team, pk=team_id)
 
         # Career totals across all seasons
@@ -120,7 +127,7 @@ class TeamDetailView(APIView):
                 "drivers": drivers_list,
             })
 
-        return Response({
+        data = {
             "team": {
                 "id": team.id,
                 "name": team.team_name,
@@ -140,4 +147,6 @@ class TeamDetailView(APIView):
                 "drivers": unique_drivers,
             },
             "seasons": seasons_data,
-        })
+        }
+        cache.set(ck, data, timeout=CACHE_TTL)
+        return Response(data)

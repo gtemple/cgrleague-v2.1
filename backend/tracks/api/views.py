@@ -2,6 +2,7 @@
 from typing import Dict, Any, List
 from collections import defaultdict
 
+from django.core.cache import cache
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -15,6 +16,7 @@ from results.scoring import points_for_result
 # If you already have these utils, reuse them for consistency.
 # Fall back to small inlines if you prefer not to cross-import.
 from results.api.views.utils import serialize_driver  # adjust path if needed
+from results.cache import CACHE_TTL, key_track_stats
 from .serializers import TrackLiteSerializer
 
 
@@ -71,7 +73,7 @@ class TrackDriverStatsView(APIView):
     def get(self, request, track_id: int, *args, **kwargs):
         include_sprints = str(request.GET.get("include_sprints", "")).lower() in ("1", "true", "yes")
 
-        # Sorting controls
+        # Sorting controls (applied after cache lookup — sorting is cheap Python)
         order_by = (request.GET.get("order_by") or "points").lower()
         direction = (request.GET.get("direction") or "desc").lower()
         if direction not in ("asc", "desc"):
@@ -120,82 +122,76 @@ class TrackDriverStatsView(APIView):
                 }
             )
 
-        # Fetch results for those races
-        results_qs = (
-            RaceResult.objects
-            .filter(race_id__in=race_ids)
-            .select_related(
-                "driver_season__driver",
-                "driver_season__team_season__team",
-                "race",
+        ck = key_track_stats(track_id, include_sprints)
+        rows = cache.get(ck)
+
+        if rows is None:
+            results_qs = (
+                RaceResult.objects
+                .filter(race_id__in=race_ids)
+                .select_related(
+                    "driver_season__driver",
+                    "driver_season__team_season__team",
+                    "race",
+                )
             )
-        )
 
-        # Aggregate per driver (cross-season)
-        agg: Dict[int, Dict[str, Any]] = {}
-        finishes_for_avg: Dict[int, List[int]] = defaultdict(list)
+            # Aggregate per driver (cross-season)
+            agg: Dict[int, Dict[str, Any]] = {}
+            finishes_for_avg: Dict[int, List[int]] = defaultdict(list)
 
-        for rr in results_qs:
-            drv = rr.driver_season.driver
-            drv_id = drv.id
-            row = agg.get(drv_id)
-            if row is None:
-                row = {
-                    "driver": serialize_driver(drv),
-                    "total_points": 0,
-                    "total_laps": 0,
-                    "wins": 0,
-                    "podiums": 0,
-                    "dnfs": 0,
-                    "dotds": 0,
-                    "fastest_laps": 0,
-                    "races_count": 0,
-                    # used only for sorting by name:
-                    "driver_sort_key": (getattr(drv, "last_name", "") or "").lower()
-                                       + " "
-                                       + (getattr(drv, "first_name", "") or "").lower(),
-                }
-                agg[drv_id] = row
+            for rr in results_qs:
+                drv = rr.driver_season.driver
+                drv_id = drv.id
+                row = agg.get(drv_id)
+                if row is None:
+                    row = {
+                        "driver": serialize_driver(drv),
+                        "total_points": 0,
+                        "total_laps": 0,
+                        "wins": 0,
+                        "podiums": 0,
+                        "dnfs": 0,
+                        "dotds": 0,
+                        "fastest_laps": 0,
+                        "races_count": 0,
+                        "driver_sort_key": (getattr(drv, "last_name", "") or "").lower()
+                                           + " "
+                                           + (getattr(drv, "first_name", "") or "").lower(),
+                    }
+                    agg[drv_id] = row
 
-            row["races_count"] += 1
+                row["races_count"] += 1
+                row["total_points"] += int(points_for_result(rr))
 
-            # points
-            row["total_points"] += int(points_for_result(rr))
+                laps = getattr(rr, "laps_completed", None)
+                if laps is None:
+                    laps = getattr(rr, "laps", 0)
+                row["total_laps"] += int(laps or 0)
 
-            # laps: best-effort across common field names
-            laps = getattr(rr, "laps_completed", None)
-            if laps is None:
-                laps = getattr(rr, "laps", 0)
-            row["total_laps"] += int(laps or 0)
+                fp = rr.finish_position
+                status = (rr.status or "").upper() if rr.status else None
 
-            # tallies
-            fp = rr.finish_position
-            status = (rr.status or "").upper() if rr.status else None
+                if fp is not None:
+                    if fp == 1:
+                        row["wins"] += 1
+                    if fp in (1, 2, 3):
+                        row["podiums"] += 1
+                    finishes_for_avg[drv_id].append(int(fp))
 
-            if fp is not None:
-                # wins / podiums
-                if fp == 1:
-                    row["wins"] += 1
-                if fp in (1, 2, 3):
-                    row["podiums"] += 1
-                # use numeric finishes only for avg
-                finishes_for_avg[drv_id].append(int(fp))
+                if status and status != "FIN":
+                    row["dnfs"] += 1
+                if getattr(rr, "dotd", False):
+                    row["dotds"] += 1
+                if getattr(rr, "fastest_lap", False):
+                    row["fastest_laps"] += 1
 
-            # DNF: count if status not "FIN" (treat missing as non-DNF)
-            if status and status != "FIN":
-                row["dnfs"] += 1
-
-            if getattr(rr, "dotd", False):
-                row["dotds"] += 1
-            if getattr(rr, "fastest_lap", False):
-                row["fastest_laps"] += 1
-
-        # finalize average finish
-        rows: List[Dict[str, Any]] = []
-        for drv_id, row in agg.items():
-            finishes = finishes_for_avg.get(drv_id, [])
-            row["avg_finish_position"] = (sum(finishes) / len(finishes)) if finishes else None
-            rows.append(row)
+            rows = []
+            for drv_id, row in agg.items():
+                finishes = finishes_for_avg.get(drv_id, [])
+                row["avg_finish_position"] = (sum(finishes) / len(finishes)) if finishes else None
+                rows.append(row)
+            cache.set(ck, rows, timeout=CACHE_TTL)
 
         # sorting
         def _key(r):

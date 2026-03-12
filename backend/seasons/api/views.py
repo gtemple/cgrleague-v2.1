@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from django.core.cache import cache
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from rest_framework.decorators import api_view
@@ -9,6 +10,7 @@ from rest_framework.exceptions import NotFound
 from entries.models import DriverSeason
 from results.models import Race, RaceResult
 from results.api.views.utils import points_case, fl_bonus_case
+from results.cache import CACHE_TTL, key_timeline
 from seasons.models import Season
 
 
@@ -18,6 +20,11 @@ def championship_timeline(request, season_id):
         season = Season.objects.get(pk=season_id)
     except Season.DoesNotExist:
         raise NotFound("Season not found")
+
+    ck = key_timeline(season_id)
+    cached = cache.get(ck)
+    if cached is not None:
+        return Response(cached)
 
     # All races in order — each sprint counts as a separate data point
     races = list(
@@ -101,4 +108,6 @@ def championship_timeline(request, season_id):
         for r in races
     ]
 
-    return Response({"races": races_data, "drivers": drivers_data})
+    data = {"races": races_data, "drivers": drivers_data}
+    cache.set(ck, data, timeout=CACHE_TTL)
+    return Response(data)

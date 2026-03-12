@@ -1,5 +1,6 @@
 # drivers/api/views.py
 from typing import Any, Dict, List, Optional
+from django.core.cache import cache
 from django.db.models import (
     Sum, Count, Avg, Min, Q, F, Value, IntegerField, FloatField, OuterRef, Subquery,
     ExpressionWrapper, Case, When
@@ -16,6 +17,7 @@ from seasons.models import Season
 from drivers.models import Driver
 # Reuse your existing points helpers (same ones used in standings)
 from results.api.views.utils import points_case, fl_bonus_case, serialize_driver, serialize_team
+from results.cache import CACHE_TTL, key_driver_detail, key_driver_history
 
 
 def serialize_driver(d: Driver) -> Dict[str, Any]:
@@ -67,6 +69,11 @@ class DriverDetailView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, driver_id: int, *args, **kwargs):
+        ck = key_driver_detail(driver_id)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
         driver = get_object_or_404(Driver, pk=driver_id)
 
         rr_qs = RaceResult.objects.filter(driver_season__driver_id=driver_id)
@@ -153,6 +160,7 @@ class DriverDetailView(APIView):
                 "avg_positions_gained": round(float(agg["avg_positions_gained"]), 2) if agg["avg_positions_gained"] is not None else None,
             },
         }
+        cache.set(ck, payload, timeout=CACHE_TTL)
         return Response(payload)
 
 
@@ -172,6 +180,11 @@ class DriverHistoryView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, driver_id: int, *args, **kwargs):
+        ck = key_driver_history(driver_id)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
         # Subquery: total team points for this team_season in this season
         # We compute on RaceResult with points_case (finish position) + fl_bonus_case.
         team_points_subq = (
@@ -299,7 +312,9 @@ class DriverHistoryView(APIView):
                 "avg_positions_gained": round(float(ds.avg_positions_gained), 2) if ds.avg_positions_gained is not None else None,
             })
 
-        return Response({
+        payload = {
             "driver": serialize_driver(drv) if drv else None,
             "history": history,
-        })
+        }
+        cache.set(ck, payload, timeout=CACHE_TTL)
+        return Response(payload)

@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional
+from django.core.cache import cache
 from django.db.models import Count, Q
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -8,6 +9,9 @@ from seasons.models import Season
 from entries.models import DriverSeason
 from results.models import Race, RaceResult
 from results.scoring import points_for_result
+from results.cache import (
+    CACHE_TTL, key_race_detail, key_last_race, key_next_race_teaser, key_hof
+)
 from .utils import (
     serialize_race_basic, serialize_track, serialize_driver, serialize_team, initials_for
 )
@@ -32,6 +36,11 @@ class RaceDetailView(APIView):
         except Race.DoesNotExist:
             return Response({"detail": "Race not found."}, status=404)
 
+        ck = key_race_detail(race.id)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
         results = (
             RaceResult.objects
             .filter(race=race)
@@ -42,7 +51,7 @@ class RaceDetailView(APIView):
             .order_by("finish_position", "driver_season_id")
         )
 
-        return Response({
+        data = {
             "race": {
                 "id": race.id,
                 "round": race.round,
@@ -70,7 +79,9 @@ class RaceDetailView(APIView):
                 }
                 for rr in results
             ],
-        })
+        }
+        cache.set(ck, data, timeout=CACHE_TTL)
+        return Response(data)
 
 class SeasonLastRaceView(APIView):
     """
@@ -85,6 +96,11 @@ class SeasonLastRaceView(APIView):
 
     def get(self, request, season_id: int, *args, **kwargs):
         include_sprints = str(request.GET.get("include_sprints", "")).lower() in ("1", "true", "yes")
+
+        ck = key_last_race(season_id, include_sprints)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
 
         races_qs = (
             Race.objects
@@ -192,12 +208,14 @@ class SeasonLastRaceView(APIView):
                 }
             }
 
-        return Response({
+        data = {
             "season_id": int(season_id),
             "include_sprints": include_sprints,
             "last_race": last_race_payload,
             "next_race": next_race_payload,
-        })
+        }
+        cache.set(ck, data, timeout=CACHE_TTL)
+        return Response(data)
 
 
 # ---------- NextRaceTeaser (with following_two) ----------
@@ -251,6 +269,11 @@ class NextRaceTeaserView(APIView):
 
     def get(self, request, *args, **kwargs):
         include_sprints = str(request.GET.get("include_sprints", "")).lower() in ("1", "true", "yes")
+
+        ck = key_next_race_teaser(include_sprints)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
 
         latest_season = Season.objects.order_by("-id").first()
         if not latest_season:
@@ -335,11 +358,11 @@ class NextRaceTeaserView(APIView):
                     "last_winner": _last_winner_for_track(ev.track_id),
                 })
 
-        print("DBG NextRaceTeaserView -> following_two len:", len(following_two))
-
-        return Response({
+        data = {
             "season_id": latest_season.id if latest_season else None,
             "upcoming_race": upcoming_payload,
             "recent_winners": recent_winners,
             "following_two": following_two,
-        })
+        }
+        cache.set(ck, data, timeout=CACHE_TTL)
+        return Response(data)

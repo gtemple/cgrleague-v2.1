@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+from django.core.cache import cache
 from django.db.models import Sum, Count, Q, F, FloatField, Value, Avg
 from django.db.models.functions import Coalesce
 from rest_framework.views import APIView
@@ -7,6 +8,7 @@ from results.models import RaceResult
 from drivers.models import Driver
 from seasons.models import Season
 from entries.models import DriverSeason
+from results.cache import CACHE_TTL, key_hof
 from .utils import points_case, fl_bonus_case
 
 
@@ -19,6 +21,11 @@ class HallOfFameView(APIView):
         # Default is to include AI (only_human=false), unless explicitly requested to filter
         only_human = request.query_params.get("only_human") == "true"
         include_ai = request.query_params.get("include_ai", "true").lower() == "true"
+
+        ck = key_hof(only_human, include_ai)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
 
         # 1. Base query for drivers
         drivers_qs = Driver.objects.all()
@@ -70,4 +77,5 @@ class HallOfFameView(APIView):
             d["total_championships"] = championships_map.get(d["id"], 0)
             data.append(d)
 
+        cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data)

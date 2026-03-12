@@ -72,16 +72,21 @@ def _get_standings(season, up_to_round):
     return rows
 
 
-def _get_track_winners(track, exclude_race):
-    """Up to 5 previous race winners at this track."""
-    winners = (
+def _get_track_winners(track, exclude_race, cutoff_race=None):
+    """Up to 5 previous race winners at this track, capped to before cutoff_race if given."""
+    from django.db.models import Q as _Q
+    qs = (
         RaceResult.objects
         .filter(race__track=track, finish_position=1)
         .exclude(race=exclude_race)
         .select_related("race__season", "driver_season__driver")
-        .order_by("-race__season_id", "-race__round")
-        [:5]
     )
+    if cutoff_race is not None:
+        qs = qs.filter(
+            _Q(race__season_id__lt=cutoff_race.season_id) |
+            _Q(race__season_id=cutoff_race.season_id, race__round__lt=cutoff_race.round)
+        )
+    winners = qs.order_by("-race__season_id", "-race__round")[:5]
     return [
         {
             "season": r.race.season_id,
@@ -92,12 +97,14 @@ def _get_track_winners(track, exclude_race):
     ]
 
 
-def _get_driver_track_history(season, track):
+def _get_driver_track_history(season, track, cutoff_race=None):
     """
     Returns a dict of {driver_name: [result, ...]} for every human driver
     in `season`, using their results at `track` from any season.
     Drivers with no prior results at the track are included with an empty list.
+    If cutoff_race is given, only results before that race are included.
     """
+    from django.db.models import Q as _Q
     season_drivers = list(
         DriverSeason.objects
         .filter(season=season, driver__human=True)
@@ -105,9 +112,16 @@ def _get_driver_track_history(season, track):
     )
     driver_ids = [ds.driver_id for ds in season_drivers]
 
+    results = RaceResult.objects.filter(
+        race__track=track, driver_season__driver_id__in=driver_ids
+    )
+    if cutoff_race is not None:
+        results = results.filter(
+            _Q(race__season_id__lt=cutoff_race.season_id) |
+            _Q(race__season_id=cutoff_race.season_id, race__round__lt=cutoff_race.round)
+        )
     results = (
-        RaceResult.objects
-        .filter(race__track=track, driver_season__driver_id__in=driver_ids)
+        results
         .select_related("driver_season__driver", "race__season")
         .order_by("driver_season__driver__last_name", "-race__season_id", "-race__round")
     )
@@ -204,6 +218,36 @@ def _fmt_standings(rows):
     return "\n".join(lines)
 
 
+def _get_constructor_standings(season, up_to_round):
+    from django.db.models import Sum
+    base_pts = points_case(prefix="")
+    fl_bonus = fl_bonus_case(prefix="")
+    qs = (
+        RaceResult.objects
+        .filter(race__season=season, race__round__lte=up_to_round)
+        .select_related("driver_season__team_season__team")
+        .annotate(pts_row=base_pts + fl_bonus)
+        .values(
+            "driver_season__team_season__team__team_name",
+            "driver_season__team_season__display_name",
+        )
+        .annotate(points=Sum("pts_row"))
+        .order_by("-points")
+    )
+    rows = []
+    for i, row in enumerate(qs, 1):
+        team_name = row["driver_season__team_season__team__team_name"] or "—"
+        display_name = row["driver_season__team_season__display_name"] or team_name
+        rows.append({"pos": i, "team": display_name, "points": int(row["points"] or 0)})
+    return rows
+
+
+def _fmt_constructor_standings(rows):
+    if not rows:
+        return "  No constructor data available."
+    return "\n".join(f"  P{r['pos']}: {r['team']} — {r['points']} pts" for r in rows)
+
+
 def _fmt_track_winners(winners):
     if not winners:
         return "  No previous races at this track."
@@ -229,7 +273,7 @@ def _fmt_driver_track_history(by_driver):
 
 # ─── Claude call ─────────────────────────────────────────────────────────────
 
-def _call_claude(user_prompt, max_tokens=1800):
+def _call_claude(user_prompt, max_tokens=2000):
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
@@ -285,7 +329,8 @@ def generate_recap(race):
     kind = "Sprint" if race.is_sprint else "Grand Prix"
 
     standings = _get_standings(season, race.round)
-    track_winners = _get_track_winners(track, exclude_race=race)
+    constructor_standings = _get_constructor_standings(season, race.round)
+    track_winners = _get_track_winners(track, exclude_race=race, cutoff_race=race)
     human_names = _get_human_driver_names(season)
     collision_note = _get_name_collision_note(season)
 
@@ -300,8 +345,11 @@ Track length: {track.distance}m
 RACE RESULTS:
 {_fmt_results(race)}
 
-SEASON STANDINGS AFTER THIS RACE:
+DRIVER CHAMPIONSHIP STANDINGS AFTER THIS RACE:
 {_fmt_standings(standings)}
+
+CONSTRUCTOR CHAMPIONSHIP STANDINGS AFTER THIS RACE:
+{_fmt_constructor_standings(constructor_standings)}
 
 PREVIOUS RACE WINNERS AT {track.name.upper()}:
 {_fmt_track_winners(track_winners)}
@@ -312,7 +360,8 @@ IMPORTANT RULES:
 - Reference their EXACT finishing position and points from the results above — do not invent or \
 approximate results
 - AI drivers may be mentioned naturally by name when relevant (battles, notable moments, etc.)
-- Discuss championship implications using the standings above
+- Discuss championship implications using BOTH the driver and constructor standings above — \
+include at least one sentence on the constructor battle
 - Highlight key moments: pole, fastest lap, DOTD, Cleanest Driver, Most Overtakes{collision_block}
 - Length: 450–650 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
@@ -342,8 +391,9 @@ def generate_preview(next_race, after_race):
     kind = "Sprint" if next_race.is_sprint else "Grand Prix"
 
     standings = _get_standings(season, after_race.round)
-    track_winners = _get_track_winners(track, exclude_race=next_race)
-    driver_track_history = _get_driver_track_history(season, track)
+    constructor_standings = _get_constructor_standings(season, after_race.round)
+    track_winners = _get_track_winners(track, exclude_race=next_race, cutoff_race=next_race)
+    driver_track_history = _get_driver_track_history(season, track, cutoff_race=next_race)
     human_names = _get_human_driver_names(season)
     collision_note = _get_name_collision_note(season)
 
@@ -356,8 +406,11 @@ UPCOMING RACE: Season {season.id} — Round {next_race.round} {kind} at {track.n
 ({track.city}, {track.country})
 Track length: {track.distance}m
 {notes_block}
-CURRENT CHAMPIONSHIP STANDINGS (after Round {after_race.round}):
+CURRENT DRIVER CHAMPIONSHIP STANDINGS (after Round {after_race.round}):
 {_fmt_standings(standings)}
+
+CURRENT CONSTRUCTOR CHAMPIONSHIP STANDINGS (after Round {after_race.round}):
+{_fmt_constructor_standings(constructor_standings)}
 
 PREVIOUS RACE WINNERS AT {track.name.upper()}:
 {_fmt_track_winners(track_winners)}
@@ -371,7 +424,8 @@ IMPORTANT RULES:
 - Reference their EXACT championship position and points from the standings above — do not invent \
 or approximate
 - AI drivers may be mentioned naturally by name when relevant
-- Discuss the championship stakes — who needs points, who's leading, who's within striking distance
+- Discuss the championship stakes for BOTH drivers and constructors — who needs points, who's \
+leading, which teams are scrapping for position
 - Use track history to suggest who might have an edge{collision_block}
 - Length: 450–650 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
@@ -482,7 +536,7 @@ Return JSON only — no markdown, no extra keys:
         client = anthropic.Anthropic(api_key=api_key)
         message = client.messages.create(
             model="claude-opus-4-6",
-            max_tokens=800,
+            max_tokens=900,
             system=(
                 "You are a sports journalist. Always respond with valid JSON only — "
                 "no markdown fences, no extra text."
@@ -859,7 +913,7 @@ def _generate_rankings_blurbs(race, ranked_drivers, completed_races):
         client = anthropic.Anthropic(api_key=api_key)
         message = client.messages.create(
             model="claude-opus-4-6",
-            max_tokens=2800,
+            max_tokens=3000,
             system=(
                 "You are a sports journalist. Always respond with valid JSON only — "
                 "no markdown fences, no extra text. Keys are exact driver names as given."
