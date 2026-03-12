@@ -11,6 +11,7 @@ import { HallOfFamePage } from "./pages/HallOfFamePage/index.tsx";
 import { ArticlesPage } from "./pages/ArticlesPage/index.tsx";
 import { ArticleDetailPage } from "./pages/ArticleDetailPage/index.tsx";
 import { TeamPage } from "./pages/TeamPage/index.tsx";
+import { TeamsIndex } from "./pages/TeamsPage/index.tsx";
 
 
 function AppLayout() {
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/hall-of-fame" element={<HallOfFamePage />} />
         <Route path="/articles" element={<ArticlesPage />} />
         <Route path="/articles/:articleId" element={<ArticleDetailPage />} />
+        <Route path="/teams" element={<TeamsIndex />} />
         <Route path="/teams/:teamId" element={<TeamPage />} />
       </Route>
     </Routes>

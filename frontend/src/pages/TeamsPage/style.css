@@ -1,0 +1,450 @@
+/* ═══════════════════════════════════════
+   PAGE
+═══════════════════════════════════════ */
+
+.tix-page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ═══════════════════════════════════════
+   HERO
+═══════════════════════════════════════ */
+
+.tix-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  background: rgba(5, 5, 20, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.tix-hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tix-hero-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 199, 14, 0.6);
+}
+
+.tix-hero-title {
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0;
+  line-height: 1;
+}
+
+.tix-hero-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tix-hero-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+
+/* ═══════════════════════════════════════
+   SECTION
+═══════════════════════════════════════ */
+
+.tix-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tix-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tix-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+}
+
+.tix-section-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.18);
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════
+   POSITION BADGE
+═══════════════════════════════════════ */
+
+.tix-pos {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.2);
+  width: 32px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.tix-pos--1 { color: rgb(255, 199, 14); }
+.tix-pos--2 { color: rgba(192, 200, 216, 0.75); }
+.tix-pos--3 { color: rgba(205, 140, 80, 0.8); }
+
+/* ═══════════════════════════════════════
+   STANDINGS
+═══════════════════════════════════════ */
+
+.tix-standings {
+  background: rgba(5, 5, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tix-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: background 0.12s;
+}
+
+.tix-row:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tix-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tix-row--first {
+  background: rgba(255, 199, 14, 0.03);
+  border-left-color: var(--row-accent, rgba(255, 199, 14, 0.35));
+}
+
+.tix-row--first:hover {
+  background: rgba(255, 199, 14, 0.05);
+}
+
+.tix-row-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tix-row-logo {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tix-row-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tix-row-logo-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.tix-row-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.88);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Color bar on non-first rows */
+.tix-row:not(.tix-row--first) {
+  border-left-color: var(--row-accent, transparent);
+}
+
+.tix-row-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.tix-row-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.tix-row-stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.tix-row-stat-value--wins {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tix-row-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* ═══════════════════════════════════════
+   ALL-TIME RECORDS
+═══════════════════════════════════════ */
+
+.tix-records {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.tix-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(5, 5, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 2px solid var(--record-accent, rgba(255, 255, 255, 0.12));
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.tix-record:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tix-record-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tix-record-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 199, 14, 0.55);
+}
+
+.tix-record-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.tix-record-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tix-record-logo {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tix-record-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tix-record-logo-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  opacity: 0.35;
+}
+
+.tix-record-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════
+   SEARCH
+═══════════════════════════════════════ */
+
+.tix-search {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  outline: none;
+  width: 160px;
+  transition: border-color 0.15s;
+}
+
+.tix-search::placeholder { color: rgba(255, 255, 255, 0.22); }
+.tix-search:focus { border-color: rgba(255, 255, 255, 0.25); }
+
+/* ═══════════════════════════════════════
+   TEAM GRID
+═══════════════════════════════════════ */
+
+.tix-team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.tix-grid-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(5, 5, 20, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  text-decoration: none;
+  overflow: hidden;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.tix-grid-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+/* Subtle color accent bar on left edge */
+.tix-grid-accent-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  opacity: 0.6;
+}
+
+.tix-grid-logo {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tix-grid-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tix-grid-logo-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  opacity: 0.35;
+}
+
+.tix-grid-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tix-grid-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tix-grid-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tix-grid-pts { color: rgba(255, 255, 255, 0.28); }
+.tix-grid-wins { color: rgba(255, 199, 14, 0.75); font-weight: 700; }
+.tix-grid-seasons { color: rgba(255, 255, 255, 0.18); }
+
+.tix-empty {
+  color: rgba(255, 255, 255, 0.22);
+  font-size: 13px;
+  padding: 20px 0;
+  grid-column: 1 / -1;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+
+@media (max-width: 700px) {
+  .tix-records {
+    grid-template-columns: 1fr;
+  }
+  .tix-hero { padding: 16px 18px; }
+}
