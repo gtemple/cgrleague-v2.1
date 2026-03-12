@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useHallOfFame, type HallOfFameDriver, type SeasonBestEntry } from "../../hooks/useHallOfFame";
+import { useHallOfFame, type HallOfFameDriver, type SeasonBestEntry, type HallOfFameData } from "../../hooks/useHallOfFame";
 import { H2HMatrix } from "../../components/H2HMatrix";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
@@ -8,7 +8,9 @@ import "./style.css";
 
 // ─── Driver avatar ────────────────────────────────────────────────────────────
 
-const DriverAvatar = ({ driver, size = "md" }: { driver: HallOfFameDriver | SeasonBestEntry["driver"]; size?: "sm" | "md" | "lg" }) => (
+type SeasonBestDriverInfo = NonNullable<SeasonBestEntry>["driver"];
+
+const DriverAvatar = ({ driver, size = "md" }: { driver: HallOfFameDriver | SeasonBestDriverInfo; size?: "sm" | "md" | "lg" }) => (
   <div className={`hof-avatar hof-avatar-${size}`}>
     {driver?.profile_image
       ? <img src={displayImage(driver.profile_image, "driver")} alt={driver.last_name} />
@@ -202,7 +204,7 @@ export function HallOfFamePage() {
 
       {isLoading && <Loader full />}
 
-      {!isLoading && stats && (
+      {!isLoading && stats && data && (
         <>
           {/* Hero: Career Points podium */}
           <section className="hof-hero-section">
@@ -223,17 +225,17 @@ export function HallOfFamePage() {
             <div className="hof-bests-grid">
               <SeasonBestCard
                 title="Most Wins in a Season"
-                entry={Array.isArray(data) ? null : (data.season_bests?.most_wins ?? null)}
+                entry={(data as HallOfFameData).season_bests?.most_wins ?? null}
                 accent="rgb(255, 199, 14)"
               />
               <SeasonBestCard
                 title="Most Points in a Season"
-                entry={Array.isArray(data) ? null : (data.season_bests?.most_points ?? null)}
+                entry={(data as HallOfFameData).season_bests?.most_points ?? null}
                 accent="rgb(99, 179, 237)"
               />
               <SeasonBestCard
                 title="Most Poles in a Season"
-                entry={Array.isArray(data) ? null : (data.season_bests?.most_poles ?? null)}
+                entry={(data as HallOfFameData).season_bests?.most_poles ?? null}
                 accent="rgb(72, 199, 142)"
               />
             </div>
