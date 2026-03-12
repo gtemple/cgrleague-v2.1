@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDriversHomepage } from "../../hooks/useDriversHomepage";
-import type { HumanSpotlightEntry, AllDriverEntry, LeaderEntry } from "../../hooks/useDriversHomepage";
+import type { HumanSpotlightEntry, AllDriverEntry } from "../../hooks/useDriversHomepage";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./DriversIndex.css";
@@ -74,39 +74,6 @@ function StandingsRow({ entry }: { entry: HumanSpotlightEntry }) {
   );
 }
 
-// ─── Record tile ──────────────────────────────────────────────────────────────
-
-const RECORD_LABELS: Record<string, string> = {
-  points:       "All-time Points",
-  wins:         "All-time Wins",
-  podiums:      "All-time Podiums",
-  poles:        "All-time Poles",
-  fastest_laps: "Fastest Laps",
-};
-
-function RecordTile({ stat, entry }: { stat: string; entry: LeaderEntry }) {
-  const { driver, value } = entry;
-  const avatarUrl = driver.profile_image ? displayImage(driver.profile_image, "driver") : null;
-
-  return (
-    <Link to={`/drivers/${driver.id}`} className="dix-record">
-      <div className="dix-record-left">
-        <span className="dix-record-label">{RECORD_LABELS[stat]}</span>
-        <span className="dix-record-value">{value.toLocaleString()}</span>
-      </div>
-      <div className="dix-record-right">
-        <div className="dix-record-avatar">
-          {avatarUrl
-            ? <img src={avatarUrl} alt={driver.display_name} />
-            : <div className="dix-record-avatar-placeholder" />
-          }
-        </div>
-        <span className="dix-record-name">{driver.display_name}</span>
-      </div>
-    </Link>
-  );
-}
-
 // ─── Driver grid card ─────────────────────────────────────────────────────────
 
 function DriverGridCard({ entry }: { entry: AllDriverEntry }) {
@@ -154,9 +121,8 @@ export const DriversIndex = () => {
   if (isLoading) return <Loader label="Loading drivers…" full />;
   if (error || !data) return <div style={{ color: "crimson", padding: 20 }}>Failed to load drivers.</div>;
 
-  const { human_spotlight, leaders, all_drivers, latest_season_id } = data;
+  const { human_spotlight, all_drivers, latest_season_id } = data;
   const humanDrivers = all_drivers.filter((d) => d.is_human);
-  const leaderEntries = Object.entries(leaders).filter(([, v]) => v !== null) as [string, LeaderEntry][];
 
   const baseList = gridMode === "human"
     ? humanDrivers
@@ -200,21 +166,6 @@ export const DriversIndex = () => {
           <div className="dix-standings">
             {human_spotlight.map((entry) => (
               <StandingsRow key={entry.driver.id} entry={entry} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── All-time Records ── */}
-      {leaderEntries.length > 0 && (
-        <section className="dix-section">
-          <div className="dix-section-header">
-            <h2 className="dix-section-title">All-time Records</h2>
-            <span className="dix-section-sub">Human drivers</span>
-          </div>
-          <div className="dix-records">
-            {leaderEntries.map(([stat, entry]) => (
-              <RecordTile key={stat} stat={stat} entry={entry} />
             ))}
           </div>
         </section>
