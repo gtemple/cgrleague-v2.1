@@ -42,6 +42,9 @@ def key_driver_detail(driver_id):
 def key_driver_history(driver_id):
     return f"driver:{driver_id}:history"
 
+def key_driver_tracks(driver_id):
+    return f"driver:{driver_id}:tracks"
+
 def key_track_stats(track_id, include_sprints: bool):
     return f"track:{track_id}:stats:{int(include_sprints)}"
 
@@ -82,6 +85,7 @@ def invalidate_for_result(instance):
         key_next_race_teaser(True),
         key_driver_detail(driver_id),
         key_driver_history(driver_id),
+        key_driver_tracks(driver_id),
         key_track_stats(track_id, False),
         key_track_stats(track_id, True),
         key_team_detail(team_id),

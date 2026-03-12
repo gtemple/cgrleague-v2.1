@@ -17,7 +17,8 @@ from seasons.models import Season
 from drivers.models import Driver
 # Reuse your existing points helpers (same ones used in standings)
 from results.api.views.utils import points_case, fl_bonus_case, serialize_driver, serialize_team
-from results.cache import CACHE_TTL, key_driver_detail, key_driver_history
+from results.cache import CACHE_TTL, key_driver_detail, key_driver_history, key_driver_tracks
+from tracks.models import Track
 
 
 def serialize_driver(d: Driver) -> Dict[str, Any]:
@@ -318,3 +319,74 @@ class DriverHistoryView(APIView):
         }
         cache.set(ck, payload, timeout=CACHE_TTL)
         return Response(payload)
+
+
+class DriverTrackStatsView(APIView):
+    """
+    GET /api/drivers/<driver_id>/tracks/
+    Returns per-track career stats for a single driver, sorted by total points desc.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, driver_id: int, *args, **kwargs):
+        ck = key_driver_tracks(driver_id)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
+        get_object_or_404(Driver, pk=driver_id)
+
+        results_qs = (
+            RaceResult.objects
+            .filter(driver_season__driver_id=driver_id, race__is_sprint=False)
+            .select_related("race__track", "driver_season")
+        )
+
+        from collections import defaultdict
+        agg: Dict[int, Dict[str, Any]] = {}
+        finishes: Dict[int, list] = defaultdict(list)
+
+        for rr in results_qs:
+            track = rr.race.track
+            tid = track.id
+            if tid not in agg:
+                agg[tid] = {
+                    "track": {
+                        "id": track.id,
+                        "name": track.name,
+                        "city": getattr(track, "city", ""),
+                        "country": getattr(track, "country", ""),
+                        "image": getattr(track, "img", None),
+                    },
+                    "total_points": 0,
+                    "wins": 0,
+                    "podiums": 0,
+                    "fastest_laps": 0,
+                    "races_count": 0,
+                }
+
+            from results.scoring import points_for_result
+            agg[tid]["total_points"] += int(points_for_result(rr))
+            agg[tid]["races_count"] += 1
+
+            fp = rr.finish_position
+            if fp is not None:
+                if fp == 1:
+                    agg[tid]["wins"] += 1
+                if fp <= 3:
+                    agg[tid]["podiums"] += 1
+                finishes[tid].append(fp)
+
+            if getattr(rr, "fastest_lap", False):
+                agg[tid]["fastest_laps"] += 1
+
+        rows = []
+        for tid, row in agg.items():
+            fs = finishes[tid]
+            row["avg_finish_position"] = round(sum(fs) / len(fs), 1) if fs else None
+            rows.append(row)
+
+        rows.sort(key=lambda r: r["total_points"], reverse=True)
+
+        cache.set(ck, rows, timeout=CACHE_TTL)
+        return Response(rows)

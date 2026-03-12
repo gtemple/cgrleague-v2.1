@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDriversList } from "../../hooks/useDriverList";
 import { useDriverDetail } from "../../hooks/useDriverDetails";
 import { DriverHistoryTable } from "./DriverHistoryTable";
+import { DriverTrackGrid } from "./DriverTrackGrid";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./style.css";
@@ -136,6 +137,9 @@ export const DriverPage = () => {
               ))}
             </div>
           </header>
+
+          {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
+          <DriverTrackGrid driverId={driverId} />
 
           {/* ══════════════════════ HISTORY ══════════════════════ */}
           <DriverHistoryTable driverId={driverId} />
