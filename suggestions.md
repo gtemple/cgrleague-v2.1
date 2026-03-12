@@ -33,3 +33,51 @@ These require a bit more thought / design agreement before touching:
 ## Inbox Ideas That Might Apply
 
 None of the current inbox ideas are a strong fit.
+
+
+  Stats & Analytics
+
+  1. Driver vs Driver comparison
+  Pick any two drivers, see a side-by-side breakdown — head-to-head wins, avg
+  finish, points per race, track records against each other. Good use of existing
+  data.
+
+
+  3. Track records page
+  Each track has a page: fastest lap ever, most wins, best average finish per
+  driver. Good destination for the flag/track images you already have.
+
+  4. Season comparison
+  Compare two seasons side by side — same drivers in both? Who improved? Who
+  regressed?
+
+  ---
+  Site UX
+
+  9. Global search
+  Search box in the nav that covers drivers, tracks, and articles. Could be entirely
+   frontend-filtered from existing API data.
+
+  10. Race results page
+  Right now results live inside driver pages. A dedicated race results page — select
+   season/round, see full grid, positions, gaps, flags — would be a natural anchor
+  for article links.
+
+  11. Notification / "new article" badge
+  Small dot on the Articles nav link when a new article has been published since the
+   user last visited. Pure frontend using localStorage.
+
+  ---
+  Content
+
+  12. Driver milestones
+  Auto-detect and surface milestones — first win, 10th points finish, pole record.
+  Could be surfaced in articles or as a feed on the homepage.
+
+  13. Constructor/team pages
+  Currently teams exist in standings but have no dedicated page. A team page with
+  roster, season history, win record would round things out.
+
+   ● Here's what's happening with the current algorithm. Let me trace through P1, P1,
+  P20, P1 (assuming ~20 drivers):
+

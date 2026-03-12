@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useConstructorStandings } from "../../hooks/useConstructorStandings";
 import { displayImage } from "../../utils/displayImage";
 import "./style.css";
@@ -53,7 +54,9 @@ export function ConstructorStandingsTable({ seasonId }: { seasonId: number }) {
                   : <div className="standings-avatar-fallback" />}
               </div>
               <div className="standings-info">
-                <div className="standings-name">{label}</div>
+                <Link to={`/teams/${row.team.id}`} className="standings-name standings-team-link">
+                  {label}
+                </Link>
               </div>
               <div className="standings-points">{row.points}</div>
             </div>

@@ -197,11 +197,12 @@ class SeasonResultsMatrixView(APIView):
 
         # Constructors: compute avg_finish and sort by points desc, avg asc, then name
         constructor_results: List[Dict[str, Any]] = []
-        for t in constructor_totals.values():
+        for t_id, t in constructor_totals.items():
             cnt = t.get("_finish_count", 0) or 0
             s = t.get("_finish_sum", 0) or 0
             avg = (s / cnt) if cnt > 0 else None
             constructor_results.append({
+                "team_id": t_id,
                 "team_name": t["team_name"],
                 "team_display_name": t["team_display_name"],
                 "team_image": t["team_image"],

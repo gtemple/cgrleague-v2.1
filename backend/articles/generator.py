@@ -682,7 +682,8 @@ RECENCY_WEIGHTS = [0.35, 0.25, 0.20, 0.12, 0.08]
 def _pos_score(pos, n_drivers):
     if pos is None:
         return 0.0
-    return max(0.0, 1.0 - (pos - 1) / max(n_drivers - 1, 1))
+    pct = (pos - 1) / max(n_drivers - 1, 1)
+    return max(0.0, (1.0 - pct) ** 2)
 
 
 def _compute_rankings(race, driver_seasons, completed_races):
@@ -739,9 +740,13 @@ def _compute_rankings(race, driver_seasons, completed_races):
         recent_score = r_score / w_sum if w_sum else 0.0
 
         valid = [p for p in finishes if p is not None]
+        if len(valid) >= 3:
+            valid_for_avg = sorted(valid, key=lambda p: _pos_score(p, n_drivers))[1:]
+        else:
+            valid_for_avg = valid
         season_avg = (
-            sum(_pos_score(p, n_drivers) for p in valid) / len(valid)
-            if valid else 0.0
+            sum(_pos_score(p, n_drivers) for p in valid_for_avg) / len(valid_for_avg)
+            if valid_for_avg else 0.0
         )
 
         gains = [(g - f) / max(n_drivers - 1, 1) for g, f in grids]

@@ -208,6 +208,7 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
     displayName: truncateName(row.team_name, 20),
     profileImage: row.team_image,
     totalPoints: row.points,
+    teamId: row.team_id,
   }));
 
   const max = constructors[0]?.totalPoints ?? 1;
@@ -220,7 +221,7 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
           {constructors.map((constructor) => (
             <tr key={constructor.constructor}>
               <td><div className='team-logo'>{constructor?.profileImage && <img src={displayImage(constructor.profileImage, 'team')} alt={constructor.constructor} />}</div></td>
-              <td>{constructor.displayName}</td>
+              <td>{constructor.teamId ? <Link to={`/teams/${constructor.teamId}`} style={{ textDecoration: "none", color: "inherit" }}>{constructor.displayName}</Link> : constructor.displayName}</td>
               <td className="stat-bar-cell">
                 <div className="stat-bar-wrap">
                   <div className="stat-bar stat-bar-constructor" style={{ width: `${(constructor.totalPoints / max) * 100}%` }} />

@@ -3,12 +3,13 @@ from django.urls import path, include
 from api.views import ping
 from tracks.views import list_tracks
 from seasons.views import list_seasons
-from teams.views import list_teams
+from teams.views import list_teams, TeamDetailView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/seasons/", list_seasons),
     path("api/teams/", list_teams),
+    path("api/teams/<int:team_id>/", TeamDetailView.as_view()),
     path("api/", include("tracks.api.urls")),
     path("api/", include("results.api.urls")),
     path("api/", include("drivers.api.urls")),

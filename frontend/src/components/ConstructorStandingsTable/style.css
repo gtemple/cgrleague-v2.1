@@ -21,3 +21,13 @@
   height: 100%;
   object-fit: contain;
 }
+
+.standings-team-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.standings-team-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
