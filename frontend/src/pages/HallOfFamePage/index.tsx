@@ -159,7 +159,9 @@ export function HallOfFamePage() {
 
   const stats = useMemo(() => {
     if (!data) return null;
-    const drivers = data.drivers;
+    // Handle both new shape {drivers, season_bests} and old flat-array shape
+    const drivers: HallOfFameDriver[] = Array.isArray(data) ? data : (data.drivers ?? []);
+    if (!drivers.length) return null;
     return {
       wins:            [...drivers].sort((a, b) => b.total_wins - a.total_wins).slice(0, 3),
       championships:   [...drivers].sort((a, b) => b.total_championships - a.total_championships).slice(0, 3),
@@ -200,7 +202,7 @@ export function HallOfFamePage() {
 
       {isLoading && <Loader full />}
 
-      {!isLoading && stats && data && (
+      {!isLoading && stats && (
         <>
           {/* Hero: Career Points podium */}
           <section className="hof-hero-section">
@@ -221,17 +223,17 @@ export function HallOfFamePage() {
             <div className="hof-bests-grid">
               <SeasonBestCard
                 title="Most Wins in a Season"
-                entry={data.season_bests.most_wins}
+                entry={Array.isArray(data) ? null : (data.season_bests?.most_wins ?? null)}
                 accent="rgb(255, 199, 14)"
               />
               <SeasonBestCard
                 title="Most Points in a Season"
-                entry={data.season_bests.most_points}
+                entry={Array.isArray(data) ? null : (data.season_bests?.most_points ?? null)}
                 accent="rgb(99, 179, 237)"
               />
               <SeasonBestCard
                 title="Most Poles in a Season"
-                entry={data.season_bests.most_poles}
+                entry={Array.isArray(data) ? null : (data.season_bests?.most_poles ?? null)}
                 accent="rgb(72, 199, 142)"
               />
             </div>
