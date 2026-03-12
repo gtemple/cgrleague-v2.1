@@ -1152,7 +1152,7 @@ CAREER OVERVIEW:
   Poles: {poles}
   Fastest laps: {fastest_laps}
   Driver of the Day awards: {dotds}
-  DNFs: {dnfs}
+  DNFs: {dnfs} (NOTE: DNFs were only tracked from Season 7 onwards — do not draw conclusions about reliability or race-finishing from this number alone)
   Average finish position: {avg_finish if avg_finish is not None else "N/A"}
 
 SEASON HISTORY:
@@ -1161,9 +1161,12 @@ SEASON HISTORY:
 BEST TRACKS (by points scored):
 {chr(10).join(best_track_lines) or "  No track data"}
 
-Write 2–4 punchy sentences. Focus on what makes this driver distinctive — their strengths, \
-consistency or volatility, standout achievements, and trajectory across seasons. \
-Do not just list the stats back; interpret them into a character description.
+Write 2–4 punchy sentences as a profile of this specific driver. Ground the bio in what \
+actually makes them stand out — their wins, their scoring rate, a track they dominate, \
+their trajectory across seasons, or any other genuinely distinctive pattern in the data. \
+Avoid generic labels like "journeyman", "veteran", or "solid points scorer" — every driver \
+bio must feel individual and earned. Do not comment on DNFs unless the number is notably high. \
+Do not just list the stats back; interpret them into a character.
 
 Return JSON only: {{"bio": "<the biography text>"}}"""
 
@@ -1177,7 +1180,8 @@ Return JSON only: {{"bio": "<the biography text>"}}"""
         max_tokens=400,
         system=(
             "You are a sports journalist covering CGR League. Write in an engaging, analytical "
-            "style — punchy sentences, specific references to achievements. "
+            "style — punchy sentences, specific references to names and numbers. "
+            "Every driver profile must feel distinct. Never use the word 'journeyman'. "
             "Always respond with valid JSON only (no markdown fences)."
         ),
         messages=[{"role": "user", "content": prompt}],
