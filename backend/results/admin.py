@@ -39,13 +39,32 @@ def _generate_power_rankings_action(modeladmin, request, queryset):
 _generate_power_rankings_action.short_description = "Generate power rankings for selected race"
 
 
+def _generate_all_action(modeladmin, request, queryset):
+    if queryset.count() != 1:
+        modeladmin.message_user(request, "Select exactly one race.", level=messages.WARNING)
+        return
+    race = queryset.first()
+    try:
+        from articles.generator import generate_articles_for_race, generate_power_rankings
+        recap, preview = generate_articles_for_race(race.id)
+        pr = generate_power_rankings(race)
+        msg = f'RECAP: "{recap.title}" | POWER RANKINGS: "{pr.title}"'
+        if preview:
+            msg += f' | PREVIEW: "{preview.title}"'
+        modeladmin.message_user(request, msg, level=messages.SUCCESS)
+    except Exception as e:
+        modeladmin.message_user(request, f"Error: {e}", level=messages.ERROR)
+
+_generate_all_action.short_description = "Generate articles + power rankings for selected race"
+
+
 @admin.register(Race)
 class RaceAdmin(admin.ModelAdmin):
     list_display = ("season", "round", "track", "is_sprint", "laps")
     list_filter = ("season", "is_sprint", "track")
     search_fields = ("track__track_name",)
     ordering = ("season", "round", "is_sprint")
-    actions = [_generate_articles_action, _generate_power_rankings_action]
+    actions = [_generate_all_action, _generate_articles_action, _generate_power_rankings_action]
     fieldsets = (
         (None, {
             "fields": ("season", "track", "round", "is_sprint", "laps", "started_at"),

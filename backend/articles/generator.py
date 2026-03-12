@@ -718,7 +718,8 @@ moment, a theme, or what made this season unique
 def generate_season_preview(season):
     """Generate and save a SEASON_PREVIEW Article for an upcoming season."""
     human_names = _get_human_driver_names(season)
-    final_standings = _get_standings(season, up_to_round=9999)
+    # up_to_round=0 so no current-season race results bleed in — preview is always pre-race
+    final_standings = _get_standings(season, up_to_round=0)
     collision_note = _get_name_collision_note(season)
     races = (
         Race.objects
@@ -745,13 +746,13 @@ SEASON INFO:
 SEASON CALENDAR:
 {chr(10).join(calendar_lines) if calendar_lines else '  Calendar not yet set.'}
 
-DRIVER ROSTER AND CURRENT STANDINGS/HISTORY:
+DRIVER ROSTER (pre-season, no in-season results included):
 {_fmt_standings(final_standings)}
 
 IMPORTANT RULES:
 - You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
 {', '.join(human_names)}
-- Reference their championship standing and team from the roster above
+- Reference their team from the roster above; do NOT reference any in-season points or results
 - AI drivers may be mentioned naturally by name when relevant
 - Build anticipation: rivalries to watch, title contenders, tracks to circle on the calendar
 - Discuss the format (sprint rounds, total rounds) and what it means for strategy
