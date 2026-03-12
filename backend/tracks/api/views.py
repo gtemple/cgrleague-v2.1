@@ -3,7 +3,8 @@ from typing import Dict, Any, List
 from collections import defaultdict
 
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Count, Sum, Q
+from django.db.models.functions import Coalesce
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -211,3 +212,64 @@ class TrackDriverStatsView(APIView):
                 "drivers": rows,
             }
         )
+
+
+class TracksHomepageView(APIView):
+    """
+    GET /api/tracks/homepage/
+    Returns everything needed for the tracks index page:
+      - all_tracks: every track with races_count and total_laps
+      - records: track with most races held, track with most total laps
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        # Races count per track (non-sprint only)
+        races_by_track = {
+            row["track_id"]: row["races_count"]
+            for row in Race.objects
+            .filter(is_sprint=False)
+            .values("track_id")
+            .annotate(races_count=Count("id"))
+        }
+
+        # Total laps_completed per track (non-sprint)
+        laps_by_track = {
+            row["race__track_id"]: int(row["total_laps"])
+            for row in RaceResult.objects
+            .filter(race__is_sprint=False)
+            .values("race__track_id")
+            .annotate(total_laps=Coalesce(Sum("laps_completed"), 0))
+        }
+
+        all_tracks = []
+        for track in Track.objects.all().order_by("name"):
+            all_tracks.append({
+                "id": track.id,
+                "name": track.name,
+                "city": track.city,
+                "country": track.country,
+                "image": track.img or None,
+                "races_count": races_by_track.get(track.id, 0),
+                "total_laps": laps_by_track.get(track.id, 0),
+            })
+
+        # Sort by most-raced first
+        all_tracks.sort(key=lambda x: -x["races_count"])
+
+        def track_record(field):
+            candidates = [t for t in all_tracks if t[field] > 0]
+            if not candidates:
+                return None
+            best = max(candidates, key=lambda t: t[field])
+            return {"track": best, "value": best[field]}
+
+        records = {
+            "most_races": track_record("races_count"),
+            "most_laps": track_record("total_laps"),
+        }
+
+        return Response({
+            "all_tracks": all_tracks,
+            "records": records,
+        })

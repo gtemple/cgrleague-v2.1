@@ -1,0 +1,314 @@
+/* ═══════════════════════════════════════
+   PAGE
+═══════════════════════════════════════ */
+
+.trx-page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ═══════════════════════════════════════
+   HERO
+═══════════════════════════════════════ */
+
+.trx-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  background: rgba(5, 5, 20, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.trx-hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trx-hero-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 199, 14, 0.6);
+}
+
+.trx-hero-title {
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0;
+  line-height: 1;
+}
+
+.trx-hero-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trx-hero-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+
+/* ═══════════════════════════════════════
+   SECTION
+═══════════════════════════════════════ */
+
+.trx-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trx-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trx-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════
+   RECORDS
+═══════════════════════════════════════ */
+
+.trx-records {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.trx-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  background: rgba(5, 5, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 2px solid rgba(255, 199, 14, 0.35);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.trx-record:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.trx-record-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.trx-record-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 199, 14, 0.55);
+}
+
+.trx-record-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.trx-record-track-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.trx-record-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.trx-record-img {
+  width: 64px;
+  height: 48px;
+  object-fit: contain;
+  opacity: 0.75;
+}
+
+.trx-record-img-placeholder {
+  width: 64px;
+  height: 48px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.trx-record-flag {
+  height: 12px;
+  width: auto;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════
+   SEARCH
+═══════════════════════════════════════ */
+
+.trx-search {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  outline: none;
+  width: 160px;
+  transition: border-color 0.15s;
+}
+
+.trx-search::placeholder { color: rgba(255, 255, 255, 0.22); }
+.trx-search:focus { border-color: rgba(255, 255, 255, 0.25); }
+
+/* ═══════════════════════════════════════
+   TRACK GRID
+═══════════════════════════════════════ */
+
+.trx-track-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.trx-grid-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(5, 5, 20, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.12s, border-color 0.12s;
+  overflow: hidden;
+}
+
+.trx-grid-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+.trx-grid-img-wrap {
+  flex-shrink: 0;
+  width: 52px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trx-grid-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.8;
+}
+
+.trx-grid-img-placeholder {
+  width: 44px;
+  height: 32px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.trx-grid-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  justify-content: center;
+}
+
+.trx-grid-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trx-grid-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.trx-grid-flag {
+  height: 11px;
+  width: auto;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.trx-grid-location {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trx-grid-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+}
+
+.trx-grid-races {
+  color: rgba(255, 199, 14, 0.65);
+  font-weight: 700;
+}
+
+.trx-empty {
+  color: rgba(255, 255, 255, 0.22);
+  font-size: 13px;
+  padding: 20px 0;
+  grid-column: 1 / -1;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+
+@media (max-width: 700px) {
+  .trx-records {
+    grid-template-columns: 1fr;
+  }
+  .trx-hero { padding: 16px 18px; }
+}

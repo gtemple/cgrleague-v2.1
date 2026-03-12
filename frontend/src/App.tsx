@@ -4,6 +4,7 @@ import { NavBar } from "./components/NavBar/index.tsx";
 import { HomePage }  from "./pages/HomePage/index.tsx";
 import { SeasonPage } from "./pages/SeasonPage/index.tsx";
 import { TrackPage } from "./pages/TrackPage/index.tsx";
+import { TracksIndex } from "./pages/TrackPage/TracksIndex.tsx";
 import { DriverPage } from "./pages/DriverPage/index.tsx";
 import { DriversIndex } from "./pages/DriverPage/DriversIndex.tsx";
 import { RacePage } from "./pages/RacePage/index.tsx";
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/seasons/:seasonId" element={<SeasonPage />} />
         <Route path="/seasons/:seasonId/races/:round" element={<RacePage />} />
         <Route path="/drivers/:driverId" element={<DriverPage />} />
+        <Route path="/tracks" element={<TracksIndex />} />
         <Route path="/tracks/:trackId" element={<TrackPage />} />
         <Route path="/drivers" element={<DriversIndex />} />
         <Route path="/hall-of-fame" element={<HallOfFamePage />} />

@@ -50,7 +50,7 @@ export function NavBar() {
             <NavLink to="/seasons/7" className={linkClass}>Seasons</NavLink>
             <NavLink to="/drivers"   className={linkClass}>Drivers</NavLink>
             <NavLink to="/teams"     className={linkClass}>Teams</NavLink>
-            <NavLink to="/tracks/1"  className={linkClass}>Tracks</NavLink>
+            <NavLink to="/tracks"    className={linkClass}>Tracks</NavLink>
             <NavLink to="/hall-of-fame" className={linkClass}>Hall of Fame</NavLink>
             <NavLink to="/articles"  className={linkClass}>Articles</NavLink>
           </nav>
