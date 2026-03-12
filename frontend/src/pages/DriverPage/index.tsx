@@ -138,11 +138,11 @@ export const DriverPage = () => {
             </div>
           </header>
 
-          {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
-          <DriverTrackGrid driverId={driverId} />
-
           {/* ══════════════════════ HISTORY ══════════════════════ */}
           <DriverHistoryTable driverId={driverId} />
+
+          {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
+          <DriverTrackGrid driverId={driverId} />
         </>
       )}
     </div>
