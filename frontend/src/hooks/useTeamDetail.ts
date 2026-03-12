@@ -6,6 +6,7 @@ export type TeamDriver = {
   profile_image: string | null;
   points: number;
   driver_season_id: number;
+  country_of_representation: string | null;
 };
 
 export type TeamSeasonRow = {
@@ -42,6 +43,13 @@ export type TeamDetail = {
     drivers: number;
   };
   seasons: TeamSeasonRow[];
+  best_driver: (TeamDriver & { team_points: number; team_wins: number }) | null;
+  best_season: {
+    season_id: number;
+    champ_pos: number;
+    points: number;
+    display_name: string;
+  } | null;
 };
 
 export function useTeamDetail(teamId?: string | number) {

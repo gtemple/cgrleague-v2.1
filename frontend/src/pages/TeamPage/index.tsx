@@ -23,6 +23,13 @@ function lastName(name: string) {
   return name.split(" ").slice(-1)[0];
 }
 
+function DriverFlag({ country }: { country: string | null }) {
+  if (!country) return null;
+  const src = displayImage(country, "flags");
+  if (!src) return null;
+  return <img className="th2h-flag" src={src} alt={country} />;
+}
+
 function DriverH2H({ drivers, color }: { drivers: TeamDriver[]; color: string }) {
   const accent = color || "rgba(255,255,255,0.45)";
 
@@ -33,6 +40,7 @@ function DriverH2H({ drivers, color }: { drivers: TeamDriver[]; color: string })
     return (
       <div className="th2h">
         <div className="th2h-side th2h-left" style={{ color: accent }}>
+          <DriverFlag country={d.country_of_representation} />
           <span className="th2h-name">{lastName(d.display_name)}</span>
           <span className="th2h-pts">{d.points}</span>
         </div>
@@ -55,6 +63,7 @@ function DriverH2H({ drivers, color }: { drivers: TeamDriver[]; color: string })
       title={`${lead.display_name} ${leadPct.toFixed(0)}% · ${trail.display_name} ${(100 - leadPct).toFixed(0)}%`}
     >
       <div className="th2h-side th2h-left" style={{ color: accent }}>
+        <DriverFlag country={lead.country_of_representation} />
         <span className="th2h-name">{lastName(lead.display_name)}</span>
         <span className="th2h-pts">{lead.points}</span>
       </div>
@@ -71,6 +80,7 @@ function DriverH2H({ drivers, color }: { drivers: TeamDriver[]; color: string })
       <div className="th2h-side th2h-right">
         <span className="th2h-pts">{trail.points}</span>
         <span className="th2h-name">{lastName(trail.display_name)}</span>
+        <DriverFlag country={trail.country_of_representation} />
       </div>
     </div>
   );
@@ -91,7 +101,7 @@ export function TeamPage() {
   if (isLoading) return <Loader label="Loading team…" full />;
   if (error || !data) return <div className="team-state-error">Failed to load team.</div>;
 
-  const { team, career, seasons } = data;
+  const { team, career, seasons, best_driver, best_season } = data;
   const logoSrc = displayImage(team.logo_image ?? team.name, "team");
   const teams = listData?.teams ?? [];
 
@@ -166,9 +176,48 @@ export function TeamPage() {
               {team.country && <span className="team-meta-chip">{team.country}</span>}
               {team.founded && <span className="team-meta-chip">Est. {team.founded}</span>}
               <span className="team-meta-chip">{career.seasons} Season{career.seasons !== 1 ? "s" : ""}</span>
+              {best_season && (
+                <span className={`team-meta-chip team-best-season-chip ${champPosClass(best_season.champ_pos)}`}>
+                  Best: {ordinal(best_season.champ_pos)} · S{best_season.season_id}
+                </span>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Best driver */}
+        {best_driver && (() => {
+          const portrait = best_driver.profile_image
+            ? displayImage(best_driver.profile_image, "driver")
+            : undefined;
+          const flag = best_driver.country_of_representation
+            ? displayImage(best_driver.country_of_representation, "flags")
+            : undefined;
+          return (
+            <div className="team-best-driver-row">
+              <Link className="team-best-driver" to={`/drivers/${best_driver.id}`}>
+                <div className="team-bd-avatar">
+                  {portrait
+                    ? <img src={portrait} alt={best_driver.display_name} />
+                    : <div className="team-bd-avatar-fallback" />}
+                </div>
+                <div className="team-bd-info">
+                  <div className="team-bd-label">All-time top scorer</div>
+                  <div className="team-bd-name">
+                    {flag && <img className="team-bd-flag" src={flag} alt="" aria-hidden />}
+                    {best_driver.display_name}
+                  </div>
+                  <div className="team-bd-stats">
+                    <span style={accentColor ? { color: accentColor } : {}}>{best_driver.team_points} pts</span>
+                    {best_driver.team_wins > 0 && (
+                      <><span className="team-bd-sep">·</span><span>{best_driver.team_wins} wins</span></>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            </div>
+          );
+        })()}
 
         {/* Stat strip */}
         <div className="team-stat-strip">

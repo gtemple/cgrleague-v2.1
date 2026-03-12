@@ -50,6 +50,7 @@ def serialize_driver(drv) -> Dict[str, Any]:
         ).strip() or getattr(drv, "name", ""),
         "profile_image": getattr(drv, "profile_image", None),
         "initials": initials_for(drv),
+        "country_of_representation": getattr(drv, "country_of_representation", None),
     }
 
 def serialize_team(team: Optional[Team]) -> Dict[str, Any]:

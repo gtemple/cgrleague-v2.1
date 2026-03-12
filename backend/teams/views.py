@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.db.models import Sum, Count, Case, When, Value, IntegerField, Q, F
@@ -127,6 +129,45 @@ class TeamDetailView(APIView):
                 "drivers": drivers_list,
             })
 
+        # Best driver: highest total points across all seasons for this team
+        driver_totals: dict = defaultdict(lambda: {"points": 0, "driver_data": None})
+        for season in seasons_data:
+            for d in season["drivers"]:
+                did = d["id"]
+                driver_totals[did]["points"] += d["points"]
+                if driver_totals[did]["driver_data"] is None:
+                    driver_totals[did]["driver_data"] = d
+
+        best_driver = None
+        if driver_totals:
+            best = max(driver_totals.values(), key=lambda x: x["points"])
+            if best["driver_data"]:
+                wins_row = (
+                    RaceResult.objects
+                    .filter(
+                        driver_season__team_season__team_id=team_id,
+                        driver_season__driver_id=best["driver_data"]["id"],
+                        finish_position=1,
+                    )
+                    .count()
+                )
+                best_driver = {
+                    **best["driver_data"],
+                    "team_points": best["points"],
+                    "team_wins": wins_row,
+                }
+
+        # Best season: lowest championship position, tiebreak on most points
+        best_season = None
+        if seasons_data:
+            best_s = min(seasons_data, key=lambda s: (s["champ_pos"], -s["points"]))
+            best_season = {
+                "season_id": best_s["season"]["id"],
+                "champ_pos": best_s["champ_pos"],
+                "points": best_s["points"],
+                "display_name": best_s["display_name"],
+            }
+
         data = {
             "team": {
                 "id": team.id,
@@ -147,6 +188,8 @@ class TeamDetailView(APIView):
                 "drivers": unique_drivers,
             },
             "seasons": seasons_data,
+            "best_driver": best_driver,
+            "best_season": best_season,
         }
         cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data)

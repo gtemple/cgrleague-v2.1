@@ -1181,7 +1181,7 @@ Return JSON only: {{"bio": "<the biography text>"}}"""
         system=(
             "You are a sports journalist covering CGR League. Write in an engaging, analytical "
             "style — punchy sentences, specific references to names and numbers. "
-            "Every driver profile must feel distinct. Never use the word 'journeyman'. "
+            "Every driver profile must feel distinct. Never use the words 'journeyman' or 'playground' (e.g. 'personal playground'). "
             "Always respond with valid JSON only (no markdown fences)."
         ),
         messages=[{"role": "user", "content": prompt}],
