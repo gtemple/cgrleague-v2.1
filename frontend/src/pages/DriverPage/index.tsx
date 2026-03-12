@@ -17,140 +17,118 @@ export const DriverPage = () => {
   const driver = data?.driver;
   const totals = data?.totals;
 
-  // Local, stable select value so UI doesn’t jump
   const [selectValue, setSelectValue] = useState(driverId ?? "");
   useEffect(() => {
     if (driverId != null) setSelectValue(driverId);
   }, [driverId]);
 
   const hasValueInList = list?.some(d => String(d.id) === selectValue);
-
   const selectedLabel =
     driver?.display_name ??
     list?.find(d => String(d.id) === selectValue)?.display_name ??
     "Loading…";
 
+  const portraitSrc = driver?.profile_image
+    ? displayImage(driver.profile_image, "driver")
+    : null;
+
+  const apg = totals?.avg_positions_gained;
+
   return (
-    <div className="driver-page">
+    <div className="dp-page">
 
       {isLoading && <Loader label="Loading driver…" full />}
-
-      {!isLoading && error && (
-        <div className="state state-error">Failed to load driver.</div>
-      )}
+      {!isLoading && error && <div className="dp-state-error">Failed to load driver.</div>}
 
       {!isLoading && !error && driver && totals && (
         <>
-          <section className="driver-hero">
-            <div className="hero-top-row">
-              <div className="portrait-wrap">
-                <div className="portrait-bg" />
-                {driver.profile_image ? (
-                  <img
-                    className="portrait-img"
-                    src={displayImage(driver.profile_image, "driver")}
-                    alt={driver.display_name}
-                  />
-                ) : (
-                  <div className="portrait-fallback" />
-                )}
-              </div>
-              <div className="hero-header">
-                <div>
-                  <div className='hero-names'>
-                    <div className="hero-name">{driver.first_name} {driver.last_name}</div>
-                  </div>
-                  <div className='hero-header-sub'>
-                    <div>Wins: {totals.wins}</div>
-                    <div>Podiums: {totals.podiums}</div>
-                  </div>
-                </div>
-                <div className="driver-picker">
-                  {/* Always render the select; keep options during loading */}
-                  {!listError && (
-                    <select
-                      className="driver-select"
-                      value={selectValue}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        setSelectValue(next);               // instant UI update
-                        if (next && next !== driverId) navigate(`/drivers/${next}`);
-                      }}
-                      aria-busy={listLoading || undefined}
-                      disabled={listError ? true : false}
-                    >
-                      {/* Ghost option so current selection stays visible even if not in options yet */}
-                      {!hasValueInList && selectValue && (
-                        <option value={selectValue}>{selectedLabel}</option>
-                      )}
+          {/* ══════════════════════ HERO ══════════════════════ */}
+          <header className="dp-hero">
 
-                      {list?.map((d) => (
-                        <option key={d.id} value={String(d.id)}>
-                          {d.display_name}
-                        </option>
-                      ))}
+            {/* Full-bleed atmospheric background */}
+            <div className="dp-hero-bg">
+              {portraitSrc && <img src={portraitSrc} alt="" aria-hidden />}
+              <div className="dp-hero-bg-overlay" />
+            </div>
 
-                      {!selectValue && <option value="">Select a driver…</option>}
-                    </select>
+            {/* Top bar: eyebrow + picker */}
+            <div className="dp-hero-topbar">
+              <span className="dp-eyebrow">CGR League · Driver</span>
+              {!listError && (
+                <select
+                  className="dp-picker"
+                  value={selectValue}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setSelectValue(next);
+                    if (next && next !== driverId) navigate(`/drivers/${next}`);
+                  }}
+                  aria-busy={listLoading || undefined}
+                  disabled={!!listError}
+                >
+                  {!hasValueInList && selectValue && (
+                    <option value={selectValue}>{selectedLabel}</option>
                   )}
-                </div>
-              </div>
+                  {list?.map((d) => (
+                    <option key={d.id} value={String(d.id)}>{d.display_name}</option>
+                  ))}
+                  {!selectValue && <option value="">Select a driver…</option>}
+                </select>
+              )}
             </div>
-            <div className='hero-divider' />
-            <div className='hero-second-row'>
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>{totals.points_breakdown.base + totals.points_breakdown.fastest_lap_bonus}</div>
-                <div className='hero-highlight-label'>Points</div>
-              </div>
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>{totals.poles}</div>
-                <div className='hero-highlight-label'>Poles</div>
+
+            {/* Main hero body: portrait left, name right */}
+            <div className="dp-hero-body">
+              <div className="dp-portrait-wrap">
+                {portraitSrc
+                  ? <img className="dp-portrait-img" src={portraitSrc} alt={driver.display_name} />
+                  : <div className="dp-portrait-fallback" />}
               </div>
 
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>{totals.races}</div>
-                <div className='hero-highlight-label'>Races</div>
-              </div>
-
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>{totals.fastest_laps}</div>
-                <div className='hero-highlight-label'>Fastest Laps</div>
-              </div>
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>{totals.dotds}</div>
-                <div className='hero-highlight-label'>Driver of the Days</div>
-              </div>
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>{totals.cleanest_awards}</div>
-                <div className='hero-highlight-label'>Cleanest Awards</div>
-              </div>
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>{totals.most_overtakes_awards}</div>
-                <div className='hero-highlight-label'>Most Overtakes</div>
-              </div>
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>{totals.laps}</div>
-                <div className='hero-highlight-label'>Laps Completed</div>
-              </div>
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>{totals.ppr != null ? totals.ppr.toFixed(1) : '—'}</div>
-                <div className='hero-highlight-label'>Pts / Race</div>
-              </div>
-              <div className='hero-highlight-container'>
-                <div className='hero-highlight-number'>
-                  {totals.avg_positions_gained != null
-                    ? (totals.avg_positions_gained >= 0 ? '+' : '') + totals.avg_positions_gained.toFixed(1)
-                    : '—'}
-                </div>
-                <div className='hero-highlight-label'>
-                  Avg Pos +/−
-                  <span className="hero-info-tooltip" title="Grid position has been recorded from Season 7">?</span>
+              <div className="dp-hero-name-block">
+                <div className="dp-name-first">{driver.first_name}</div>
+                <div className="dp-name-last">{driver.last_name}</div>
+                <div className="dp-hero-quick-stats">
+                  <span className="dp-quick-chip">{totals.wins} Wins</span>
+                  <span className="dp-quick-chip">{totals.podiums} Podiums</span>
+                  <span className="dp-quick-chip">{totals.poles} Poles</span>
                 </div>
               </div>
             </div>
 
+            {/* Stat strip */}
+            <div className="dp-stat-strip">
+              {[
+                { value: totals.points,                              label: "Points" },
+                { value: totals.races,                               label: "Races" },
+                { value: totals.ppr != null ? totals.ppr.toFixed(1) : "—", label: "Pts / Race" },
+                { value: totals.avg_finish != null ? totals.avg_finish.toFixed(1) : "—", label: "Avg Finish" },
+                {
+                  value: apg != null ? (apg >= 0 ? "+" : "") + apg.toFixed(1) : "—",
+                  label: "Avg Pos +/−",
+                  cls: apg != null ? (apg >= 0 ? "dp-pos" : "dp-neg") : "",
+                  tip: "Grid position recorded from Season 7",
+                },
+                { value: totals.fastest_laps,    label: "Fastest Laps" },
+                { value: totals.dotds,           label: "DOTDs" },
+                { value: totals.cleanest_awards, label: "Cleanest" },
+                { value: totals.most_overtakes_awards, label: "Overtakes" },
+                { value: totals.laps.toLocaleString(), label: "Laps" },
+              ].map((s) => (
+                <div className="dp-stat" key={s.label}>
+                  <div className={`dp-stat-value${s.cls ? " " + s.cls : ""}`}>
+                    {s.value}
+                    {s.tip && (
+                      <span className="dp-info-tip" title={s.tip}>?</span>
+                    )}
+                  </div>
+                  <div className="dp-stat-label">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </header>
 
-          </section>
+          {/* ══════════════════════ HISTORY ══════════════════════ */}
           <DriverHistoryTable driverId={driverId} />
         </>
       )}

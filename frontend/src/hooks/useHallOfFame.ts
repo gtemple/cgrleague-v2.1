@@ -36,9 +36,20 @@ export type HallOfFameData = {
   };
 };
 
+function normalize(raw: unknown): HallOfFameData {
+  // Old backend returned a flat array; new backend returns { drivers, season_bests }
+  if (Array.isArray(raw)) {
+    return {
+      drivers: raw as HallOfFameDriver[],
+      season_bests: { most_wins: null, most_points: null, most_poles: null },
+    };
+  }
+  return raw as HallOfFameData;
+}
+
 export function useHallOfFame(includeAI: boolean) {
   return useApiQuery<HallOfFameData>(
     `/api/hall-of-fame/`,
-    { params: { include_ai: includeAI } }
+    { params: { include_ai: includeAI }, transform: normalize }
   );
 }

@@ -19,7 +19,7 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
 
   if (isLoading) {
     return (
-      <section className="border history-section">
+      <section className="history-section">
         <h2 className="section-title">Career by Season</h2>
         <Loader label="Loading history…" full />
       </section>
@@ -28,7 +28,7 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
 
   if (error) {
     return (
-      <section className="border history-section">
+      <section className="history-section">
         <h2 className="section-title">Career by Season</h2>
         <div className="state state-error">Failed to load history.</div>
       </section>
@@ -38,7 +38,7 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
   const rows = data?.history ?? [];
   if (!rows.length) {
     return (
-      <section className="border history-section">
+      <section className="history-section">
         <h2 className="section-title">Career by Season</h2>
         <div className="state">No history yet.</div>
       </section>
@@ -46,7 +46,7 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
   }
 
   return (
-    <section className="border history-section">
+    <section className="history-section">
       <h2 className="section-title">Career by Season</h2>
 
       <div className="table-wrap">
@@ -139,17 +139,17 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
                   <td className="col-team">
                     <div className="team-cell">
                       {r.team.logo_image ? (
-                        <div className="team-logo sm">
+                        <div className="dht-team-logo">
                           <img src={displayImage(r.team.logo_image, "team")} alt={r.team.display_name} />
                         </div>
                       ) : (
-                        <div className="team-logo team-logo-fallback sm" aria-hidden />
+                        <div className="dht-team-logo-fallback" aria-hidden />
                       )}
-                      <span className="team-name">{r.team.display_name}</span>
+                      <span className="dht-team-name">{r.team.display_name}</span>
                     </div>
                   </td>
 
-                  <td title={`Base ${r.points_breakdown.base} + FL ${r.points_breakdown.fastest_lap_bonus}`}>
+                  <td className="pts-cell" title={`Base ${r.points_breakdown.base} + FL ${r.points_breakdown.fastest_lap_bonus}`}>
                     {r.points}
                   </td>
                   <td>{r.ppr != null ? r.ppr.toFixed(1) : "—"}</td>

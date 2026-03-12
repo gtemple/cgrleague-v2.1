@@ -1,31 +1,28 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTrackStats, type OrderBy } from "../../hooks/useTrackStats";
 import { useTracksList } from "../../hooks/useTrackList";
 import { displayImage } from "../../utils/displayImage";
-import { PortraitContainer } from "../../components/PortraitContainer";
 import { Loader } from "../../components/Loader";
 import "./style.css";
 
-const ORDER_OPTIONS = [
-  { value: "points", label: "Points" },
-  { value: "laps", label: "Laps" },
-  { value: "wins", label: "Wins" },
-  { value: "podiums", label: "Podiums" },
-  { value: "dnfs", label: "DNFs" },
-  { value: "dotds", label: "DOTDs" },
+const ORDER_OPTIONS: { value: OrderBy; label: string }[] = [
+  { value: "points",       label: "Points" },
+  { value: "wins",         label: "Wins" },
+  { value: "podiums",      label: "Podiums" },
   { value: "fastest_laps", label: "Fastest Laps" },
-  { value: "avg_finish", label: "Avg Finish" },
-  { value: "driver", label: "Driver" },
-] as const;
+  { value: "avg_finish",   label: "Avg Finish" },
+  { value: "laps",         label: "Laps" },
+  { value: "dnfs",         label: "DNFs" },
+  { value: "dotds",        label: "DOTDs" },
+  { value: "driver",       label: "Driver" },
+];
 
 export const TrackPage = () => {
   const { trackId } = useParams<{ trackId: string }>();
   const navigate = useNavigate();
 
-  // NEW: fetch list for dropdown
   const { tracks, isLoading: isTracksLoading } = useTracksList();
-
   const [includeSprints, setIncludeSprints] = useState(false);
   const [orderBy, setOrderBy] = useState<OrderBy>("points");
   const [direction, setDirection] = useState<"asc" | "desc">("desc");
@@ -38,152 +35,221 @@ export const TrackPage = () => {
 
   const track = data?.track;
 
-  const headerSubtitle = useMemo(() => {
+  // Keep select value stable while navigating
+  const [selectValue, setSelectValue] = useState(trackId ?? "");
+  useEffect(() => {
+    if (trackId != null) setSelectValue(trackId);
+  }, [trackId]);
+
+  const subtitle = useMemo(() => {
     if (!track) return "";
-    const parts = [track.city, track.country].filter(Boolean);
-    return parts.join(", ");
+    return [track.city, track.country].filter(Boolean).join(", ");
   }, [track]);
 
-  const onSelectTrack = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextId = e.target.value;
-    if (nextId) navigate(`/tracks/${nextId}`);
-  };
+  // Aggregate stats derived from driver rows
+  const summary = useMemo(() => {
+    const drivers = data?.drivers ?? [];
+    if (drivers.length === 0) return null;
+    const totalRaces = Math.max(...drivers.map((d) => d.races_count));
+    const topWinner = [...drivers].sort((a, b) => b.wins - a.wins)[0];
+    const totalLaps = drivers.reduce((s, d) => s + d.total_laps, 0);
+    return { totalRaces, topWinner, totalLaps, driverCount: drivers.length };
+  }, [data]);
+
+  const trackImg = track?.image ? displayImage(track.image, "trackImage") : null;
 
   return (
-    <div className="track-page track-container">
-      <header className="track-header">
-        <div className="track-meta">
-          <h1 className="track-title">{track?.name ?? "Track"}</h1>
-          {headerSubtitle && <div className="track-subtitle">{headerSubtitle}</div>}
-        </div>
+    <div className="tp-page">
 
-        {track?.image && (
-          <div className="track-hero">
-            <img src={displayImage(track.image, "trackImage")} alt={track.name} />
+      {/* ── Hero ── */}
+      <header className="tp-hero">
+        {trackImg && (
+          <div className="tp-hero-bg">
+            <img src={trackImg} alt="" aria-hidden />
           </div>
         )}
-      </header>
 
-      {/* NEW: Top controls row with track picker + existing controls */}
-      <section className="track-controls border">
-        <div className="controls-left">
+        <div className="tp-hero-content">
+          <div className="tp-hero-left">
+            {trackImg && (
+              <div className="tp-track-img-wrap">
+                <img src={trackImg} alt={track?.name} className="tp-track-img" />
+              </div>
+            )}
+            <div className="tp-hero-text">
+              <div className="tp-eyebrow">CGR League · Track</div>
+              <h1 className="tp-title">{track?.name ?? "Track"}</h1>
+              {subtitle && <div className="tp-subtitle">{subtitle}</div>}
+            </div>
+          </div>
+
           {/* Track picker */}
-          <label className="control">
-            <span>Track</span>
+          <div className="tp-picker-wrap">
             {isTracksLoading ? (
-              <div className="select-skeleton" aria-hidden />
+              <div className="tp-picker-skeleton" aria-hidden />
             ) : (
               <select
-                className="track-select"
-                value={trackId ?? ""}
-                onChange={onSelectTrack}
+                className="tp-picker"
+                value={selectValue}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setSelectValue(next);
+                  if (next && next !== trackId) navigate(`/tracks/${next}`);
+                }}
               >
-                {/* If current track isn’t in list, still show a placeholder */}
                 {!trackId && <option value="">Select a track…</option>}
                 {tracks.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.name}
-                    {t.country ? ` — ${t.country}` : ""}
+                    {t.name}{t.country ? ` — ${t.country}` : ""}
                   </option>
                 ))}
               </select>
             )}
-          </label>
-
-          <label className="control">
-            <span>Include sprints</span>
-            <input
-              type="checkbox"
-              checked={includeSprints}
-              onChange={(e) => setIncludeSprints(e.target.checked)}
-            />
-          </label>
+          </div>
         </div>
 
-        <div className="controls-right">
-          <label className="control">
-            <span>Sort by</span>
-            <select
-              value={orderBy}
-              onChange={(e) => setOrderBy(e.target.value as OrderBy)}
-            >
-              {ORDER_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
+        {/* Stat strip */}
+        {summary && (
+          <>
+            <div className="tp-hero-divider" />
+            <div className="tp-stat-strip">
+              <div className="tp-stat">
+                <div className="tp-stat-value">{summary.totalRaces}</div>
+                <div className="tp-stat-label">Races Held</div>
+              </div>
+              <div className="tp-stat">
+                <div className="tp-stat-value">{summary.driverCount}</div>
+                <div className="tp-stat-label">Drivers</div>
+              </div>
+              <div className="tp-stat">
+                <div className="tp-stat-value">{summary.totalLaps.toLocaleString()}</div>
+                <div className="tp-stat-label">Total Laps</div>
+              </div>
+              {summary.topWinner.wins > 0 && (
+                <div className="tp-stat tp-stat-winner">
+                  <div className="tp-stat-value tp-winner-name">
+                    {summary.topWinner.driver.display_name}
+                  </div>
+                  <div className="tp-stat-label">
+                    Most Wins ({summary.topWinner.wins})
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </header>
 
+      {/* ── Controls ── */}
+      <div className="tp-controls">
+        <div className="tp-controls-left">
+          <span className="tp-control-label">Sort by</span>
+          <div className="tp-sort-pills">
+            {ORDER_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className={`tp-pill${orderBy === opt.value ? " tp-pill-active" : ""}`}
+                onClick={() => setOrderBy(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="tp-controls-right">
           <button
-            className="btn"
+            className={`tp-pill tp-pill-icon${includeSprints ? " tp-pill-active" : ""}`}
+            onClick={() => setIncludeSprints((v) => !v)}
+          >
+            {includeSprints ? "✓ " : ""}Sprints
+          </button>
+          <button
+            className="tp-pill tp-pill-icon"
             onClick={() => setDirection((d) => (d === "asc" ? "desc" : "asc"))}
-            aria-label="Toggle sort direction"
             title="Toggle sort direction"
           >
             {direction === "asc" ? "↑ Asc" : "↓ Desc"}
           </button>
         </div>
-      </section>
+      </div>
 
+      {/* ── States ── */}
       {error && (
-        <div className="state state-error">Failed to load track: {String(error.message || error)}</div>
+        <div className="tp-state-error">Failed to load track data.</div>
       )}
 
-      {isLoading && !error && (
-        <div className="border">
-          <Loader label="Loading driver stats…" full />
-        </div>
-      )}
+      {isLoading && !error && <Loader label="Loading driver stats…" full />}
 
+      {/* ── Table ── */}
       {!isLoading && !error && data && (
-        <section className="border table-wrap">
-          <div className="table-hint">Drag sideways to see more →</div>
-          <table className="stats-table">
-            <thead>
-              <tr>
-                <th className="col-driver">Driver</th>
-                <th>Pts</th>
-                <th>Laps</th>
-                <th>Wins</th>
-                <th>Podiums</th>
-                <th>DNFs</th>
-                <th>DOTDs</th>
-                <th>FL</th>
-                <th>Avg Fin</th>
-                <th>Races</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.drivers.map((row) => (
-                <tr key={row.driver.id}>
-                  <td className="col-driver">
-                    <div className="driver-cell">
-                      {row.driver.profile_image ? (
-                        <span>
-                          {PortraitContainer(row.driver.profile_image)}
-                        </span>
-                      ) : (
-                        <span className="avatar avatar-fallback" aria-hidden />
-                      )}
-                      <span className="driver-name">{row.driver.display_name}</span>
-                    </div>
-                  </td>
-                  <td>{row.total_points}</td>
-                  <td>{row.total_laps}</td>
-                  <td>{row.wins}</td>
-                  <td>{row.podiums}</td>
-                  <td>{row.dnfs}</td>
-                  <td>{row.dotds}</td>
-                  <td>{row.fastest_laps}</td>
-                  <td>{row.avg_finish_position !== null ? row.avg_finish_position.toFixed(1) : "—"}</td>
-                  <td>{row.races_count}</td>
+        <div className="tp-table-card">
+          <div className="tp-table-scroll">
+            <table className="tp-table">
+              <thead>
+                <tr>
+                  <th className="tp-col-rank">#</th>
+                  <th className="tp-col-driver">Driver</th>
+                  <th className={`tp-col-num${orderBy === "points" ? " tp-col-sorted" : ""}`}>Pts</th>
+                  <th className={`tp-col-num${orderBy === "wins" ? " tp-col-sorted" : ""}`}>Wins</th>
+                  <th className={`tp-col-num${orderBy === "podiums" ? " tp-col-sorted" : ""}`}>Pods</th>
+                  <th className={`tp-col-num${orderBy === "fastest_laps" ? " tp-col-sorted" : ""}`}>FL</th>
+                  <th className={`tp-col-num${orderBy === "dotds" ? " tp-col-sorted" : ""}`}>DOTD</th>
+                  <th className={`tp-col-num${orderBy === "dnfs" ? " tp-col-sorted" : ""}`}>DNFs</th>
+                  <th className={`tp-col-num${orderBy === "avg_finish" ? " tp-col-sorted" : ""}`}>Avg Fin</th>
+                  <th className={`tp-col-num${orderBy === "laps" ? " tp-col-sorted" : ""}`}>Laps</th>
+                  <th className="tp-col-num">Races</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+              </thead>
+              <tbody>
+                {data.drivers.map((row, i) => (
+                  <tr key={row.driver.id} className={i === 0 ? "tp-row-first" : ""}>
+                    <td className="tp-col-rank tp-rank-num">{i + 1}</td>
+                    <td className="tp-col-driver">
+                      <div className="tp-driver-cell">
+                        <div className="tp-avatar">
+                          {row.driver.profile_image ? (
+                            <img
+                              src={displayImage(row.driver.profile_image, "driver")}
+                              alt={row.driver.display_name}
+                            />
+                          ) : null}
+                        </div>
+                        <span className="tp-driver-name">{row.driver.display_name}</span>
+                      </div>
+                    </td>
+                    <td className={`tp-col-num tp-pts${orderBy === "points" ? " tp-col-sorted" : ""}`}>
+                      {row.total_points}
+                    </td>
+                    <td className={`tp-col-num${row.wins > 0 ? " tp-wins" : ""}${orderBy === "wins" ? " tp-col-sorted" : ""}`}>
+                      {row.wins > 0 ? row.wins : <span className="tp-zero">—</span>}
+                    </td>
+                    <td className={`tp-col-num${orderBy === "podiums" ? " tp-col-sorted" : ""}`}>
+                      {row.podiums > 0 ? row.podiums : <span className="tp-zero">—</span>}
+                    </td>
+                    <td className={`tp-col-num${orderBy === "fastest_laps" ? " tp-col-sorted" : ""}`}>
+                      {row.fastest_laps > 0 ? row.fastest_laps : <span className="tp-zero">—</span>}
+                    </td>
+                    <td className={`tp-col-num${orderBy === "dotds" ? " tp-col-sorted" : ""}`}>
+                      {row.dotds > 0 ? row.dotds : <span className="tp-zero">—</span>}
+                    </td>
+                    <td className={`tp-col-num${orderBy === "dnfs" ? " tp-col-sorted" : ""}`}>
+                      {row.dnfs > 0 ? row.dnfs : <span className="tp-zero">—</span>}
+                    </td>
+                    <td className={`tp-col-num${orderBy === "avg_finish" ? " tp-col-sorted" : ""}`}>
+                      {row.avg_finish_position !== null ? row.avg_finish_position.toFixed(1) : "—"}
+                    </td>
+                    <td className={`tp-col-num${orderBy === "laps" ? " tp-col-sorted" : ""}`}>
+                      {row.total_laps.toLocaleString()}
+                    </td>
+                    <td className="tp-col-num">{row.races_count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );
-}
+};

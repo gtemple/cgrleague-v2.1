@@ -8,7 +8,10 @@ export const DriversIndex = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (data?.length) navigate(`/drivers/${data[0].id}`, { replace: true });
+    if (data?.length) {
+      const defaultDriver = data.find(d => d.id === 1) ?? data[0];
+      navigate(`/drivers/${defaultDriver.id}`, { replace: true });
+    }
   }, [data, navigate]);
 
   if (isLoading) return <Loader label="Loading drivers…" full />;
