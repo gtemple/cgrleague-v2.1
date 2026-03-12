@@ -149,6 +149,10 @@ export const TrackPage = () => {
             </div>
           </>
         )}
+
+        {track?.bio && (
+          <div className="tp-bio">{track.bio}</div>
+        )}
       </header>
 
       {/* ── Controls ── */}

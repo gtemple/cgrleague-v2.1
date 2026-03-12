@@ -1198,3 +1198,148 @@ Return JSON only: {{"bio": "<the biography text>"}}"""
     driver.save(update_fields=["bio"])
     logger.info("Generated bio for driver %d (%s)", driver.id, driver_name)
     return driver
+
+
+def generate_track_bio(track_id):
+    """
+    Generate and save a history overview for a track.
+    Writes the result directly to Track.bio and returns the Track.
+    Invalidates the track stats cache so the bio appears immediately.
+    """
+    from collections import defaultdict
+    from tracks.models import Track
+    from results.scoring import points_for_result
+    from results.cache import key_track_stats
+
+    track = Track.objects.get(pk=track_id)
+
+    # All non-sprint races at this track, ordered chronologically
+    races_qs = (
+        Race.objects
+        .filter(track=track, is_sprint=False)
+        .select_related("season")
+        .order_by("season_id", "round")
+    )
+    races = list(races_qs)
+
+    if not races:
+        raise ValueError(f"No races found at track {track.name}")
+
+    race_ids = [r.id for r in races]
+
+    # All results at this track
+    results_qs = (
+        RaceResult.objects
+        .filter(race_id__in=race_ids)
+        .select_related("race__season", "driver_season__driver")
+        .order_by("race__season_id", "race__round", "finish_position")
+    )
+
+    # Build race history lines and per-driver aggregates
+    race_history: list = []
+    driver_agg: dict = defaultdict(lambda: {
+        "name": "",
+        "human": False,
+        "races": 0,
+        "points": 0,
+        "wins": 0,
+        "podiums": 0,
+        "finishes": [],
+    })
+
+    results_by_race: dict = defaultdict(list)
+    for rr in results_qs:
+        results_by_race[rr.race_id].append(rr)
+
+    for race in races:
+        rrs = results_by_race.get(race.id, [])
+        winner = next((rr for rr in rrs if rr.finish_position == 1), None)
+        winner_name = _name(winner.driver_season.driver) if winner else "Unknown"
+        race_history.append(
+            f"  S{race.season_id} R{race.round}: Winner — {winner_name}"
+        )
+
+        for rr in rrs:
+            drv = rr.driver_season.driver
+            did = drv.id
+            agg = driver_agg[did]
+            agg["name"] = _name(drv)
+            agg["human"] = drv.human
+            agg["races"] += 1
+            agg["points"] += int(points_for_result(rr))
+            fp = rr.finish_position
+            if fp == 1:
+                agg["wins"] += 1
+            if fp is not None and fp <= 3:
+                agg["podiums"] += 1
+            if fp is not None:
+                agg["finishes"].append(fp)
+
+    # Split human vs AI drivers
+    human_drivers = [a for a in driver_agg.values() if a["human"]]
+    human_drivers.sort(key=lambda x: -x["points"])
+
+    human_lines = []
+    for a in human_drivers:
+        avg = round(sum(a["finishes"]) / len(a["finishes"]), 1) if a["finishes"] else None
+        human_lines.append(
+            f"  {a['name']}: {a['races']} races, {a['wins']} wins, "
+            f"{a['podiums']} podiums, {a['points']} pts"
+            + (f", avg finish P{avg}" if avg else "")
+        )
+
+    prompt = f"""Write a history overview for {track.name} ({track.city}, {track.country}) \
+as a venue in CGR League (a private Formula 1-style racing league played on a video game simulator).
+
+TRACK INFO:
+  Name: {track.name}
+  Location: {track.city}, {track.country}
+  Length: {track.distance}m
+
+RACE HISTORY ({len(races)} races held):
+{chr(10).join(race_history)}
+
+HUMAN DRIVER RECORDS AT THIS TRACK (sorted by points):
+{chr(10).join(human_lines) or "  No human driver data"}
+
+Write 4–6 punchy sentences covering the history of this track in CGR League. \
+You must reference every human driver listed above by name at least once — weave them \
+naturally into the narrative rather than listing them mechanically. \
+Focus on patterns of dominance, rivalries, memorable results, and what makes this \
+track distinctive within the league. \
+Do not use the words 'journeyman', 'playground', or 'testament'. \
+Do not open with the track name as the very first word.
+
+Return JSON only: {{"bio": "<the history text>"}}"""
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
+
+    client = anthropic.Anthropic(api_key=api_key)
+    message = client.messages.create(
+        model="claude-opus-4-6",
+        max_tokens=600,
+        system=(
+            "You are a sports journalist covering CGR League. Write in an engaging, analytical "
+            "style — punchy sentences, specific references to names and results. "
+            "Always respond with valid JSON only (no markdown fences)."
+        ),
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = message.content[0].text.strip()
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        cleaned = raw.strip("`").removeprefix("json").strip()
+        data = json.loads(cleaned)
+
+    bio_text = data.get("bio", "").strip()
+    track.bio = bio_text
+    track.save(update_fields=["bio"])
+
+    # Invalidate cached track stats so the bio shows immediately
+    cache.delete_many([key_track_stats(track_id, False), key_track_stats(track_id, True)])
+
+    logger.info("Generated bio for track %d (%s)", track.id, track.name)
+    return track

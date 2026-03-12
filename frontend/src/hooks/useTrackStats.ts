@@ -16,6 +16,7 @@ export type TrackLite = {
   city: string;
   country: string;
   image: string | null;
+  bio: string | null;
 };
 
 export type TrackDriverRow = {

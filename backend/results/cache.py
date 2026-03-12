@@ -48,6 +48,9 @@ def key_driver_tracks(driver_id):
 def key_track_stats(track_id, include_sprints: bool):
     return f"track:{track_id}:stats:{int(include_sprints)}"
 
+def key_track_bio(track_id):
+    return f"track:{track_id}:bio"
+
 def key_team_detail(team_id):
     return f"team:{team_id}:detail"
 

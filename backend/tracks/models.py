@@ -7,6 +7,7 @@ class Track(models.Model):
     distance = models.PositiveIntegerField(help_text="Track length in meters")
     layout = models.CharField(max_length=64, blank=True)
     img = models.CharField(max_length=64, blank=True)
+    bio = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = "tracks"

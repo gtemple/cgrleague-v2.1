@@ -27,8 +27,7 @@ def _serialize_track_full(track: Track) -> Dict[str, Any]:
         "city": getattr(track, "city", ""),
         "country": getattr(track, "country", ""),
         "image": getattr(track, "img", None),
-        # Drop in more fields if your Track model has them:
-        # "length_km": track.length_km, "turns": track.turns, etc.
+        "bio": getattr(track, "bio", None),
     }
 
 
