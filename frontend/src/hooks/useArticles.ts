@@ -94,3 +94,13 @@ export function useArticleDetail(id: number | string) {
 export function useLatestArticles() {
   return useApiQuery<LatestArticles>("/api/articles/latest/");
 }
+
+export function useRaceArticles(
+  seasonId: number | string | undefined,
+  round: number | string | undefined,
+) {
+  return useApiQuery<ArticleSummary[]>("/api/articles/", {
+    params: seasonId && round ? { season_id: seasonId, round } : undefined,
+    enabled: !!seasonId && !!round,
+  });
+}

@@ -10,6 +10,10 @@ from .serializers import ArticleListSerializer, ArticleDetailSerializer
 class ArticleListView(APIView):
     def get(self, request):
         articles = Article.objects.select_related("race", "race__track", "race__season", "season").all()
+        season_id = request.query_params.get("season_id")
+        round_num = request.query_params.get("round")
+        if season_id and round_num:
+            articles = articles.filter(race__season_id=season_id, race__round=round_num)
         return Response(ArticleListSerializer(articles, many=True).data)
 
 

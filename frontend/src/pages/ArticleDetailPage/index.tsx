@@ -207,10 +207,18 @@ export function ArticleDetailPage() {
           {isSeason ? (
             <span className="article-detail-race-meta">Season {article.season_id}</span>
           ) : article.race && (
-            <span className="article-detail-race-meta">
-              Season {article.race.season_id} · Round {article.race.round}
-              {article.race.is_sprint && <span className="article-sprint-tag">Sprint</span>}
-            </span>
+            <>
+              <span className="article-detail-race-meta">
+                Season {article.race.season_id} · Round {article.race.round}
+                {article.race.is_sprint && <span className="article-sprint-tag">Sprint</span>}
+              </span>
+              <Link
+                to={`/seasons/${article.race.season_id}/races/${article.race.round}`}
+                className="article-race-link"
+              >
+                View race results →
+              </Link>
+            </>
           )}
         </div>
         {article.race && (

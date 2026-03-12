@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useRaceDetail } from "../../hooks/useRaceDetail";
+import { useRaceArticles } from "../../hooks/useArticles";
+import { articleTypeLabel } from "../../utils/articleUtils";
 import { displayImage } from "../../utils/displayImage";
 import { getPositionColor } from "../../utils/getPositionColor";
 import { Loader } from "../../components/Loader";
@@ -13,6 +15,7 @@ export const RacePage = () => {
   const [isSprint, setIsSprint] = useState(searchParams.get("is_sprint") === "1");
 
   const { data, isLoading, error } = useRaceDetail(seasonId, round, isSprint);
+  const { data: articles } = useRaceArticles(seasonId, round);
   const race = data?.race;
   const results = data?.results ?? [];
 
@@ -34,6 +37,15 @@ export const RacePage = () => {
               {race.track.name}
               {race.track.city ? `, ${race.track.city}` : ""}
               {race.track.country ? ` — ${race.track.country}` : ""}
+            </div>
+          )}
+          {articles && articles.length > 0 && (
+            <div className="race-articles">
+              {articles.map((a) => (
+                <Link key={a.id} to={`/articles/${a.id}`} className="race-article-chip">
+                  {articleTypeLabel(a.type)}
+                </Link>
+              ))}
             </div>
           )}
         </div>
