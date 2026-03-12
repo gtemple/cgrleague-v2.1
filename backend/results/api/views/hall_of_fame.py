@@ -12,13 +12,21 @@ from results.cache import CACHE_TTL, key_hof
 from .utils import points_case, fl_bonus_case
 
 
+def _serialize_driver_brief(ds):
+    drv = ds.driver
+    return {
+        "id": drv.id,
+        "first_name": drv.first_name or "",
+        "last_name": drv.last_name or "",
+        "profile_image": drv.profile_image,
+    }
+
+
 class HallOfFameView(APIView):
     """
-    All-time statistics for drivers.
-    Includes wins, podiums, points, awards, and championships.
+    All-time statistics for drivers plus single-season records.
     """
     def get(self, request, *args, **kwargs):
-        # Default is to include AI (only_human=false), unless explicitly requested to filter
         only_human = request.query_params.get("only_human") == "true"
         include_ai = request.query_params.get("include_ai", "true").lower() == "true"
 
@@ -27,34 +35,33 @@ class HallOfFameView(APIView):
         if cached is not None:
             return Response(cached)
 
-        # 1. Base query for drivers
+        human_filter = only_human or not include_ai
+
+        # ── 1. Career driver metrics ──────────────────────────────────────────
         drivers_qs = Driver.objects.all()
-        # legacy only_human support or newer include_ai parameter
-        if only_human or not include_ai:
+        if human_filter:
             drivers_qs = drivers_qs.filter(human=True)
 
-        # 2. Get race-level stats (Wins, Podiums, Awards, Points)
         points_expr = points_case("season_entries__results__") + fl_bonus_case("season_entries__results__")
-        
+
         metrics = drivers_qs.annotate(
             total_wins=Count("season_entries__results", filter=Q(season_entries__results__finish_position=1)),
             total_podiums=Count("season_entries__results", filter=Q(season_entries__results__finish_position__lte=3)),
             total_points=Coalesce(Sum(points_expr), 0),
             total_fastest_laps=Count("season_entries__results", filter=Q(season_entries__results__fastest_lap=True)),
+            total_poles=Count("season_entries__results", filter=Q(season_entries__results__pole_position=True)),
             total_dotd=Count("season_entries__results", filter=Q(season_entries__results__dotd=True)),
             total_clean_driver=Count("season_entries__results", filter=Q(season_entries__results__cleanest_driver=True)),
             total_overtakes=Count("season_entries__results", filter=Q(season_entries__results__most_overtakes=True)),
         ).values(
             "id", "first_name", "last_name", "profile_image",
-            "total_wins", "total_podiums", "total_points",
-            "total_fastest_laps", "total_dotd", "total_clean_driver", "total_overtakes"
+            "total_wins", "total_podiums", "total_points", "total_poles",
+            "total_fastest_laps", "total_dotd", "total_clean_driver", "total_overtakes",
         )
 
-        # 3. Calculate Championships
-        # We need to find the #1 driver for each season.
-        championships_map = {} # driver_id -> count
-        seasons = Season.objects.all()
-        for season in seasons:
+        # ── 2. Championships ──────────────────────────────────────────────────
+        championships_map = {}
+        for season in Season.objects.all():
             winner = (
                 DriverSeason.objects.filter(season=season)
                 .annotate(
@@ -70,12 +77,58 @@ class HallOfFameView(APIView):
                 .first()
             )
             if winner:
-                championships_map[winner.driver_id] = championships_map.get(winner.driver_id, 0) + 1                                                            
-        # 4. Combine data
-        data = []
+                championships_map[winner.driver_id] = championships_map.get(winner.driver_id, 0) + 1
+
+        drivers = []
         for d in metrics:
             d["total_championships"] = championships_map.get(d["id"], 0)
-            data.append(d)
+            drivers.append(d)
 
-        cache.set(ck, data, timeout=CACHE_TTL)
-        return Response(data)
+        # ── 3. Single-season bests ────────────────────────────────────────────
+        ds_qs = DriverSeason.objects.select_related("driver", "season")
+        if human_filter:
+            ds_qs = ds_qs.filter(driver__human=True)
+
+        best_wins_ds = (
+            ds_qs
+            .annotate(season_wins=Count("results", filter=Q(results__finish_position=1)))
+            .order_by("-season_wins")
+            .first()
+        )
+
+        best_points_ds = (
+            ds_qs
+            .annotate(
+                base_pts=Coalesce(Sum(points_case()), 0),
+                fl_pts=Coalesce(Sum(fl_bonus_case()), 0),
+            )
+            .annotate(season_points=F("base_pts") + F("fl_pts"))
+            .order_by("-season_points")
+            .first()
+        )
+
+        best_poles_ds = (
+            ds_qs
+            .annotate(season_poles=Count("results", filter=Q(results__pole_position=True)))
+            .order_by("-season_poles")
+            .first()
+        )
+
+        def _best(ds, value_field):
+            if not ds:
+                return None
+            return {
+                "driver": _serialize_driver_brief(ds),
+                "season_id": ds.season_id,
+                "value": int(getattr(ds, value_field) or 0),
+            }
+
+        season_bests = {
+            "most_wins":   _best(best_wins_ds,   "season_wins"),
+            "most_points": _best(best_points_ds, "season_points"),
+            "most_poles":  _best(best_poles_ds,  "season_poles"),
+        }
+
+        payload = {"drivers": drivers, "season_bests": season_bests}
+        cache.set(ck, payload, timeout=CACHE_TTL)
+        return Response(payload)

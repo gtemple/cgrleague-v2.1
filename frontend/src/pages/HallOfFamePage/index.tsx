@@ -1,14 +1,15 @@
 import { useState, useMemo } from "react";
-import { useHallOfFame, type HallOfFameDriver } from "../../hooks/useHallOfFame";
+import { Link } from "react-router-dom";
+import { useHallOfFame, type HallOfFameDriver, type SeasonBestEntry } from "../../hooks/useHallOfFame";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./style.css";
 
 // ─── Driver avatar ────────────────────────────────────────────────────────────
 
-const DriverAvatar = ({ driver, size = "md" }: { driver: HallOfFameDriver; size?: "sm" | "md" | "lg" }) => (
+const DriverAvatar = ({ driver, size = "md" }: { driver: HallOfFameDriver | SeasonBestEntry["driver"]; size?: "sm" | "md" | "lg" }) => (
   <div className={`hof-avatar hof-avatar-${size}`}>
-    {driver.profile_image
+    {driver?.profile_image
       ? <img src={displayImage(driver.profile_image, "driver")} alt={driver.last_name} />
       : null}
   </div>
@@ -56,7 +57,7 @@ const Podium = ({ drivers, metric, label }: PodiumProps) => {
   );
 };
 
-// ─── Leaderboard card (Championships / Wins / Podiums) ───────────────────────
+// ─── Leaderboard card (Championships / Wins / Podiums / Poles) ───────────────
 
 const RANK_LABELS = ["1st", "2nd", "3rd"];
 
@@ -115,6 +116,40 @@ const AwardCard = ({
   </div>
 );
 
+// ─── Season Best card ─────────────────────────────────────────────────────────
+
+const SeasonBestCard = ({
+  title,
+  entry,
+  unit,
+  accent,
+}: {
+  title: string;
+  entry: SeasonBestEntry;
+  unit?: string;
+  accent: string;
+}) => {
+  if (!entry) return null;
+  const { driver, season_id, value } = entry;
+  return (
+    <div className="stats-card hof-best-card">
+      <div className="stats-card-header">{title}</div>
+      <div className="hof-best-body">
+        <DriverAvatar driver={driver} size="md" />
+        <div className="hof-best-info">
+          <div className="hof-best-name">{driver.first_name} {driver.last_name}</div>
+          <Link to={`/seasons/${season_id}`} className="hof-best-season">
+            Season {season_id}
+          </Link>
+        </div>
+        <div className="hof-best-value" style={{ color: accent }}>
+          {value}{unit ? <span className="hof-best-unit">{unit}</span> : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function HallOfFamePage() {
@@ -123,15 +158,17 @@ export function HallOfFamePage() {
 
   const stats = useMemo(() => {
     if (!data) return null;
+    const drivers = data.drivers;
     return {
-      wins:            [...data].sort((a, b) => b.total_wins - a.total_wins).slice(0, 3),
-      championships:   [...data].sort((a, b) => b.total_championships - a.total_championships).slice(0, 3),
-      podiums:         [...data].sort((a, b) => b.total_podiums - a.total_podiums).slice(0, 3),
-      points:          [...data].sort((a, b) => b.total_points - a.total_points).slice(0, 3),
-      fastestLaps:     [...data].sort((a, b) => b.total_fastest_laps - a.total_fastest_laps)[0],
-      dotd:            [...data].sort((a, b) => b.total_dotd - a.total_dotd)[0],
-      cleanDriver:     [...data].sort((a, b) => b.total_clean_driver - a.total_clean_driver)[0],
-      overtakes:       [...data].sort((a, b) => b.total_overtakes - a.total_overtakes)[0],
+      wins:            [...drivers].sort((a, b) => b.total_wins - a.total_wins).slice(0, 3),
+      championships:   [...drivers].sort((a, b) => b.total_championships - a.total_championships).slice(0, 3),
+      podiums:         [...drivers].sort((a, b) => b.total_podiums - a.total_podiums).slice(0, 3),
+      poles:           [...drivers].sort((a, b) => b.total_poles - a.total_poles).slice(0, 3),
+      points:          [...drivers].sort((a, b) => b.total_points - a.total_points).slice(0, 3),
+      fastestLaps:     [...drivers].sort((a, b) => b.total_fastest_laps - a.total_fastest_laps)[0],
+      dotd:            [...drivers].sort((a, b) => b.total_dotd - a.total_dotd)[0],
+      cleanDriver:     [...drivers].sort((a, b) => b.total_clean_driver - a.total_clean_driver)[0],
+      overtakes:       [...drivers].sort((a, b) => b.total_overtakes - a.total_overtakes)[0],
     };
   }, [data]);
 
@@ -162,23 +199,46 @@ export function HallOfFamePage() {
 
       {isLoading && <Loader full />}
 
-      {!isLoading && stats && (
+      {!isLoading && stats && data && (
         <>
           {/* Hero: Career Points podium */}
           <section className="hof-hero-section">
             <Podium label="Career Points" drivers={stats.points} metric="total_points" />
           </section>
 
-          {/* Three leaderboard cards */}
-          <div className="hof-grid">
+          {/* Four leaderboard cards */}
+          <div className="hof-grid hof-grid-4">
             <LeaderboardCard title="Championships" drivers={stats.championships} metric="total_championships" />
             <LeaderboardCard title="Race Wins"     drivers={stats.wins}          metric="total_wins" />
             <LeaderboardCard title="Podiums"       drivers={stats.podiums}        metric="total_podiums" />
+            <LeaderboardCard title="Pole Positions" drivers={stats.poles}         metric="total_poles" />
           </div>
+
+          {/* Single-season records */}
+          <section className="hof-awards-section">
+            <div className="hof-awards-label">Single-Season Records</div>
+            <div className="hof-bests-grid">
+              <SeasonBestCard
+                title="Most Wins in a Season"
+                entry={data.season_bests.most_wins}
+                accent="rgb(255, 199, 14)"
+              />
+              <SeasonBestCard
+                title="Most Points in a Season"
+                entry={data.season_bests.most_points}
+                accent="rgb(99, 179, 237)"
+              />
+              <SeasonBestCard
+                title="Most Poles in a Season"
+                entry={data.season_bests.most_poles}
+                accent="rgb(72, 199, 142)"
+              />
+            </div>
+          </section>
 
           {/* Award cards */}
           <section className="hof-awards-section">
-            <div className="hof-awards-label">Season Awards</div>
+            <div className="hof-awards-label">Career Awards</div>
             <div className="hof-awards-grid">
               {stats.fastestLaps && (
                 <AwardCard title="Fastest Laps"      value={stats.fastestLaps.total_fastest_laps} driver={stats.fastestLaps} accent="rgb(231, 109, 255)" />

@@ -222,6 +222,12 @@
   }
 }
 
+@media (min-width: 900px) {
+  .hof-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 @media (max-width: 480px) {
   .hof-podium-stage {
     gap: 4px;
@@ -346,4 +352,70 @@
   font-size: 1.8rem;
   font-weight: 900;
   line-height: 1;
+}
+
+/* ═══════════════════════════════════════
+   SEASON BESTS
+═══════════════════════════════════════ */
+
+.hof-bests-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 600px) {
+  .hof-bests-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.hof-best-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 16px;
+}
+
+.hof-best-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.hof-best-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hof-best-season {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.35);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.hof-best-season:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hof-best-value {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.hof-best-unit {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-left: 2px;
+  opacity: 0.7;
 }
