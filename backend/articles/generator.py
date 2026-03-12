@@ -385,7 +385,13 @@ approximate results
 - AI drivers may be mentioned naturally by name when relevant (battles, notable moments, etc.)
 - Discuss championship implications using BOTH the driver and constructor standings above — \
 include at least one sentence on the constructor battle
-- Highlight key moments: pole, fastest lap, DOTD, Cleanest Driver, Most Overtakes{collision_block}
+- Highlight key moments: pole, fastest lap, DOTD, Cleanest Driver, Most Overtakes
+- Any RACE NOTES provided above take priority over anything you might infer from the results — \
+treat them as ground truth from the league admin{collision_block}
+- Vary your opening — do not lead with the winner's name or "Round X" every time; sometimes \
+open with the championship stakes, a specific battle, or the drama of the moment
+- Vary your title format — avoid the same "[Driver] [Verb]s at [Track]" template every race; \
+use narrative titles, question titles, or drama-led angles
 - Length: 450–650 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
 
@@ -449,7 +455,13 @@ or approximate
 - AI drivers may be mentioned naturally by name when relevant
 - Discuss the championship stakes for BOTH drivers and constructors — who needs points, who's \
 leading, which teams are scrapping for position
-- Use track history to suggest who might have an edge{collision_block}
+- Use track history to suggest who might have an edge
+- Any RACE NOTES provided above take priority over anything you might infer from the data — \
+treat them as ground truth from the league admin{collision_block}
+- Vary your opening — do not lead with "Round X" or the track name every time; sometimes open \
+with the championship battle, a driver's storyline, or what's at stake
+- Vary your title format — avoid the same "[Driver] eyes glory at [Track]" template; use \
+narrative, tension-led, or question-based titles
 - Length: 450–650 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
 
@@ -531,8 +543,9 @@ DRIVER HISTORY AT {track.name.upper()} (human drivers):
 
 Your job:
 1. Pick the single best HEAD-TO-HEAD matchup — ideally two drivers close in the standings or \
-with a rivalry at this track. At least one should be a Human driver. Write 2–3 punchy sentences \
-about why this battle matters.
+with a rivalry at this track. Strongly prefer a Human vs Human matchup if possible; only use an \
+AI driver if there are fewer than two humans in the standings. Write 2–3 punchy sentences about \
+why this battle matters.
 
 2. Pick exactly 3 DRIVERS TO WATCH (mix of human and AI is fine). For each, write a short reason \
 (1 sentence) and a single key stat (e.g. "P1 here last season", "3 wins in last 4 races", \
@@ -561,8 +574,9 @@ Return JSON only — no markdown, no extra keys:
             model="claude-opus-4-6",
             max_tokens=900,
             system=(
-                "You are a sports journalist. Always respond with valid JSON only — "
-                "no markdown fences, no extra text."
+                "You are a sports journalist covering CGR League. "
+                + LEAGUE_CONTEXT
+                + "Always respond with valid JSON only — no markdown fences, no extra text."
             ),
             messages=[{"role": "user", "content": prompt}],
         )
@@ -680,7 +694,12 @@ IMPORTANT RULES:
 - Reference their EXACT final championship position and points — do not invent or approximate
 - AI drivers may be mentioned naturally by name when relevant
 - Cover the season arc: early leader, title battles, who faded, who improved
-- Highlight standout moments: dominant performances, comeback wins, controversies{collision_block}
+- Highlight standout moments: dominant performances, comeback wins, controversies
+- Any SEASON NOTES provided above take priority over anything you might infer from the data — \
+treat them as ground truth from the league admin{collision_block}
+- Vary your opening — do not open with "Season X" or the champion's name; lead with a defining \
+moment, a theme, or what made this season unique
+- Vary your title — avoid generic "[Driver] Claims Season X Title" templates
 - Length: 800–1100 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
 
@@ -735,7 +754,12 @@ IMPORTANT RULES:
 - Reference their championship standing and team from the roster above
 - AI drivers may be mentioned naturally by name when relevant
 - Build anticipation: rivalries to watch, title contenders, tracks to circle on the calendar
-- Discuss the format (sprint rounds, total rounds) and what it means for strategy{collision_block}
+- Discuss the format (sprint rounds, total rounds) and what it means for strategy
+- Any SEASON NOTES provided above take priority over anything you might infer from the data — \
+treat them as ground truth from the league admin{collision_block}
+- Vary your opening — don't open with "Season X is here"; lead with a compelling question, \
+a key rivalry, or the biggest storyline going in
+- Vary your title — avoid generic "Season X Preview: Who Will Win?" templates
 - Length: 750–1000 words, paragraphs separated by \\n\\n
 - Return valid JSON only, no markdown fences"""
 
@@ -923,7 +947,9 @@ def _generate_rankings_blurbs(race, ranked_drivers, completed_races):
         f"Be specific — reference their recent results, championship position, and trajectory."
         f"{first_race_note} "
         f"Never mention scores, algorithms, or numerical ratings — write like it is your editorial opinion. "
-        f"Human drivers get slightly more narrative; AI drivers can be more analytical."
+        f"Human drivers get slightly more narrative; AI drivers can be more analytical. "
+        f"Vary how you open each blurb — do not start every entry with the driver's name, "
+        f"and do not use the same sentence structure back to back."
         f"{collision_block}\n\n"
         f"Return JSON only — one object, driver names as keys, blurb strings as values:\n"
         f'{{\"Driver Full Name\": \"1-2 sentence blurb.\", ...}}'
@@ -938,8 +964,10 @@ def _generate_rankings_blurbs(race, ranked_drivers, completed_races):
             model="claude-opus-4-6",
             max_tokens=3000,
             system=(
-                "You are a sports journalist. Always respond with valid JSON only — "
-                "no markdown fences, no extra text. Keys are exact driver names as given."
+                "You are a sports journalist covering CGR League. "
+                + LEAGUE_CONTEXT
+                + "Always respond with valid JSON only — no markdown fences, no extra text. "
+                "Keys are exact driver names as given."
             ),
             messages=[{"role": "user", "content": prompt}],
         )

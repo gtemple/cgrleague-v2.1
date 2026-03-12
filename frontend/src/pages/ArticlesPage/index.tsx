@@ -9,6 +9,11 @@ import "./style.css";
 
 type Filter = "ALL" | "RACE" | "SEASON" | "RANKINGS";
 
+function initialLast(fullName: string) {
+  const parts = fullName.trim().split(" ");
+  return parts.length > 1 ? `${parts[0][0]}. ${parts[parts.length - 1]}` : fullName;
+}
+
 // ─── card components ──────────────────────────────────────────────────────────
 
 function ArticleFeaturedCard({ article }: { article: ArticleSummary }) {
@@ -106,7 +111,7 @@ function PowerRankingsCard({ article }: { article: ArticleSummary }) {
                 key={m.name}
                 className={`rankings-mover-chip rankings-mover-chip--${m.delta > 0 ? "up" : "down"}`}
               >
-                {m.delta > 0 ? "▲" : "▼"}{Math.abs(m.delta)} {m.name.split(" ").pop()}
+                {m.delta > 0 ? "▲" : "▼"}{Math.abs(m.delta)} {initialLast(m.name)}
               </span>
             ))}
           </div>

@@ -9,6 +9,11 @@ import './style.css';
 
 const CURRENT_SEASON = 7;
 
+function initialLast(fullName: string) {
+  const parts = fullName.trim().split(" ");
+  return parts.length > 1 ? `${parts[0][0]}. ${parts[parts.length - 1]}` : fullName;
+}
+
 export const HomePage = () => {
   const { data, isLoading } = useNextRaceTeaser({ includeSprints: true });
   const { data: latestArticles, isLoading: articlesLoading } = useLatestArticles();
@@ -133,7 +138,7 @@ export const HomePage = () => {
                               key={m.name}
                               className={`rankings-mover-chip rankings-mover-chip--${m.delta > 0 ? "up" : "down"}`}
                             >
-                              {m.delta > 0 ? "▲" : "▼"}{Math.abs(m.delta)} {m.name.split(" ").pop()}
+                              {m.delta > 0 ? "▲" : "▼"}{Math.abs(m.delta)} {initialLast(m.name)}
                             </span>
                           ))}
                         </div>

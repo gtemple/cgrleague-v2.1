@@ -4,7 +4,7 @@ import { Loader } from "../Loader";
 import "./style.css";
 
 function shortName(d: H2HDriver) {
-  if (d.first_name && d.last_name) return d.last_name;
+  if (d.first_name && d.last_name) return `${d.first_name[0]}. ${d.last_name}`;
   return d.first_name || d.last_name || `#${d.id}`;
 }
 

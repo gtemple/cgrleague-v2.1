@@ -19,8 +19,10 @@ function champPosClass(pos: number) {
   return "";
 }
 
-function lastName(name: string) {
-  return name.split(" ").slice(-1)[0];
+function shortDriverName(name: string) {
+  const parts = name.trim().split(" ");
+  if (parts.length < 2) return name;
+  return `${parts[0][0]}. ${parts[parts.length - 1]}`;
 }
 
 function DriverFlag({ country }: { country: string | null }) {
@@ -41,7 +43,7 @@ function DriverH2H({ drivers, color }: { drivers: TeamDriver[]; color: string })
       <div className="th2h">
         <div className="th2h-side th2h-left" style={{ color: accent }}>
           <DriverFlag country={d.country_of_representation} />
-          <span className="th2h-name">{lastName(d.display_name)}</span>
+          <span className="th2h-name">{shortDriverName(d.display_name)}</span>
           <span className="th2h-pts">{d.points}</span>
         </div>
         <div className="th2h-bar">
@@ -64,7 +66,7 @@ function DriverH2H({ drivers, color }: { drivers: TeamDriver[]; color: string })
     >
       <div className="th2h-side th2h-left" style={{ color: accent }}>
         <DriverFlag country={lead.country_of_representation} />
-        <span className="th2h-name">{lastName(lead.display_name)}</span>
+        <span className="th2h-name">{shortDriverName(lead.display_name)}</span>
         <span className="th2h-pts">{lead.points}</span>
       </div>
       <div className="th2h-bar">
@@ -79,7 +81,7 @@ function DriverH2H({ drivers, color }: { drivers: TeamDriver[]; color: string })
       </div>
       <div className="th2h-side th2h-right">
         <span className="th2h-pts">{trail.points}</span>
-        <span className="th2h-name">{lastName(trail.display_name)}</span>
+        <span className="th2h-name">{shortDriverName(trail.display_name)}</span>
         <DriverFlag country={trail.country_of_representation} />
       </div>
     </div>
