@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useDriversList } from "../../hooks/useDriverList";
 import { useDriverDetail } from "../../hooks/useDriverDetails";
 import { DriverHistoryTable } from "./DriverHistoryTable";
@@ -52,8 +52,9 @@ export const DriverPage = () => {
               <div className="dp-hero-bg-overlay" />
             </div>
 
-            {/* Top bar: eyebrow + picker */}
+            {/* Top bar: back link + eyebrow + picker */}
             <div className="dp-hero-topbar">
+              <Link to="/drivers" className="dp-back">← All Drivers</Link>
               <span className="dp-eyebrow">CGR League · Driver</span>
               {!listError && (
                 <select

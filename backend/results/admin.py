@@ -73,7 +73,8 @@ class RaceAdmin(admin.ModelAdmin):
             "fields": ("race_notes",),
             "description": (
                 "Add any race-specific context here before generating articles — "
-                "incidents, penalties, long pit stops, controversies, etc."
+                "incidents, penalties, long pit stops, controversies, etc. "
+                "Keep notes concise (ideally under 200 words) to avoid bloating the AI prompt."
             ),
         }),
     )

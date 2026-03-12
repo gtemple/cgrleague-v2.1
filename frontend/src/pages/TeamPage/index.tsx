@@ -138,8 +138,9 @@ export function TeamPage() {
           />
         </div>
 
-        {/* Top bar: eyebrow + picker */}
+        {/* Top bar: back link + eyebrow + picker */}
         <div className="team-hero-topbar">
+          <Link to="/teams" className="team-back">← All Teams</Link>
           <span
             className="team-eyebrow"
             style={accentColor ? { color: accentColor } : {}}

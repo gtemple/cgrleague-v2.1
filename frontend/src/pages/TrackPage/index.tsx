@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import { useTrackStats, type OrderBy } from "../../hooks/useTrackStats";
-import { useTracksList } from "../../hooks/useTrackList";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./style.css";
@@ -20,9 +19,7 @@ const ORDER_OPTIONS: { value: OrderBy; label: string }[] = [
 
 export const TrackPage = () => {
   const { trackId } = useParams<{ trackId: string }>();
-  const navigate = useNavigate();
 
-  const { tracks, isLoading: isTracksLoading } = useTracksList();
   const [includeSprints, setIncludeSprints] = useState(false);
   const [orderBy, setOrderBy] = useState<OrderBy>("points");
   const [direction, setDirection] = useState<"asc" | "desc">("desc");
@@ -34,12 +31,6 @@ export const TrackPage = () => {
   });
 
   const track = data?.track;
-
-  // Keep select value stable while navigating
-  const [selectValue, setSelectValue] = useState(trackId ?? "");
-  useEffect(() => {
-    if (trackId != null) setSelectValue(trackId);
-  }, [trackId]);
 
   const subtitle = useMemo(() => {
     if (!track) return "";
@@ -94,29 +85,7 @@ export const TrackPage = () => {
             </div>
           </div>
 
-          {/* Track picker */}
-          <div className="tp-picker-wrap">
-            {isTracksLoading ? (
-              <div className="tp-picker-skeleton" aria-hidden />
-            ) : (
-              <select
-                className="tp-picker"
-                value={selectValue}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setSelectValue(next);
-                  if (next && next !== trackId) navigate(`/tracks/${next}`);
-                }}
-              >
-                {!trackId && <option value="">Select a track…</option>}
-                {tracks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}{t.country ? ` — ${t.country}` : ""}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
+          <Link to="/tracks" className="tp-back">← All Tracks</Link>
         </div>
 
         {/* Stat strip */}

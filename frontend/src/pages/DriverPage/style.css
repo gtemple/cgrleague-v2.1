@@ -10,6 +10,16 @@
 
 .dp-state-error { color: #ff6b6b; }
 
+.dp-back {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.dp-back:hover { color: rgba(255, 255, 255, 0.8); }
+
 /* ═══════════════════════════════════════
    HERO
 ═══════════════════════════════════════ */

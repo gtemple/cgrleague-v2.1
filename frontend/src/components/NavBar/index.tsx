@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { displayImage } from "../../utils/displayImage";
 import { SearchModal } from "../SearchModal";
+import { useLatestSeasonId } from "../../hooks/useLatestSeasonId";
 import "./style.css";
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -9,6 +10,12 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function NavBar() {
   const [searchOpen, setSearchOpen] = useState(false);
+  const location = useLocation();
+  const latestSeasonId = useLatestSeasonId();
+  const seasonsHref = latestSeasonId ? `/seasons/${latestSeasonId}` : "/seasons/1";
+  const seasonsClass = location.pathname.startsWith("/seasons")
+    ? "nav-link nav-link-active"
+    : "nav-link";
 
   // Cmd+K / Ctrl+K global shortcut
   useEffect(() => {
@@ -47,12 +54,12 @@ export function NavBar() {
           </label>
 
           <nav id="site-nav" className="nav-links">
-            <NavLink to="/seasons/7" className={linkClass}>Seasons</NavLink>
-            <NavLink to="/drivers"   className={linkClass}>Drivers</NavLink>
-            <NavLink to="/teams"     className={linkClass}>Teams</NavLink>
-            <NavLink to="/tracks"    className={linkClass}>Tracks</NavLink>
+            <NavLink to={seasonsHref} className={() => seasonsClass}>Seasons</NavLink>
+            <NavLink to="/drivers"      className={linkClass} end={false}>Drivers</NavLink>
+            <NavLink to="/teams"        className={linkClass} end={false}>Teams</NavLink>
+            <NavLink to="/tracks"       className={linkClass} end={false}>Tracks</NavLink>
             <NavLink to="/hall-of-fame" className={linkClass}>Hall of Fame</NavLink>
-            <NavLink to="/articles"  className={linkClass}>Articles</NavLink>
+            <NavLink to="/articles"     className={linkClass} end={false}>Articles</NavLink>
           </nav>
 
           {/* Search button */}
