@@ -234,7 +234,7 @@
 
 .team-history-table {
   width: 100%;
-  min-width: 680px;
+  min-width: 780px;
   border-collapse: collapse;
   font-size: 13px;
 }
@@ -333,31 +333,85 @@
   font-weight: 400;
 }
 
-/* Drivers cell */
-.team-drivers-cell {
+/* ═══════════════════════════════════════
+   DRIVER H2H BAR
+═══════════════════════════════════════ */
+
+.th2h-col-header {
+  min-width: 220px;
+}
+
+.th2h-cell {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.th2h {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.th2h-side {
+  display: flex;
+  align-items: baseline;
   gap: 5px;
+  min-width: 72px;
 }
 
-.team-driver-chip {
-  display: inline-block;
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 11px;
-  font-weight: 500;
-  text-decoration: none;
-  color: rgba(255, 255, 255, 0.65);
+.th2h-left {
+  justify-content: flex-end;
+}
+
+.th2h-right {
+  justify-content: flex-start;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.th2h-right-empty {
+  min-width: 72px;
+}
+
+.th2h-name {
+  font-size: 12px;
+  font-weight: 700;
   white-space: nowrap;
-  transition: all 0.15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 56px;
 }
 
-.team-driver-chip:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.2);
+.th2h-pts {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.th2h-bar {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  display: flex;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  min-width: 60px;
+}
+
+.th2h-bar-fill {
+  height: 100%;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.th2h-bar-lead {
+  border-radius: 3px 0 0 3px;
+  opacity: 0.85;
+}
+
+.th2h-bar-trail {
+  background: rgba(255, 255, 255, 0.13);
+  border-radius: 0 3px 3px 0;
 }
 
 /* ═══════════════════════════════════════
