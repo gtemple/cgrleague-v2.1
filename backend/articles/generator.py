@@ -23,9 +23,32 @@ from .models import Article
 
 logger = logging.getLogger(__name__)
 
+# ─── shared league context ──────────────────────────────────────────────────
+# This block is injected into every system prompt so universal rules only need
+# to be maintained in one place.
+
+LEAGUE_CONTEXT = (
+    "CGR League is a private Formula 1-style racing league played on a video game simulator. "
+    "It contains both human players and AI-controlled drivers. "
+    "\n\n"
+    "DRIVER RELATIONSHIPS — important for accuracy:\n"
+    "- The Reynolds drivers (any first name, last name Reynolds) are BROTHERS, not father and son "
+    "or any other relation. Never imply a parent-child relationship between them.\n"
+    "- The Temple drivers (any first name, last name Temple) are also BROTHERS if more than one "
+    "appears on the grid. Apply the same rule.\n"
+    "\n"
+    "BANNED WORDS — never use these in any output:\n"
+    "- 'journeyman', 'playground' (e.g. 'personal playground'), 'testament'\n"
+    "\n"
+    "DNF TRACKING — DNFs were only recorded from Season 7 onwards. Do not comment on a driver's "
+    "DNF tally unless it is notably high; low DNF counts may simply reflect that earlier seasons "
+    "were not tracked.\n"
+)
+
 SYSTEM_PROMPT = (
-    "You are a sports journalist covering CGR League, a private Formula 1-style racing league "
-    "played on a video game simulator. Write in an engaging, analytical style — punchy sentences, "
+    "You are a sports journalist covering CGR League. "
+    + LEAGUE_CONTEXT
+    + "Write in an engaging, analytical style — punchy sentences, "
     "specific references to names and numbers, no generic filler. "
     "Always respond with valid JSON in exactly this shape (no markdown fences):\n"
     '{"title": "<headline, max 100 chars>", '
@@ -1164,9 +1187,8 @@ BEST TRACKS (by points scored):
 Write 2–4 punchy sentences as a profile of this specific driver. Ground the bio in what \
 actually makes them stand out — their wins, their scoring rate, a track they dominate, \
 their trajectory across seasons, or any other genuinely distinctive pattern in the data. \
-Avoid generic labels like "journeyman", "veteran", or "solid points scorer" — every driver \
-bio must feel individual and earned. Do not comment on DNFs unless the number is notably high. \
-Do not just list the stats back; interpret them into a character.
+Avoid generic labels like "veteran" or "solid points scorer" — every driver bio must feel \
+individual and earned. Do not just list the stats back; interpret them into a character.
 
 Return JSON only: {{"bio": "<the biography text>"}}"""
 
@@ -1179,9 +1201,10 @@ Return JSON only: {{"bio": "<the biography text>"}}"""
         model="claude-opus-4-6",
         max_tokens=400,
         system=(
-            "You are a sports journalist covering CGR League. Write in an engaging, analytical "
-            "style — punchy sentences, specific references to names and numbers. "
-            "Every driver profile must feel distinct. Never use the words 'journeyman' or 'playground' (e.g. 'personal playground'). "
+            "You are a sports journalist covering CGR League. "
+            + LEAGUE_CONTEXT
+            + "Write in an engaging, analytical style — punchy sentences, specific references to "
+            "names and numbers. Every driver profile must feel distinct. "
             "Always respond with valid JSON only (no markdown fences)."
         ),
         messages=[{"role": "user", "content": prompt}],
@@ -1307,7 +1330,6 @@ You must reference every human driver listed above by name at least once — wea
 naturally into the narrative rather than listing them mechanically. \
 Focus on patterns of dominance, rivalries, memorable results, and what makes this \
 track distinctive within the league. \
-Do not use the words 'journeyman', 'playground', or 'testament'. \
 Do not open with the track name as the very first word.
 
 Return JSON only: {{"bio": "<the history text>"}}"""
@@ -1321,8 +1343,10 @@ Return JSON only: {{"bio": "<the history text>"}}"""
         model="claude-opus-4-6",
         max_tokens=600,
         system=(
-            "You are a sports journalist covering CGR League. Write in an engaging, analytical "
-            "style — punchy sentences, specific references to names and results. "
+            "You are a sports journalist covering CGR League. "
+            + LEAGUE_CONTEXT
+            + "Write in an engaging, analytical style — punchy sentences, specific references to "
+            "names and results. "
             "Always respond with valid JSON only (no markdown fences)."
         ),
         messages=[{"role": "user", "content": prompt}],

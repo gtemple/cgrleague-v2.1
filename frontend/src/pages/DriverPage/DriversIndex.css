@@ -1,0 +1,388 @@
+/* ═══════════════════════════════════════
+   PAGE
+═══════════════════════════════════════ */
+
+.dix-page {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+/* ═══════════════════════════════════════
+   SECTION HEADER
+═══════════════════════════════════════ */
+
+.dix-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dix-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dix-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+}
+
+.dix-section-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.2);
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════
+   SHARED UTILITIES
+═══════════════════════════════════════ */
+
+.dix-flag {
+  height: 13px;
+  width: auto;
+  border-radius: 2px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════
+   HUMAN SPOTLIGHT
+═══════════════════════════════════════ */
+
+.dix-spotlight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.dix-spotlight-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(5, 5, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 2px solid var(--accent, rgba(255, 199, 14, 0.5));
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+  overflow: hidden;
+}
+
+.dix-spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent, rgba(255,199,14,0.06)) 0%, transparent 60%);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.dix-spotlight-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.dix-spotlight-pos {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.dix-spotlight-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--accent, rgba(255,199,14,0.3));
+  background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.dix-spotlight-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.dix-spotlight-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dix-spotlight-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dix-spotlight-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dix-spotlight-team {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.dix-team-logo {
+  height: 16px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.75;
+}
+
+.dix-spotlight-stats {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+.dix-spotlight-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dix-spotlight-stat:last-child {
+  border-right: none;
+}
+
+.dix-spotlight-stat-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dix-spotlight-stat-value--gold {
+  color: rgb(255, 199, 14);
+}
+
+.dix-spotlight-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* ═══════════════════════════════════════
+   ALL-TIME LEADERS
+═══════════════════════════════════════ */
+
+.dix-leaders-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.dix-leader-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 12px;
+  background: rgba(5, 5, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s;
+  text-align: center;
+}
+
+.dix-leader-tile:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dix-leader-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 199, 14, 0.6);
+}
+
+.dix-leader-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dix-leader-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.dix-leader-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dix-leader-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.dix-leader-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════
+   DRIVER GRID
+═══════════════════════════════════════ */
+
+.dix-search {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  outline: none;
+  width: 180px;
+  transition: border-color 0.15s;
+}
+
+.dix-search::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.dix-search:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.dix-driver-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.dix-grid-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(5, 5, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.dix-grid-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.dix-grid-card--human {
+  border-color: rgba(255, 199, 14, 0.15);
+}
+
+.dix-grid-card--human:hover {
+  border-color: rgba(255, 199, 14, 0.3);
+}
+
+.dix-grid-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dix-grid-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.dix-grid-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.dix-grid-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dix-grid-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dix-grid-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  font-variant-numeric: tabular-nums;
+}
+
+.dix-grid-wins {
+  color: rgb(255, 199, 14);
+  font-weight: 700;
+}
+
+.dix-empty {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 13px;
+  padding: 20px 0;
+}

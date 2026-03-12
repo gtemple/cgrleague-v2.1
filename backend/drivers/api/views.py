@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from entries.models import DriverSeason
-from results.models import RaceResult
+from results.models import RaceResult, Race
 from seasons.models import Season
 from drivers.models import Driver
 # Reuse your existing points helpers (same ones used in standings)
@@ -391,3 +391,139 @@ class DriverTrackStatsView(APIView):
 
         cache.set(ck, rows, timeout=CACHE_TTL)
         return Response(rows)
+
+
+class DriversHomepageView(APIView):
+    """
+    GET /api/drivers/homepage/
+    Returns everything needed for the drivers index page:
+      - human_spotlight: human drivers in the latest season with standing + last race finish
+      - leaders: all-time leader per stat category (human drivers only)
+      - all_drivers: every driver with career totals for the grid
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        latest_season = Season.objects.order_by("-id").first()
+
+        # ── Human spotlight ───────────────────────────────────────────────
+        human_spotlight = []
+        latest_season_id = None
+
+        if latest_season:
+            latest_season_id = latest_season.id
+
+            season_ds = list(
+                DriverSeason.objects
+                .filter(season=latest_season)
+                .select_related("driver", "team_season__team")
+                .annotate(base_pts=Coalesce(Sum(points_case()), 0))
+                .annotate(fl_pts=Coalesce(Sum(fl_bonus_case()), 0))
+                .annotate(points=F("base_pts") + F("fl_pts"))
+                .annotate(wins=Count("results", filter=Q(results__finish_position=1)))
+                .order_by("-points", "-wins")
+            )
+
+            pos_map = {ds.driver_id: i + 1 for i, ds in enumerate(season_ds)}
+
+            completed_race_ids = set(
+                RaceResult.objects
+                .filter(race__season=latest_season)
+                .values_list("race_id", flat=True)
+                .distinct()
+            )
+            last_race = (
+                Race.objects
+                .filter(id__in=completed_race_ids, season=latest_season)
+                .order_by("-round").first()
+            )
+            last_results: Dict[int, Optional[int]] = {}
+            if last_race:
+                for rr in RaceResult.objects.filter(race=last_race).select_related("driver_season__driver"):
+                    last_results[rr.driver_season.driver_id] = rr.finish_position
+
+            for ds in season_ds:
+                if not ds.driver.human:
+                    continue
+                team = ds.team_season.team if ds.team_season else None
+                human_spotlight.append({
+                    "driver": serialize_driver(ds.driver),
+                    "position": pos_map[ds.driver_id],
+                    "points": int(ds.points),
+                    "wins": int(ds.wins),
+                    "team": {
+                        "id": team.id if team else None,
+                        "name": team.team_name if team else None,
+                        "display_name": (ds.team_season.display_name or team.team_name) if team else None,
+                        "logo_image": team.team_img if team else None,
+                        "color": ds.team_season.color if ds.team_season else None,
+                    } if team else None,
+                    "last_finish": last_results.get(ds.driver_id),
+                })
+
+        # ── All-time leaders (human only) ─────────────────────────────────
+        human_career = list(
+            DriverSeason.objects
+            .filter(driver__human=True)
+            .values("driver")
+            .annotate(base_pts=Coalesce(Sum(points_case()), 0))
+            .annotate(fl_pts=Coalesce(Sum(fl_bonus_case()), 0))
+            .annotate(total_points=F("base_pts") + F("fl_pts"))
+            .annotate(wins=Count("results", filter=Q(results__finish_position=1)))
+            .annotate(podiums=Count("results", filter=Q(
+                results__finish_position__lte=3, results__finish_position__isnull=False)))
+            .annotate(poles=Count("results", filter=Q(results__pole_position=True)))
+            .annotate(fastest_laps=Count("results", filter=Q(results__fastest_lap=True)))
+        )
+        human_driver_map = {d.id: d for d in Driver.objects.filter(human=True)}
+
+        def leader_for(field: str) -> Optional[Dict]:
+            if not human_career:
+                return None
+            best = max(human_career, key=lambda r: r[field] or 0)
+            if not best[field]:
+                return None
+            d = human_driver_map.get(best["driver"])
+            return {"driver": serialize_driver(d), "value": best[field]} if d else None
+
+        leaders = {
+            "points":       leader_for("total_points"),
+            "wins":         leader_for("wins"),
+            "podiums":      leader_for("podiums"),
+            "poles":        leader_for("poles"),
+            "fastest_laps": leader_for("fastest_laps"),
+        }
+
+        # ── All drivers grid ──────────────────────────────────────────────
+        all_career = list(
+            DriverSeason.objects
+            .values("driver")
+            .annotate(base_pts=Coalesce(Sum(points_case()), 0))
+            .annotate(fl_pts=Coalesce(Sum(fl_bonus_case()), 0))
+            .annotate(total_points=F("base_pts") + F("fl_pts"))
+            .annotate(wins=Count("results", filter=Q(results__finish_position=1)))
+            .annotate(races=Count("results"))
+        )
+        all_driver_map = {d.id: d for d in Driver.objects.all()}
+
+        all_drivers = sorted(
+            [
+                {
+                    "driver": serialize_driver(all_driver_map[r["driver"]]),
+                    "is_human": all_driver_map[r["driver"]].human,
+                    "career_points": r["total_points"] or 0,
+                    "career_wins": r["wins"] or 0,
+                    "career_races": r["races"] or 0,
+                }
+                for r in all_career
+                if r["driver"] in all_driver_map
+            ],
+            key=lambda x: (-x["career_points"], x["driver"]["last_name"]),
+        )
+
+        return Response({
+            "latest_season_id": latest_season_id,
+            "human_spotlight": human_spotlight,
+            "leaders": leaders,
+            "all_drivers": all_drivers,
+        })
