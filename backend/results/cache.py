@@ -48,6 +48,9 @@ def key_track_stats(track_id, include_sprints: bool):
 def key_team_detail(team_id):
     return f"team:{team_id}:detail"
 
+def key_h2h():
+    return "hof:h2h"
+
 
 # ── invalidation ──────────────────────────────────────────────────────────────
 
@@ -87,5 +90,6 @@ def invalidate_for_result(instance):
         key_hof(True, True),
         key_hof(False, False),
         key_hof(True, False),
+        key_h2h(),
     ]
     cache.delete_many(keys)

@@ -6,6 +6,7 @@ from .views import SeasonLastRaceView
 from .views import NextRaceTeaserView
 from .views import RaceDetailView
 from .views import HallOfFameView
+from .views import HeadToHeadMatrixView
 
 urlpatterns = [
     path("seasons/<int:season_id>/standings/", SeasonStandingsView.as_view(), name="season-standings"),
@@ -15,5 +16,6 @@ urlpatterns = [
     path("seasons/<int:season_id>/races/<int:round>/", RaceDetailView.as_view(), name="race-detail"),
     path("teasers/next-race/", NextRaceTeaserView.as_view(), name="next_race_teaser"),
     path("hall-of-fame/", HallOfFameView.as_view(), name="hall_of_fame"),
+    path("hall-of-fame/h2h/", HeadToHeadMatrixView.as_view(), name="h2h_matrix"),
 ]
 

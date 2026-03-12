@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useHallOfFame, type HallOfFameDriver, type SeasonBestEntry } from "../../hooks/useHallOfFame";
+import { H2HMatrix } from "../../components/H2HMatrix";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./style.css";
@@ -234,6 +235,12 @@ export function HallOfFamePage() {
                 accent="rgb(72, 199, 142)"
               />
             </div>
+          </section>
+
+          {/* Head-to-head matrix (human drivers only) */}
+          <section className="hof-awards-section">
+            <div className="hof-awards-label">Head-to-Head (Human Drivers)</div>
+            <H2HMatrix />
           </section>
 
           {/* Award cards */}

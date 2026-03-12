@@ -1,0 +1,258 @@
+/* ═══════════════════════════════════════
+   H2H MATRIX
+═══════════════════════════════════════ */
+
+.h2h-wrap {
+  width: 100%;
+}
+
+.h2h-table-scroll {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.h2h-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 480px;
+  background: rgba(5, 5, 20, 0.75);
+}
+
+/* ── Corner cell ─────────────────────────────────────────── */
+
+.h2h-corner {
+  position: relative;
+  width: 160px;
+  min-width: 140px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: middle;
+}
+
+.h2h-corner-row {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+  text-align: left;
+}
+
+.h2h-corner-col {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+  text-align: right;
+  margin-top: 2px;
+}
+
+/* ── Column headers ──────────────────────────────────────── */
+
+.h2h-col-header {
+  padding: 8px 4px 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  min-width: 56px;
+  max-width: 72px;
+}
+
+.h2h-col-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  margin: 0 auto 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.h2h-col-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.h2h-initials {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.h2h-col-name {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 64px;
+}
+
+/* ── Row headers ─────────────────────────────────────────── */
+
+.h2h-row-header {
+  padding: 6px 12px 6px 10px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+  white-space: nowrap;
+}
+
+.h2h-row-driver {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.h2h-row-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.h2h-row-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.h2h-row-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Data cells ──────────────────────────────────────────── */
+
+.h2h-cell {
+  text-align: center;
+  padding: 0 4px;
+  height: 42px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  font-weight: 700;
+  transition: background 0.1s;
+}
+
+.h2h-self {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.h2h-no-data {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.h2h-win {
+  background: rgba(72, 199, 142, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.h2h-loss {
+  background: rgba(240, 82, 82, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.h2h-even {
+  background: rgba(255, 199, 14, 0.07);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.h2h-cell-wins {
+  font-weight: 800;
+}
+
+.h2h-win .h2h-cell-wins   { color: rgb(72, 199, 142); }
+.h2h-loss .h2h-cell-wins  { color: rgb(240, 82, 82); }
+.h2h-even .h2h-cell-wins  { color: rgb(255, 199, 14); }
+
+.h2h-cell-sep {
+  margin: 0 1px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+}
+
+.h2h-cell-total {
+  font-weight: 400;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.h2h-cell-na {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Totals column ───────────────────────────────────────── */
+
+.h2h-totals-header {
+  padding: 8px 12px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 64px;
+  white-space: nowrap;
+}
+
+.h2h-totals {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.h2h-total-wins {
+  font-weight: 800;
+  color: rgb(72, 199, 142);
+}
+
+.h2h-total-sep {
+  color: rgba(255, 255, 255, 0.2);
+  font-weight: 400;
+  font-size: 11px;
+}
+
+.h2h-total-losses {
+  font-weight: 800;
+  color: rgb(240, 82, 82);
+}
+
+/* ── Legend ──────────────────────────────────────────────── */
+
+.h2h-legend {
+  margin-top: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  text-align: right;
+}
+
+.h2h-legend strong {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+}
