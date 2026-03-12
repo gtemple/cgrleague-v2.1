@@ -88,6 +88,15 @@ export const DriverPage = () => {
               <div className="dp-hero-name-block">
                 <div className="dp-name-first">{driver.first_name}</div>
                 <div className="dp-name-last">{driver.last_name}</div>
+                {driver.country_of_representation && (
+                  <div className="dp-nationality">
+                    <img
+                      className="dp-flag"
+                      src={displayImage(driver.country_of_representation, "flags")}
+                      alt={driver.country_of_representation}
+                    />
+                  </div>
+                )}
                 <div className="dp-hero-quick-stats">
                   <span className="dp-quick-chip">{totals.wins} Wins</span>
                   <span className="dp-quick-chip">{totals.podiums} Podiums</span>

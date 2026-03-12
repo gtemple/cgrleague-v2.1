@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useDriversList } from "../../hooks/useDriverList";
 import { useTeamsList } from "../../hooks/useTeamsList";
 import { useTracksList } from "../../hooks/useTrackList";
+import { useArticleList } from "../../hooks/useArticles";
 import { displayImage } from "../../utils/displayImage";
 import "./style.css";
 
 type ResultItem = {
-  type: "driver" | "team" | "track";
+  type: "driver" | "team" | "track" | "article";
   id: number;
   label: string;
   sublabel: string;
@@ -29,15 +30,17 @@ function highlight(text: string, query: string) {
 }
 
 const TYPE_ICON: Record<ResultItem["type"], string> = {
-  driver: "👤",
-  team:   "🏎",
-  track:  "🏁",
+  driver:  "👤",
+  team:    "🏎",
+  track:   "🏁",
+  article: "📰",
 };
 
 const TYPE_LABEL: Record<ResultItem["type"], string> = {
-  driver: "Drivers",
-  team:   "Teams",
-  track:  "Tracks",
+  driver:  "Drivers",
+  team:    "Teams",
+  track:   "Tracks",
+  article: "Articles",
 };
 
 type Props = {
@@ -52,9 +55,10 @@ export function SearchModal({ open, onClose }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const { data: driverData } = useDriversList();
-  const { data: teamData }   = useTeamsList();
-  const { tracks }           = useTracksList();
+  const { data: driverData }  = useDriversList();
+  const { data: teamData }    = useTeamsList();
+  const { tracks }            = useTracksList();
+  const { data: articleData } = useArticleList();
 
   // Reset on open
   useEffect(() => {
@@ -113,8 +117,22 @@ export function SearchModal({ open, onClose }: Props) {
       }
     });
 
+    // Articles
+    (articleData ?? []).forEach((a) => {
+      const searchable = [a.title, a.teaser, a.race?.track?.name].filter(Boolean).join(" ").toLowerCase();
+      if (searchable.includes(q)) {
+        items.push({
+          type: "article",
+          id: a.id,
+          label: a.title,
+          sublabel: a.race?.track?.name ?? a.type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
+          href: `/articles/${a.id}`,
+        });
+      }
+    });
+
     return items;
-  }, [query, driverData, teamData, tracks]);
+  }, [query, driverData, teamData, tracks, articleData]);
 
   // Keep activeIdx in bounds
   useEffect(() => {
@@ -150,7 +168,7 @@ export function SearchModal({ open, onClose }: Props) {
   // Group results by type for section headers
   const groups: { type: ResultItem["type"]; items: ResultItem[]; startIdx: number }[] = [];
   let cursor = 0;
-  (["driver", "team", "track"] as const).forEach((type) => {
+  (["driver", "team", "track", "article"] as const).forEach((type) => {
     const items = results.filter((r) => r.type === type);
     if (items.length) {
       groups.push({ type, items, startIdx: cursor });
@@ -168,7 +186,7 @@ export function SearchModal({ open, onClose }: Props) {
           <input
             ref={inputRef}
             className="srch-input"
-            placeholder="Search drivers, teams, tracks…"
+            placeholder="Search drivers, teams, tracks, articles…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -185,7 +203,7 @@ export function SearchModal({ open, onClose }: Props) {
 
           {!query && (
             <div className="srch-hint">
-              <span>Search across drivers, teams, and tracks</span>
+              <span>Search across drivers, teams, tracks, and articles</span>
             </div>
           )}
 
@@ -206,9 +224,9 @@ export function SearchModal({ open, onClose }: Props) {
                     onMouseEnter={() => setActiveIdx(flatIdx)}
                   >
                     <div className="srch-result-avatar">
-                      {item.image ? (
+                      {item.image && (item.type === "driver" || item.type === "team") ? (
                         <img
-                          src={displayImage(item.image, item.type === "driver" ? "driver" : "team")}
+                          src={displayImage(item.image, item.type)}
                           alt=""
                         />
                       ) : (

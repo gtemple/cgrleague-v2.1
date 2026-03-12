@@ -6,6 +6,7 @@ from drivers.models import Driver
 DATA = [
     # first_name, last_name, initials, city_of_birth, country_of_birth, human, date_of_birth, profile_image, country_of_representation
     dict(first_name="Giordano", last_name="Temple", initials="TEM", city_of_birth="Toronto", country_of_birth="Canada",  human=True,  date_of_birth=date(1993, 3, 11),  profile_image="giordano-temple",   country_of_representation="canada"),
+    dict(first_name="Luca",     last_name="Temple",  initials="LTE", city_of_birth="Toronto", country_of_birth="Canada",  human=True,  date_of_birth=date(2000, 1, 1),   profile_image="luca-temple",       country_of_representation="canada"),
     dict(first_name="Cole",     last_name="Reynolds", initials="CAR", city_of_birth="Toronto", country_of_birth="Canada",  human=True,  date_of_birth=date(1996,10,10),  profile_image="cole-reynolds",     country_of_representation="canada"),
     dict(first_name="Ryan",     last_name="Reynolds", initials="RCR", city_of_birth="Toronto", country_of_birth="Canada",  human=True,  date_of_birth=date(1992,12, 5),  profile_image="ryan-reynolds",     country_of_representation="canada"),
     dict(first_name="Charles",  last_name="Leclerc",  initials="LEC", city_of_birth="Monte Carlo", country_of_birth="Monaco", human=False, date_of_birth=date(1997,10,16), profile_image="charles-leclerc", country_of_representation="monaco"),

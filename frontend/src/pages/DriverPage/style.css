@@ -166,6 +166,17 @@
   text-overflow: ellipsis;
 }
 
+.dp-nationality {
+  margin-top: 8px;
+}
+
+.dp-flag {
+  height: 18px;
+  width: auto;
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
 .dp-hero-quick-stats {
   display: flex;
   gap: 8px;

@@ -31,7 +31,7 @@ def serialize_driver(d: Driver) -> Dict[str, Any]:
         "last_name": last,
         "display_name": display,
         "profile_image": getattr(d, "profile_image", None),
-        # add more fields if you store them (nationality, number, etc.)
+        "country_of_representation": getattr(d, "country_of_representation", None),
     }
 
 
