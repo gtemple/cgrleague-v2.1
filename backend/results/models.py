@@ -124,13 +124,14 @@ class RaceResult(models.Model):
 
 
 class HistoryTeaserBlurb(models.Model):
-    """Stores a manually-generated AI blurb for the history teaser widget."""
+    """Stores a manually-generated AI blurb + winner quote for the history teaser widget."""
     race = models.OneToOneField(
         "results.Race",
         on_delete=models.CASCADE,
         related_name="history_blurb",
     )
     blurb = models.TextField()
+    quote = models.TextField(blank=True, default="")
     generated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

@@ -13,8 +13,8 @@
   height: 100%;
   object-fit: cover;
   object-position: center 40%;
-  opacity: 0.15;
-  filter: blur(2px) saturate(0.6);
+  opacity: 0.22;
+  filter: blur(1px) saturate(0.5);
 }
 
 .ht-overlay {
@@ -23,17 +23,33 @@
   background: linear-gradient(
     to right,
     rgba(5, 5, 20, 0.95) 0%,
-    rgba(5, 5, 20, 0.7) 100%
+    rgba(5, 5, 20, 0.65) 100%
   );
+}
+
+/* ── Decorative season number ── */
+.ht-season-bg {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(80px, 14vw, 130px);
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.04);
+  letter-spacing: -0.05em;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
 }
 
 .ht-content {
   position: relative;
   z-index: 1;
-  padding: 10px 14px 10px;
+  padding: 12px 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 /* ── Header ── */
@@ -50,7 +66,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 199, 14, 0.7);
+  color: rgba(255, 199, 14, 0.75);
 }
 
 .ht-meta {
@@ -70,30 +86,90 @@
   opacity: 0.75;
 }
 
+/* ── Editorial zone (blurb + quote) ── */
+.ht-editorial {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* ── AI blurb ── */
 .ht-blurb {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.6);
-  font-style: italic;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: -0.01em;
+  padding-left: 10px;
+  border-left: 2px solid rgba(255, 199, 14, 0.5);
 }
 
-/* ── Horizontal podium ── */
+/* ── Winner quote ── */
+.ht-quote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ht-quote-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ht-quote-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.ht-quote-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ht-quote-text {
+  margin: 0;
+  font-size: 12px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.45;
+}
+
+.ht-quote-attr {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.03em;
+}
+
+/* ── Horizontal podium strip ── */
 .ht-podium {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
 .ht-driver {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 3px;
+  gap: 6px;
   text-decoration: none;
-  padding: 6px 4px;
-  border-radius: 7px;
+  padding: 5px 8px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   transition: background 0.15s, border-color 0.15s;
@@ -117,8 +193,8 @@
 
 /* Avatar */
 .ht-avatar {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -144,10 +220,10 @@
 
 /* Position badge */
 .ht-pos-badge {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.04em;
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 3px;
   flex-shrink: 0;
 }
@@ -155,39 +231,23 @@
 .ht-pos-2 { background: rgba(190, 190, 190, 0.15); color: #c0c5cb; }
 .ht-pos-3 { background: rgba(205, 139, 69, 0.18); color: #cd8b45; }
 
-/* Driver name + team */
+/* Driver name */
 .ht-driver-name {
   font-size: 11px;
-  font-weight: 700;
-  color: #e9edf3;
-  text-align: center;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.ht-driver-team {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.35);
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  display: none;
-}
-
-@media (min-width: 480px) {
-  .ht-driver-team { display: block; }
+  min-width: 0;
 }
 
 /* Chips */
 .ht-chips {
   display: flex;
   gap: 3px;
-  flex-wrap: wrap;
-  justify-content: center;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .ht-chip {

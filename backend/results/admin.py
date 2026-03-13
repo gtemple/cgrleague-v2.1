@@ -185,25 +185,29 @@ class HistoryTeaserBlurbAdmin(admin.ModelAdmin):
                 for rr in top3
             ]
 
-            blurb = _generate_history_blurb(
-                chosen.season_id, chosen.round, chosen.track.name, results_payload
+            result = _generate_history_blurb(
+                chosen.season_id, chosen.round, chosen.track.name,
+                results_payload, race_notes=chosen.race_notes or "",
             )
 
-            if not blurb:
+            if not result or not result.get("blurb"):
                 self.message_user(request, "Claude API call failed — check ANTHROPIC_API_KEY.", level=messages.ERROR)
                 return HttpResponseRedirect("../")
 
             obj, created = HistoryTeaserBlurb.objects.update_or_create(
                 race=chosen,
-                defaults={"blurb": blurb},
+                defaults={
+                    "blurb": result["blurb"],
+                    "quote": result.get("quote", ""),
+                },
             )
-            # Bust the cached teaser so it picks up the new blurb
+            # Bust the cached teaser so the frontend picks up the new content
             cache.delete(key_history_teaser())
 
             action = "Created" if created else "Updated"
             self.message_user(
                 request,
-                f'{action} blurb for {chosen}: "{blurb[:80]}…"',
+                f'{action} blurb for {chosen}: "{result["blurb"][:80]}…"',
                 level=messages.SUCCESS,
             )
         except Exception as e:

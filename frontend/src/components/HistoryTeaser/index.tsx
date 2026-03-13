@@ -8,7 +8,7 @@ export function HistoryTeaser() {
 
   if (isLoading || !data) return null;
 
-  const { season_id, race, results, blurb } = data;
+  const { season_id, race, results, blurb, quote } = data;
   const winner = results[0];
   if (!winner) return null;
 
@@ -17,6 +17,9 @@ export function HistoryTeaser() {
     : null;
   const flagImg = race.track.country
     ? displayImage(race.track.country, "flags")
+    : null;
+  const winnerAvatar = winner.driver.profile_image
+    ? displayImage(winner.driver.profile_image, "driver")
     : null;
 
   return (
@@ -28,20 +31,41 @@ export function HistoryTeaser() {
         </>
       )}
 
+      {/* Large decorative season number */}
+      <span className="ht-season-bg" aria-hidden="true">S{season_id}</span>
+
       <div className="ht-content">
         {/* Header */}
         <div className="ht-header">
-          <span className="ht-eyebrow">This Round in CGR History</span>
+          <span className="ht-eyebrow">Season {season_id} Flashback</span>
           <span className="ht-meta">
             {flagImg && <img className="ht-flag" src={flagImg} alt={race.track.country} />}
-            Season {season_id} · R{race.round} · {race.track.name}
+            R{race.round} · {race.track.name}
           </span>
         </div>
 
-        {/* AI blurb */}
-        {blurb && <p className="ht-blurb">{blurb}</p>}
+        {/* Main editorial content */}
+        <div className="ht-editorial">
+          {/* AI blurb */}
+          {blurb && <p className="ht-blurb">{blurb}</p>}
 
-        {/* Horizontal podium */}
+          {/* Winner quote */}
+          {quote && (
+            <div className="ht-quote">
+              <div className="ht-quote-avatar">
+                {winnerAvatar
+                  ? <img src={winnerAvatar} alt={winner.driver.display_name} />
+                  : <div className="ht-avatar-fallback" />}
+              </div>
+              <div className="ht-quote-body">
+                <p className="ht-quote-text">"{quote}"</p>
+                <span className="ht-quote-attr">— {winner.driver.display_name}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Podium strip */}
         <div className="ht-podium">
           {results.map((r) => {
             const avatar = r.driver.profile_image
@@ -63,7 +87,6 @@ export function HistoryTeaser() {
                   P{r.finish_position}
                 </span>
                 <span className="ht-driver-name">{r.driver.display_name}</span>
-                <span className="ht-driver-team">{r.team.name}</span>
                 {(r.pole_position || r.fastest_lap) && (
                   <div className="ht-chips">
                     {r.pole_position && <span className="ht-chip ht-chip--pole">Pole</span>}

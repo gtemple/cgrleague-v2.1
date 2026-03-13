@@ -33,6 +33,7 @@ export type HistoryTeaser = {
   };
   results: HistoryResult[];
   blurb: string | null;
+  quote: string | null;
 };
 
 export function useHistoryTeaser() {

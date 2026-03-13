@@ -374,8 +374,10 @@ class NextRaceTeaserView(APIView):
         return Response(data)
 
 
-def _generate_history_blurb(season_id: int, round_num: int, track_name: str, results: list) -> Optional[str]:
-    """Call Claude Haiku to produce a 1-2 sentence highlight blurb."""
+def _generate_history_blurb(
+    season_id: int, round_num: int, track_name: str, results: list, race_notes: str = ""
+) -> Optional[Dict[str, str]]:
+    """Call Claude Haiku to produce a blurb + winner quote. Returns {"blurb": ..., "quote": ...} or None."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         return None
@@ -388,28 +390,38 @@ def _generate_history_blurb(season_id: int, round_num: int, track_name: str, res
     for r in results:
         notes = []
         if r.get("pole_position"):
-            notes.append("pole")
+            notes.append("pole position")
         if r.get("fastest_lap"):
             notes.append("fastest lap")
         note_str = f" ({', '.join(notes)})" if notes else ""
         podium_lines.append(f"P{r['finish_position']}: {r['driver']['display_name']} ({r['team']['name']}){note_str}")
 
     podium_text = "\n".join(podium_lines)
+    notes_section = f"\nRace notes: {race_notes.strip()}" if race_notes.strip() else ""
+
     prompt = (
-        f"Write a single compelling highlight sentence (max 40 words) about this result from a private "
-        f"Formula-style racing league called CGR League. Keep it punchy and exciting, referencing specific "
-        f"details. Do NOT start with 'In Season'. Output only the sentence, no quotes.\n\n"
-        f"Season {season_id}, Round {round_num} at {track_name}:\n{podium_text}"
+        f"You are writing content for a CGR League flashback card — a private Formula-style racing league archive.\n\n"
+        f"Race: Season {season_id}, Round {round_num} at {track_name}\n"
+        f"Podium:\n{podium_text}{notes_section}\n\n"
+        f"Return a JSON object with exactly two keys:\n"
+        f"- \"blurb\": One sentence (max 35 words) in past tense recounting this result as a historical moment. "
+        f"Lead with the most interesting thing — a sweep, an upset, a dominant performance, a comeback — not just who finished where. "
+        f"Avoid clichés like 'dominated', 'claimed victory', 'secured the win'. No time-specific references.\n"
+        f"- \"quote\": A fabricated first-person quote (max 25 words) from the race winner, as if said immediately after the race. "
+        f"Should feel authentic and specific to the result. No attribution needed — just the words they said.\n\n"
+        f"Output only valid JSON, no code fences."
     )
 
     try:
+        import json as _json
         client = anthropic.Anthropic(api_key=api_key)
         message = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=80,
+            max_tokens=160,
             messages=[{"role": "user", "content": prompt}],
         )
-        return message.content[0].text.strip()
+        raw = message.content[0].text.strip().strip("`").removeprefix("json").strip()
+        return _json.loads(raw)
     except Exception:
         return None
 
@@ -498,6 +510,7 @@ class HistoryTeaserView(APIView):
         from results.models import HistoryTeaserBlurb
         blurb_obj = HistoryTeaserBlurb.objects.filter(race=chosen).first()
         blurb = blurb_obj.blurb if blurb_obj else None
+        quote = blurb_obj.quote if blurb_obj else None
 
         data = {
             "season_id": chosen.season_id,
@@ -508,6 +521,7 @@ class HistoryTeaserView(APIView):
             },
             "results": results_payload,
             "blurb": blurb,
+            "quote": quote,
         }
         cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data)
