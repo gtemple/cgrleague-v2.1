@@ -4,6 +4,7 @@ import { useDriversList } from "../../hooks/useDriverList";
 import { useDriverDetail } from "../../hooks/useDriverDetails";
 import { DriverHistoryTable } from "./DriverHistoryTable";
 import { DriverTrackGrid } from "./DriverTrackGrid";
+import { DriverSpecialization } from "./DriverSpecialization";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./style.css";
@@ -145,6 +146,9 @@ export const DriverPage = () => {
 
           {/* ══════════════════════ HISTORY ══════════════════════ */}
           <DriverHistoryTable driverId={driverId} />
+
+          {/* ══════════════════════ SPECIALIZATION ══════════════════════ */}
+          <DriverSpecialization driverId={driverId} />
 
           {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
           <DriverTrackGrid driverId={driverId} />

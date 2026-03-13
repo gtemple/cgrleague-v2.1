@@ -57,6 +57,9 @@ def key_team_detail(team_id):
 def key_h2h():
     return "hof:h2h"
 
+def key_driver_specialization(driver_id):
+    return f"driver:{driver_id}:specialization"
+
 
 # ── invalidation ──────────────────────────────────────────────────────────────
 
@@ -89,6 +92,7 @@ def invalidate_for_result(instance):
         key_driver_detail(driver_id),
         key_driver_history(driver_id),
         key_driver_tracks(driver_id),
+        key_driver_specialization(driver_id),
         key_track_stats(track_id, False),
         key_track_stats(track_id, True),
         key_team_detail(team_id),

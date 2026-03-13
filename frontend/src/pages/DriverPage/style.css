@@ -473,6 +473,146 @@
 .history-table thead th:has(.info-tooltip:hover) { z-index: 20; }
 
 /* ═══════════════════════════════════════
+   TRACK SPECIALIZATION
+═══════════════════════════════════════ */
+
+.spec-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.spec-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px;
+}
+
+.spec-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.15s;
+}
+
+.spec-card--best {
+  border-color: rgba(255, 199, 14, 0.25);
+  background: rgba(255, 199, 14, 0.04);
+}
+
+.spec-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.spec-category-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.02em;
+}
+
+.spec-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 199, 14, 0.15);
+  color: rgba(255, 199, 14, 0.9);
+  border: 1px solid rgba(255, 199, 14, 0.25);
+}
+
+.spec-avg-finish {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.spec-big-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.spec-big-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.spec-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spec-bar-bg {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.spec-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  min-width: 4px;
+  transition: width 0.4s ease;
+}
+
+.spec-card--best .spec-bar-fill {
+  background: rgba(255, 199, 14, 0.4);
+}
+
+.spec-bar-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+
+.spec-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 4px;
+}
+
+.spec-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.spec-mini-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  font-variant-numeric: tabular-nums;
+}
+
+.spec-mini-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* ═══════════════════════════════════════
    TRACK RECORD GRID
 ═══════════════════════════════════════ */
 

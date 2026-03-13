@@ -17,7 +17,7 @@ from seasons.models import Season
 from drivers.models import Driver
 # Reuse your existing points helpers (same ones used in standings)
 from results.api.views.utils import points_case, fl_bonus_case, serialize_driver, serialize_team
-from results.cache import CACHE_TTL, key_driver_detail, key_driver_history, key_driver_tracks
+from results.cache import CACHE_TTL, key_driver_detail, key_driver_history, key_driver_tracks, key_driver_specialization
 from tracks.models import Track
 
 
@@ -527,3 +527,97 @@ class DriversHomepageView(APIView):
             "leaders": leaders,
             "all_drivers": all_drivers,
         })
+
+
+class DriverSpecializationView(APIView):
+    """
+    GET /api/drivers/<driver_id>/specialization/
+    Returns per-track-category career stats (avg finish, wins, podiums, points).
+    Only includes categories the driver has raced on.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, driver_id: int, *args, **kwargs):
+        ck = key_driver_specialization(driver_id)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
+        get_object_or_404(Driver, pk=driver_id)
+
+        results_qs = (
+            RaceResult.objects
+            .filter(
+                driver_season__driver_id=driver_id,
+                race__is_sprint=False,
+                race__track__category__in=["STREET", "PERMANENT"],
+            )
+            .select_related("race__track")
+        )
+
+        from collections import defaultdict
+        from results.scoring import points_for_result
+
+        agg: Dict[str, Dict[str, Any]] = {}
+        finishes: Dict[str, list] = defaultdict(list)
+
+        for rr in results_qs:
+            cat = rr.race.track.category
+            if cat not in agg:
+                agg[cat] = {
+                    "category": cat,
+                    "label": dict(Track._meta.get_field("category").choices).get(cat, cat),
+                    "races": 0,
+                    "points": 0,
+                    "wins": 0,
+                    "podiums": 0,
+                    "fastest_laps": 0,
+                    "poles": 0,
+                    "dnfs": 0,
+                }
+
+            agg[cat]["races"] += 1
+            agg[cat]["points"] += int(points_for_result(rr))
+
+            fp = rr.finish_position
+            if fp is not None:
+                finishes[cat].append(fp)
+                if fp == 1:
+                    agg[cat]["wins"] += 1
+                if fp <= 3:
+                    agg[cat]["podiums"] += 1
+
+            if rr.fastest_lap:
+                agg[cat]["fastest_laps"] += 1
+            if rr.pole_position:
+                agg[cat]["poles"] += 1
+            if rr.status != "FIN":
+                agg[cat]["dnfs"] += 1
+
+        rows = []
+        for cat, row in agg.items():
+            fs = finishes[cat]
+            row["avg_finish"] = round(sum(fs) / len(fs), 1) if fs else None
+            races = row["races"]
+            row["ppr"] = round(row["points"] / races, 2) if races > 0 else None
+            row["win_rate"] = round(row["wins"] / races * 100, 1) if races > 0 else None
+            row["podium_rate"] = round(row["podiums"] / races * 100, 1) if races > 0 else None
+            rows.append(row)
+
+        # Sort by points desc
+        rows.sort(key=lambda r: -r["points"])
+
+        # Determine best category
+        best = None
+        if len(rows) >= 2:
+            # Best = lowest avg finish with at least 3 races
+            qualified = [r for r in rows if r["races"] >= 3 and r["avg_finish"] is not None]
+            if qualified:
+                best = min(qualified, key=lambda r: r["avg_finish"])["category"]
+
+        payload = {
+            "categories": rows,
+            "best_category": best,
+        }
+        cache.set(ck, payload, timeout=CACHE_TTL)
+        return Response(payload)

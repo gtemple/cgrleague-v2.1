@@ -13,6 +13,9 @@ import { ArticlesPage } from "./pages/ArticlesPage/index.tsx";
 import { ArticleDetailPage } from "./pages/ArticleDetailPage/index.tsx";
 import { TeamPage } from "./pages/TeamPage/index.tsx";
 import { TeamsIndex } from "./pages/TeamsPage/index.tsx";
+import { LoginPage } from "./pages/LoginPage/index.tsx";
+import { AdminPage } from "./pages/AdminPage/index.tsx";
+import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
 
 
 function AppLayout() {
@@ -42,6 +45,11 @@ export default function App() {
         <Route path="/articles/:articleId" element={<ArticleDetailPage />} />
         <Route path="/teams" element={<TeamsIndex />} />
         <Route path="/teams/:teamId" element={<TeamPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        {/* Protected admin routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin/results" element={<AdminPage />} />
+        </Route>
       </Route>
     </Routes>
   );

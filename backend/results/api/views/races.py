@@ -62,6 +62,7 @@ class RaceDetailView(APIView):
             },
             "results": [
                 {
+                    "driver_season_id": rr.driver_season_id,
                     "finish_position": rr.finish_position,
                     "grid_position": rr.grid_position,
                     "status": rr.status,
