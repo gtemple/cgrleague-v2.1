@@ -404,11 +404,15 @@ def _generate_history_blurb(
         f"Race: Season {season_id}, Round {round_num} at {track_name}\n"
         f"Podium:\n{podium_text}{notes_section}\n\n"
         f"Return a JSON object with exactly two keys:\n"
-        f"- \"blurb\": One sentence (max 35 words) in past tense recounting this result as a historical moment. "
-        f"Lead with the most interesting thing — a sweep, an upset, a dominant performance, a comeback — not just who finished where. "
-        f"Avoid clichés like 'dominated', 'claimed victory', 'secured the win'. No time-specific references.\n"
-        f"- \"quote\": A fabricated first-person quote (max 25 words) from the race winner, as if said immediately after the race. "
-        f"Should feel authentic and specific to the result. No attribution needed — just the words they said.\n\n"
+        f"- \"blurb\": 1-2 sentences (max 45 words total) in past tense. "
+        f"Write like a line from a season review documentary — reflective and archival, not a live broadcast. "
+        f"Lead with the most interesting angle (a sweep, an upset, a dominant run, a tight battle) rather than just restating the podium order. "
+        f"Avoid clichés like 'dominated', 'claimed victory', 'secured the win', 'stormed to'. "
+        f"The winner's name should not be the very first word. No time-specific references.\n"
+        f"- \"quote\": A fabricated first-person quote (max 35 words) from the race winner, written as if recalled in a season retrospective — "
+        f"reflective, specific, one clear thought. Reference something concrete: a moment in the race, a battle, a decision, a particular lap. "
+        f"Do not use generic celebration language ('I'm so happy', 'the team was amazing'). "
+        f"The winner's name should not appear in the quote itself — it will be attributed separately.\n\n"
         f"Output only valid JSON, no code fences."
     )
 
@@ -417,7 +421,7 @@ def _generate_history_blurb(
         client = anthropic.Anthropic(api_key=api_key)
         message = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=160,
+            max_tokens=220,
             messages=[{"role": "user", "content": prompt}],
         )
         raw = message.content[0].text.strip().strip("`").removeprefix("json").strip()
