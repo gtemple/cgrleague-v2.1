@@ -2,11 +2,18 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 720px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* When sidebar is present, allow the page to grow wider */
 .article-detail-page:has(.article-detail-body--with-sidebar) {
+  max-width: 1060px;
+}
+
+/* Power rankings: wider to give chart + 2-col cards room */
+.article-detail-page:has(.pr-grid) {
   max-width: 1060px;
 }
 

@@ -3,10 +3,16 @@
 ═══════════════════════════════════════ */
 
 .pr-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 10px;
   margin-top: 8px;
+}
+
+@media (min-width: 760px) {
+  .pr-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* ═══════════════════════════════════════
@@ -207,6 +213,33 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.35);
+}
+
+.prh-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prh-filter-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.prh-filter-btn:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.8);
+}
+.prh-filter-btn--active {
+  background: rgba(255, 199, 14, 0.12);
+  border-color: rgba(255, 199, 14, 0.35);
+  color: rgba(255, 199, 14, 0.9);
 }
 
 .prh-season-link {

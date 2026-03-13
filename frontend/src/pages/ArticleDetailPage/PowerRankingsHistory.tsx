@@ -57,10 +57,12 @@ interface Props {
 
 export function PowerRankingsHistory({ history, seasonId }: Props) {
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [humansOnly, setHumansOnly] = useState(false);
 
   const driversWithColors = useMemo(() => assignColors(history.drivers), [history]);
   const humanDrivers = driversWithColors.filter((d) => d.is_human);
   const aiDrivers = driversWithColors.filter((d) => !d.is_human);
+  const visibleDrivers = humansOnly ? humanDrivers : driversWithColors;
 
   const maxRank = useMemo(() => {
     let max = 1;
@@ -101,11 +103,21 @@ export function PowerRankingsHistory({ history, seasonId }: Props) {
     <div className="prh-card">
       <div className="prh-header">
         <span className="prh-title">Rankings History</span>
-        {seasonId && (
-          <Link to={`/seasons/${seasonId}`} className="prh-season-link">
-            View season →
-          </Link>
-        )}
+        <div className="prh-header-controls">
+          {aiDrivers.length > 0 && (
+            <button
+              className={`prh-filter-btn${humansOnly ? " prh-filter-btn--active" : ""}`}
+              onClick={() => setHumansOnly((v) => !v)}
+            >
+              Humans only
+            </button>
+          )}
+          {seasonId && (
+            <Link to={`/seasons/${seasonId}`} className="prh-season-link">
+              View season →
+            </Link>
+          )}
+        </div>
       </div>
 
       <ResponsiveContainer width="100%" height={280}>
@@ -147,7 +159,7 @@ export function PowerRankingsHistory({ history, seasonId }: Props) {
             />
           )}
 
-          {driversWithColors.map((d) => (
+          {visibleDrivers.map((d) => (
             <Line
               key={d.name}
               type="monotone"
@@ -183,7 +195,7 @@ export function PowerRankingsHistory({ history, seasonId }: Props) {
             </div>
           </div>
         )}
-        {aiDrivers.length > 0 && (
+        {!humansOnly && aiDrivers.length > 0 && (
           <div className="prh-legend-group">
             <span className="prh-legend-label">AI</span>
             <div className="prh-legend-items">
