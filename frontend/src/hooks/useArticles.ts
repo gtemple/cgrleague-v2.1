@@ -69,11 +69,32 @@ export interface RankingsData {
   biggest_movers: MoverSummary[];
 }
 
+export interface RankingsHistoryRound {
+  round: number;
+  track_name: string;
+  article_id: number;
+  is_current: boolean;
+}
+
+export interface RankingsHistoryDriver {
+  driver_id: number;
+  name: string;
+  team_color: string;
+  is_human: boolean;
+  ranks: (number | null)[];
+}
+
+export interface RankingsHistory {
+  rounds: RankingsHistoryRound[];
+  drivers: RankingsHistoryDriver[];
+}
+
 export interface ArticleDetail extends ArticleSummary {
   content: string;
   rivalry_callout: string;
   preview_sidebar: PreviewSidebar | null;
   rankings_data: RankingsData | null;
+  rankings_history: RankingsHistory | null;
   human_driver_names: string[];
 }
 

@@ -6,6 +6,7 @@ import { formatArticleDateLong, articleTypeLabel } from "../../utils/articleUtil
 import { readingTime } from "../../utils/readingTime";
 import { displayImage } from "../../utils/displayImage";
 import { highlightDrivers } from "../../utils/highlightDrivers";
+import { PowerRankingsHistory } from "./PowerRankingsHistory";
 import "./style.css";
 import "./power-rankings.css";
 
@@ -243,7 +244,15 @@ export function ArticleDetailPage() {
       )}
 
       {isRankings && article.rankings_data ? (
-        <PowerRankingsLayout data={article.rankings_data} />
+        <>
+          {article.rankings_history && (
+            <PowerRankingsHistory
+              history={article.rankings_history}
+              seasonId={article.season_id}
+            />
+          )}
+          <PowerRankingsLayout data={article.rankings_data} />
+        </>
       ) : (
         <div className={`article-detail-body${hasSidebar ? " article-detail-body--with-sidebar" : ""}`}>
           <div className="article-detail-content">

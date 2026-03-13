@@ -7,6 +7,54 @@ from ..models import Article
 from .serializers import ArticleListSerializer, ArticleDetailSerializer
 
 
+def _build_rankings_history(current_article, season):
+    """
+    Collect all POWER_RANKINGS articles for the season, ordered by round.
+    Returns { rounds: [...], drivers: [...] } for the history chart.
+    """
+    all_rankings = list(
+        Article.objects
+        .filter(type=Article.POWER_RANKINGS, race__season=season)
+        .select_related("race__track")
+        .order_by("race__round")
+    )
+
+    valid = [a for a in all_rankings if a.rankings_data and a.race]
+    if len(valid) < 2:
+        return None
+
+    rounds = [
+        {
+            "round": a.race.round,
+            "track_name": a.race.track.name,
+            "article_id": a.id,
+            "is_current": a.id == current_article.id,
+        }
+        for a in valid
+    ]
+
+    driver_map: dict = {}
+    for round_idx, art in enumerate(valid):
+        for entry in art.rankings_data.get("rankings", []):
+            did = entry.get("driver_id")
+            if did is None:
+                continue
+            if did not in driver_map:
+                driver_map[did] = {
+                    "driver_id": did,
+                    "name": entry.get("name", ""),
+                    "team_color": entry.get("team_color", ""),
+                    "is_human": entry.get("is_human", False),
+                    "ranks": [None] * len(rounds),
+                }
+            driver_map[did]["ranks"][round_idx] = entry.get("rank")
+
+    return {
+        "rounds": rounds,
+        "drivers": list(driver_map.values()),
+    }
+
+
 class ArticleListView(APIView):
     def get(self, request):
         articles = Article.objects.select_related("race", "race__track", "race__season", "season").all()
@@ -45,6 +93,11 @@ class ArticleDetailView(APIView):
             ]
         else:
             data["human_driver_names"] = []
+
+        if article.type == Article.POWER_RANKINGS and season:
+            data["rankings_history"] = _build_rankings_history(article, season)
+        else:
+            data["rankings_history"] = None
 
         return Response(data)
 

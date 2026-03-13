@@ -122,6 +122,9 @@
   overflow-x: auto;
 }
 
+/* Desktop table visible by default; mobile cards hidden */
+.race-cards--mobile { display: none; }
+
 .race-table {
   width: 100%;
   border-collapse: separate;
@@ -275,4 +278,113 @@
   background: rgba(5, 5, 20, 0.6);
   border-radius: 10px;
   padding: 12px;
+}
+
+/* ═══════════════════════════════════════
+   MOBILE CARDS  (≤ 599px)
+═══════════════════════════════════════ */
+
+@media (max-width: 599px) {
+  /* swap layouts */
+  .race-table--desktop { display: none; }
+  .race-cards--mobile  { display: flex; flex-direction: column; gap: 0; }
+
+  /* wrapper needs no horizontal scroll on mobile */
+  .race-results-wrap { overflow-x: visible; padding: 4px 0; }
+
+  /* ── card ── */
+  .rmc-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .rmc-card:last-child { border-bottom: none; }
+  .rmc-card--dnf { opacity: 0.65; }
+
+  /* position badge — same .pos-badge styles, just sized for cards */
+  .rmc-pos {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  /* body: stacks top row + bottom row */
+  .rmc-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  /* top row: avatar + name + pts */
+  .rmc-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rmc-avatar {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  .rmc-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .rmc-pts {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* bottom row: team · meta · flags */
+  .rmc-bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .rmc-team {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+  }
+
+  .rmc-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .rmc-meta > span::before {
+    content: "·";
+    margin-right: 6px;
+    color: rgba(255, 255, 255, 0.2);
+  }
+  .rmc-meta > span:first-child::before { content: none; }
+
+  .rmc-flags {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+  }
 }

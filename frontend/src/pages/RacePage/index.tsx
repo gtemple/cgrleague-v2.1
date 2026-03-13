@@ -100,7 +100,8 @@ export const RacePage = () => {
 
       {!isLoading && !error && data && (
         <section className="border race-results-wrap">
-          <table className="race-table">
+          {/* ── Desktop table ── */}
+          <table className="race-table race-table--desktop">
             <thead>
               <tr>
                 <th className="col-pos">Pos</th>
@@ -178,6 +179,71 @@ export const RacePage = () => {
               ))}
             </tbody>
           </table>
+
+          {/* ── Mobile cards ── */}
+          <div className="race-cards race-cards--mobile">
+            {results.map((r) => (
+              <div
+                key={r.driver.id}
+                className={`rmc-card${r.status !== "FIN" ? " rmc-card--dnf" : ""}`}
+              >
+                <span
+                  className="rmc-pos pos-badge"
+                  style={{
+                    background: r.finish_position
+                      ? getPositionColor(String(r.finish_position))
+                      : undefined,
+                  }}
+                >
+                  {r.finish_position ?? "—"}
+                </span>
+
+                <div className="rmc-body">
+                  <div className="rmc-top">
+                    {r.driver.profile_image && (
+                      <div className="avatar rmc-avatar">
+                        <img
+                          src={displayImage(r.driver.profile_image, "driver")}
+                          alt={r.driver.display_name}
+                        />
+                      </div>
+                    )}
+                    <Link to={`/drivers/${r.driver.id}`} className="driver-name-link rmc-name">
+                      {r.driver.display_name}
+                    </Link>
+                    <span className="rmc-pts">
+                      {r.points > 0 ? `${r.points}pts` : "—"}
+                    </span>
+                  </div>
+
+                  <div className="rmc-bottom">
+                    <div className="rmc-team">
+                      {r.team.logo_image && (
+                        <div className="team-logo-sm">
+                          <img src={displayImage(r.team.logo_image, "team")} alt={r.team.name} />
+                        </div>
+                      )}
+                      <span>{r.team.name}</span>
+                    </div>
+                    <div className="rmc-meta">
+                      {r.grid_position != null && <span>Grid {r.grid_position}</span>}
+                      {r.laps_completed != null && <span>{r.laps_completed} laps</span>}
+                      {r.status !== "FIN" && (
+                        <span className="status-badge status-dnf">{r.status}</span>
+                      )}
+                    </div>
+                    <div className="rmc-flags">
+                      {r.pole_position && <span className="flag-chip chip-pole" title="Pole">P</span>}
+                      {r.fastest_lap && <span className="flag-chip chip-fl" title="Fastest Lap">FL</span>}
+                      {r.dotd && <span className="flag-chip chip-dotd" title="DOTD">DOTD</span>}
+                      {r.cleanest_driver && <span className="flag-chip chip-clean" title="Cleanest">C</span>}
+                      {r.most_overtakes && <span className="flag-chip chip-ov" title="Overtakes">OV</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
       )}
     </div>
