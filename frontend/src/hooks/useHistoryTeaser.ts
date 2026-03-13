@@ -32,6 +32,7 @@ export type HistoryTeaser = {
     };
   };
   results: HistoryResult[];
+  blurb: string | null;
 };
 
 export function useHistoryTeaser() {

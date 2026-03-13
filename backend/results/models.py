@@ -121,3 +121,21 @@ class RaceResult(models.Model):
     def __str__(self):
         drv = getattr(self.driver_season.driver, "last_name", "Driver")
         return f"{self.race} • {drv}"
+
+
+class HistoryTeaserBlurb(models.Model):
+    """Stores a manually-generated AI blurb for the history teaser widget."""
+    race = models.OneToOneField(
+        "results.Race",
+        on_delete=models.CASCADE,
+        related_name="history_blurb",
+    )
+    blurb = models.TextField()
+    generated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "History Teaser Blurb"
+        verbose_name_plural = "History Teaser Blurbs"
+
+    def __str__(self):
+        return f"Blurb for {self.race}"

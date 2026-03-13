@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useSeasonStandings } from "../../hooks/useSeasonStandings";
 import { displayImage } from "../../utils/displayImage";
 import "./style.css";
@@ -15,7 +16,7 @@ type SeasonStandingRow = {
   };
 };
 
-export function SeasonStandingsTable({ seasonId }: { seasonId: number }) {
+export function SeasonStandingsTable({ seasonId, limit }: { seasonId: number; limit?: number }) {
   const { data, isLoading, error } = useSeasonStandings(seasonId);
 
   if (isLoading) {
@@ -34,7 +35,9 @@ export function SeasonStandingsTable({ seasonId }: { seasonId: number }) {
   if (error) return <p className="standings-state-error">Failed to load standings.</p>;
   if (!data?.length) return <p className="standings-muted">No results.</p>;
 
-  const rows = (data as SeasonStandingRow[]).slice().sort((a, b) => b.points - a.points);
+  const allRows = (data as SeasonStandingRow[]).slice().sort((a, b) => b.points - a.points);
+  const rows = limit ? allRows.slice(0, limit) : allRows;
+  const hasMore = limit != null && allRows.length > limit;
 
   return (
     <div className="card standings-card">
@@ -71,6 +74,11 @@ export function SeasonStandingsTable({ seasonId }: { seasonId: number }) {
           );
         })}
       </div>
+      {hasMore && (
+        <Link to={`/seasons/${seasonId}`} className="standings-see-all">
+          Full standings →
+        </Link>
+      )}
     </div>
   );
 }

@@ -21,7 +21,6 @@ export const HomePage = () => {
 
   const upcoming = data?.upcoming_race ?? null;
   const recentWinners = data?.recent_winners ?? [];
-  const followingTwo = data?.following_two ?? [];
 
   const track = upcoming?.track ?? null;
   const race = upcoming?.race ?? null;
@@ -162,62 +161,10 @@ export const HomePage = () => {
       {/* ── History Teaser ── */}
       <HistoryTeaser />
 
-      {/* ── Dashboard grid ── */}
-      <div className="home-grid">
-        <SeasonStandingsTable seasonId={CURRENT_SEASON} />
+      {/* ── Standings grid ── */}
+      <div className="home-standings-grid">
+        <SeasonStandingsTable seasonId={CURRENT_SEASON} limit={8} />
         <ConstructorStandingsTable seasonId={CURRENT_SEASON} />
-
-        <div className="card up-next-card">
-          <div className="card-header">Up Next</div>
-          {isLoading ? (
-            <div className="card-skeleton-rows">
-              {[0, 1].map(i => <div key={i} className="skeleton-row" />)}
-            </div>
-          ) : followingTwo.length === 0 ? (
-            <p className="card-muted">No more races this season.</p>
-          ) : (
-            <div className="up-next-list">
-              {followingTwo.map(({ event, last_winner }) => {
-                const t = event.track;
-                const thumb = t.image ? displayImage(t.image, "trackImage") : null;
-                const flag = t.country ? displayImage(t.country, "flags") : null;
-                const winnerAvatar = last_winner?.driver?.profile_image
-                  ? displayImage(last_winner.driver.profile_image, "driver")
-                  : null;
-
-                return (
-                  <div className="up-next-row" key={event.id}>
-                    <div className="un-thumb">
-                      {thumb
-                        ? <img src={thumb} alt={t.name} />
-                        : <div className="un-thumb-fallback" />}
-                    </div>
-                    <div className="un-meta">
-                      <div className="un-title">
-                        {flag && <img className="un-flag" src={flag} alt={t.country} />}
-                        <span>{t.name}</span>
-                        {event.is_sprint && <span className="un-sprint">Sprint</span>}
-                      </div>
-                      <div className="un-sub">Round {event.round}{t.city ? ` · ${t.city}` : ""}</div>
-                      {last_winner ? (
-                        <div className="un-winner">
-                          <div className="un-winner-avatar">
-                            {winnerAvatar
-                              ? <img src={winnerAvatar} alt={last_winner.driver.display_name} />
-                              : <div className="un-avatar-fallback" />}
-                          </div>
-                          <span className="un-winner-name">{last_winner.driver.display_name}</span>
-                        </div>
-                      ) : (
-                        <div className="un-no-winner">No prior winner</div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
       </div>
 
     </div>

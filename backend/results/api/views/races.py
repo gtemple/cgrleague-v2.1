@@ -1,6 +1,8 @@
+import os
 import random
 from datetime import date
 from typing import Any, Dict, List, Optional
+import anthropic
 from django.core.cache import cache
 from django.db.models import Count, Q
 from rest_framework.permissions import AllowAny
@@ -372,6 +374,46 @@ class NextRaceTeaserView(APIView):
         return Response(data)
 
 
+def _generate_history_blurb(season_id: int, round_num: int, track_name: str, results: list) -> Optional[str]:
+    """Call Claude Haiku to produce a 1-2 sentence highlight blurb."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return None
+
+    winner = results[0] if results else None
+    if not winner:
+        return None
+
+    podium_lines = []
+    for r in results:
+        notes = []
+        if r.get("pole_position"):
+            notes.append("pole")
+        if r.get("fastest_lap"):
+            notes.append("fastest lap")
+        note_str = f" ({', '.join(notes)})" if notes else ""
+        podium_lines.append(f"P{r['finish_position']}: {r['driver']['display_name']} ({r['team']['name']}){note_str}")
+
+    podium_text = "\n".join(podium_lines)
+    prompt = (
+        f"Write a single compelling highlight sentence (max 40 words) about this result from a private "
+        f"Formula-style racing league called CGR League. Keep it punchy and exciting, referencing specific "
+        f"details. Do NOT start with 'In Season'. Output only the sentence, no quotes.\n\n"
+        f"Season {season_id}, Round {round_num} at {track_name}:\n{podium_text}"
+    )
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        message = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=80,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return message.content[0].text.strip()
+    except Exception:
+        return None
+
+
 class HistoryTeaserView(APIView):
     """
     GET /api/teasers/history/
@@ -439,6 +481,24 @@ class HistoryTeaserView(APIView):
             .order_by("finish_position")[:3]
         )
 
+        results_payload = [
+            {
+                "finish_position": rr.finish_position,
+                "fastest_lap": rr.fastest_lap,
+                "pole_position": rr.pole_position,
+                "points": points_for_result(rr),
+                "driver": serialize_driver(rr.driver_season.driver),
+                "team": serialize_team(
+                    getattr(getattr(rr.driver_season, "team_season", None), "team", None)
+                ),
+            }
+            for rr in top3
+        ]
+
+        from results.models import HistoryTeaserBlurb
+        blurb_obj = HistoryTeaserBlurb.objects.filter(race=chosen).first()
+        blurb = blurb_obj.blurb if blurb_obj else None
+
         data = {
             "season_id": chosen.season_id,
             "race": {
@@ -446,19 +506,8 @@ class HistoryTeaserView(APIView):
                 "round": chosen.round,
                 "track": serialize_track(chosen.track),
             },
-            "results": [
-                {
-                    "finish_position": rr.finish_position,
-                    "fastest_lap": rr.fastest_lap,
-                    "pole_position": rr.pole_position,
-                    "points": points_for_result(rr),
-                    "driver": serialize_driver(rr.driver_season.driver),
-                    "team": serialize_team(
-                        getattr(getattr(rr.driver_season, "team_season", None), "team", None)
-                    ),
-                }
-                for rr in top3
-            ],
+            "results": results_payload,
+            "blurb": blurb,
         }
         cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data)
