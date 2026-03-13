@@ -1,6 +1,6 @@
 from .standings import SeasonStandingsView, ConstructorStandingsView
 from .matrices import SeasonResultsMatrixView
-from .races import SeasonLastRaceView, NextRaceTeaserView, RaceDetailView
+from .races import SeasonLastRaceView, NextRaceTeaserView, RaceDetailView, HistoryTeaserView
 from .hall_of_fame import HallOfFameView
 from .h2h import HeadToHeadMatrixView
 

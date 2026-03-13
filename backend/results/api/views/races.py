@@ -1,3 +1,5 @@
+import random
+from datetime import date
 from typing import Any, Dict, List, Optional
 from django.core.cache import cache
 from django.db.models import Count, Q
@@ -10,7 +12,8 @@ from entries.models import DriverSeason
 from results.models import Race, RaceResult
 from results.scoring import points_for_result
 from results.cache import (
-    CACHE_TTL, key_race_detail, key_last_race, key_next_race_teaser, key_hof
+    CACHE_TTL, key_race_detail, key_last_race, key_next_race_teaser, key_hof,
+    key_history_teaser,
 )
 from .utils import (
     serialize_race_basic, serialize_track, serialize_driver, serialize_team, initials_for
@@ -364,6 +367,98 @@ class NextRaceTeaserView(APIView):
             "upcoming_race": upcoming_payload,
             "recent_winners": recent_winners,
             "following_two": following_two,
+        }
+        cache.set(ck, data, timeout=CACHE_TTL)
+        return Response(data)
+
+
+class HistoryTeaserView(APIView):
+    """
+    GET /api/teasers/history/
+
+    Returns a notable result from the same round number in a past season.
+    Picks deterministically per calendar day (date-seeded random) so it
+    changes daily but is stable within a day.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        ck = key_history_teaser()
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
+        latest_season = Season.objects.order_by("-id").first()
+        if not latest_season:
+            return Response(None)
+
+        # Determine current round: most recently completed race, or round 1
+        last_completed = (
+            Race.objects
+            .filter(season=latest_season, is_sprint=False, results__isnull=False)
+            .order_by("-round")
+            .first()
+        )
+        current_round = last_completed.round if last_completed else 1
+
+        # Find all completed non-sprint races at this round in prior seasons
+        candidates = list(
+            Race.objects
+            .filter(round=current_round, is_sprint=False)
+            .exclude(season=latest_season)
+            .annotate(result_count=Count("results"))
+            .filter(result_count__gt=0)
+            .select_related("track", "season")
+            .order_by("season_id")
+        )
+
+        if not candidates:
+            cache.set(ck, None, timeout=CACHE_TTL)
+            return Response(None)
+
+        # Prefer a race where a human driver won; fall back to any
+        human_wins = [
+            r for r in candidates
+            if RaceResult.objects.filter(
+                race=r, finish_position=1,
+                driver_season__driver__human=True,
+            ).exists()
+        ]
+        pool = human_wins if human_wins else candidates
+
+        rng = random.Random(date.today().toordinal())
+        chosen = rng.choice(pool)
+
+        top3 = list(
+            RaceResult.objects
+            .filter(race=chosen, finish_position__isnull=False)
+            .select_related(
+                "driver_season__driver",
+                "driver_season__team_season__team",
+            )
+            .order_by("finish_position")[:3]
+        )
+
+        data = {
+            "season_id": chosen.season_id,
+            "race": {
+                "id": chosen.id,
+                "round": chosen.round,
+                "track": serialize_track(chosen.track),
+            },
+            "results": [
+                {
+                    "finish_position": rr.finish_position,
+                    "fastest_lap": rr.fastest_lap,
+                    "pole_position": rr.pole_position,
+                    "points": points_for_result(rr),
+                    "driver": serialize_driver(rr.driver_season.driver),
+                    "team": serialize_team(
+                        getattr(getattr(rr.driver_season, "team_season", None), "team", None)
+                    ),
+                }
+                for rr in top3
+            ],
         }
         cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data)

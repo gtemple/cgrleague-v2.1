@@ -60,6 +60,9 @@ def key_h2h():
 def key_driver_specialization(driver_id):
     return f"driver:{driver_id}:specialization"
 
+def key_history_teaser():
+    return "teaser:history"
+
 
 # ── invalidation ──────────────────────────────────────────────────────────────
 
@@ -89,6 +92,7 @@ def invalidate_for_result(instance):
         key_race_detail(race_id),
         key_next_race_teaser(False),
         key_next_race_teaser(True),
+        key_history_teaser(),
         key_driver_detail(driver_id),
         key_driver_history(driver_id),
         key_driver_tracks(driver_id),

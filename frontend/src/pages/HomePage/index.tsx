@@ -3,6 +3,7 @@ import { useNextRaceTeaser } from "../../hooks/useNextRaceTeaser";
 import { useLatestArticles } from "../../hooks/useArticles";
 import { SeasonStandingsTable } from "../../components/SeasonStandingsTable/index";
 import { ConstructorStandingsTable } from "../../components/ConstructorStandingsTable/index";
+import { HistoryTeaser } from "../../components/HistoryTeaser/index";
 import { displayImage } from "../../utils/displayImage";
 import { articleTypeLabel, formatArticleDate } from "../../utils/articleUtils";
 import './style.css';
@@ -157,6 +158,9 @@ export const HomePage = () => {
           </div>
         </section>
       )}
+
+      {/* ── History Teaser ── */}
+      <HistoryTeaser />
 
       {/* ── Dashboard grid ── */}
       <div className="home-grid">
