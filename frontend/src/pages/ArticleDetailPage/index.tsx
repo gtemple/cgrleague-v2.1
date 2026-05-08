@@ -75,7 +75,7 @@ function DriverCard({ entry }: { entry: RankingsEntry }) {
 
       <div className="pr-avatar">
         {avatarUrl
-          ? <img src={avatarUrl} alt={entry.name} />
+          ? <img loading="lazy" src={avatarUrl} alt={entry.name} />
           : <div className="pr-avatar-placeholder" style={{ background: borderColor }} />
         }
       </div>
@@ -195,7 +195,7 @@ export function ArticleDetailPage() {
 
       {trackImg && (
         <div className="article-detail-hero">
-          <img src={trackImg} alt={article.race!.track.name} />
+          <img loading="lazy" src={trackImg} alt={article.race!.track.name} />
           <div className="article-detail-hero-overlay" />
         </div>
       )}
@@ -224,7 +224,7 @@ export function ArticleDetailPage() {
         </div>
         {article.race && (
           <div className="article-detail-track">
-            {flagImg && <img className="article-detail-flag" src={flagImg} alt={article.race.track.country ?? ""} />}
+            {flagImg && <img loading="lazy" className="article-detail-flag" src={flagImg} alt={article.race.track.country ?? ""} />}
             {article.race.track.name}
           </div>
         )}

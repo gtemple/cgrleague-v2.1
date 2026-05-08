@@ -57,14 +57,14 @@ export function SeasonStandingsTable({ seasonId, limit }: { seasonId: number; li
               <span className="standings-pos">{pos}</span>
               <div className="standings-avatar">
                 {avatar
-                  ? <img src={avatar} alt={row.driver.display_name} />
+                  ? <img loading="lazy" src={avatar} alt={row.driver.display_name} />
                   : <div className="standings-avatar-fallback" />}
               </div>
               <div className="standings-info">
                 <div className="standings-name">{row.driver.display_name}</div>
                 <div className="standings-team">
                   {teamLogo && (
-                    <img className="standings-team-logo" src={teamLogo} alt={row.team.name} />
+                    <img loading="lazy" className="standings-team-logo" src={teamLogo} alt={row.team.name} />
                   )}
                   <span>{row.team.name}</span>
                 </div>

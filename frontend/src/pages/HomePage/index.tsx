@@ -35,7 +35,7 @@ export const HomePage = () => {
       {/* ── Hero ── */}
       <section className="home-hero">
         {trackImg && (
-          <img className="hero-bg" src={trackImg} alt="" aria-hidden="true" />
+          <img loading="lazy" className="hero-bg" src={trackImg} alt="" aria-hidden="true" />
         )}
         <div className="hero-overlay" />
 
@@ -51,7 +51,7 @@ export const HomePage = () => {
                 </div>
                 <h2 className="hero-track">{track?.name}</h2>
                 <div className="hero-location">
-                  {flagImg && <img className="hero-flag" src={flagImg} alt={track?.country ?? ""} />}
+                  {flagImg && <img loading="lazy" className="hero-flag" src={flagImg} alt={track?.country ?? ""} />}
                   {[track?.city, track?.country].filter(Boolean).join(", ")}
                 </div>
               </div>
@@ -67,7 +67,7 @@ export const HomePage = () => {
                       <div className="hero-winner-row" key={`${w.season_id}-${w.driver.id}`}>
                         <div className="hw-avatar">
                           {avatar
-                            ? <img src={avatar} alt={w.driver.display_name} />
+                            ? <img loading="lazy" src={avatar} alt={w.driver.display_name} />
                             : <div className="hw-avatar-fallback" />}
                         </div>
                         <div className="hw-info">
@@ -117,7 +117,7 @@ export const HomePage = () => {
                     to={`/articles/${article.id}`}
                     className={`home-article-card${isRankings ? " home-article-card--rankings" : ""}`}
                   >
-                    {img && <img className="home-article-bg" src={img} alt="" aria-hidden="true" />}
+                    {img && <img loading="lazy" className="home-article-bg" src={img} alt="" aria-hidden="true" />}
                     <div className="home-article-overlay" />
                     <div className="home-article-content">
                       <div className="home-article-top">

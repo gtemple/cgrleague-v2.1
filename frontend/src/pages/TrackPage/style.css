@@ -46,6 +46,7 @@
   opacity: 0.12;
   filter: blur(18px) saturate(0.6);
   transform: scale(1.08);
+  will-change: filter;
 }
 
 /* Main content sits above the background */

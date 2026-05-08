@@ -56,6 +56,9 @@ build/
 .eslintcache
 coverage/
 
+# --- Claude Code ---
+.claude/
+
 # --- Misc ---
 *.swp
 *.swo

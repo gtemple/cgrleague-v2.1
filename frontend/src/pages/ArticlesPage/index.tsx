@@ -28,7 +28,7 @@ function ArticleFeaturedCard({ article }: { article: ArticleSummary }) {
 
   return (
     <Link to={`/articles/${article.id}`} className={`article-card article-card--featured${isSeason ? ` article-card--featured-season article-card--featured-season-${article.type === "SEASON_RECAP" ? "recap" : "preview"}` : ""}`}>
-      {trackImg && <img className="article-card-featured-bg" src={trackImg} alt="" aria-hidden="true" />}
+      {trackImg && <img loading="lazy" className="article-card-featured-bg" src={trackImg} alt="" aria-hidden="true" />}
       <div className="article-card-featured-overlay" />
       <div className="article-card-featured-content">
         <div className="article-card-top">
@@ -44,7 +44,7 @@ function ArticleFeaturedCard({ article }: { article: ArticleSummary }) {
         </div>
         {article.race && (
           <div className="article-track-name article-track-name--light">
-            {flagImg && <img className="article-flag" src={flagImg} alt={article.race.track.country ?? ""} />}
+            {flagImg && <img loading="lazy" className="article-flag" src={flagImg} alt={article.race.track.country ?? ""} />}
             {article.race.track.name}
           </div>
         )}

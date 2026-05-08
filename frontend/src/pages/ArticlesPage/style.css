@@ -544,7 +544,8 @@
 }
 
 .article-card--rankings {
-  border-left: 3px solid rgba(255, 199, 14, 0.4);
+  background: rgba(255, 199, 14, 0.03);
+  border-color: rgba(255, 199, 14, 0.14);
 }
 
 .article-card--rankings .article-card-footer {
@@ -552,7 +553,7 @@
 }
 
 .article-card--rankings:hover {
-  border-left-color: rgba(255, 199, 14, 0.7);
+  background: rgba(255, 199, 14, 0.05);
 }
 
 .rankings-movers {

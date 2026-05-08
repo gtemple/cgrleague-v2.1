@@ -28,7 +28,7 @@ export function DriverTrackGrid({ driverId }: { driverId?: string }) {
           return (
             <a key={row.track.id} className="dtg-card" href={`/tracks/${row.track.id}`}>
               <div className="dtg-track-name">
-                {flagImg && <img className="dtg-flag" src={flagImg} alt={row.track.country} />}
+                {flagImg && <img loading="lazy" className="dtg-flag" src={flagImg} alt={row.track.country} />}
                 <span>{row.track.name}</span>
               </div>
               <div className="dtg-stats">

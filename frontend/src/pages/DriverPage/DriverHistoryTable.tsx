@@ -140,7 +140,7 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
                     <div className="team-cell">
                       {r.team.logo_image ? (
                         <div className="dht-team-logo">
-                          <img src={displayImage(r.team.logo_image, "team")} alt={r.team.display_name} />
+                          <img loading="lazy" src={displayImage(r.team.logo_image, "team")} alt={r.team.display_name} />
                         </div>
                       ) : (
                         <div className="dht-team-logo-fallback" aria-hidden />

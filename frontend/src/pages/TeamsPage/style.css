@@ -132,7 +132,6 @@
   gap: 12px;
   padding: 13px 16px;
   text-decoration: none;
-  border-left: 2px solid transparent;
   transition: background 0.12s;
 }
 
@@ -145,12 +144,11 @@
 }
 
 .tix-row--first {
-  background: rgba(255, 199, 14, 0.03);
-  border-left-color: var(--row-accent, rgba(255, 199, 14, 0.35));
+  background: rgba(255, 199, 14, 0.05);
 }
 
 .tix-row--first:hover {
-  background: rgba(255, 199, 14, 0.05);
+  background: rgba(255, 199, 14, 0.07);
 }
 
 .tix-row-left {
@@ -192,10 +190,6 @@
   text-overflow: ellipsis;
 }
 
-/* Color bar on non-first rows */
-.tix-row:not(.tix-row--first) {
-  border-left-color: var(--row-accent, transparent);
-}
 
 .tix-row-stats {
   display: flex;
@@ -249,7 +243,6 @@
   padding: 16px 20px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 2px solid var(--record-accent, rgba(255, 255, 255, 0.12));
   border-radius: 10px;
   text-decoration: none;
   transition: background 0.15s;

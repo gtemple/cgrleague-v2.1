@@ -27,11 +27,11 @@ function RecordTile({ stat, entry }: { stat: string; entry: TrackRecord }) {
       </div>
       <div className="trx-record-right">
         {imgUrl ? (
-          <img src={imgUrl} alt={track.name} className="trx-record-img" />
+          <img loading="lazy" src={imgUrl} alt={track.name} className="trx-record-img" />
         ) : (
           <div className="trx-record-img-placeholder" />
         )}
-        {flagUrl && <img src={flagUrl} alt={track.country} className="trx-record-flag" />}
+        {flagUrl && <img loading="lazy" src={flagUrl} alt={track.country} className="trx-record-flag" />}
       </div>
     </Link>
   );
@@ -49,14 +49,14 @@ function TrackGridCard({ entry }: { entry: TrackEntry }) {
     <Link to={`/tracks/${id}`} className="trx-grid-card">
       <div className="trx-grid-img-wrap">
         {imgUrl
-          ? <img src={imgUrl} alt={name} className="trx-grid-img" />
+          ? <img loading="lazy" src={imgUrl} alt={name} className="trx-grid-img" />
           : <div className="trx-grid-img-placeholder" />
         }
       </div>
       <div className="trx-grid-info">
         <div className="trx-grid-name">{name}</div>
         <div className="trx-grid-meta">
-          {flagUrl && <img src={flagUrl} alt={country} className="trx-grid-flag" />}
+          {flagUrl && <img loading="lazy" src={flagUrl} alt={country} className="trx-grid-flag" />}
           {location && <span className="trx-grid-location">{location}</span>}
         </div>
         <div className="trx-grid-stats">

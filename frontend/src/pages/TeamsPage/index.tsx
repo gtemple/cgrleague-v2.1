@@ -32,7 +32,7 @@ function StandingsRow({ entry }: { entry: CurrentSeasonTeam }) {
         <span className={posBadgeClass(champ_pos)}>P{champ_pos}</span>
         <div className="tix-row-logo">
           {logoUrl
-            ? <img src={logoUrl} alt={display_name} />
+            ? <img loading="lazy" src={logoUrl} alt={display_name} />
             : <div className="tix-row-logo-placeholder" style={{ background: accent }} />
           }
         </div>
@@ -75,7 +75,7 @@ function RecordTile({ stat, entry }: { stat: string; entry: TeamRecord }) {
       <div className="tix-record-right">
         <div className="tix-record-logo">
           {logoUrl
-            ? <img src={logoUrl} alt={team.display_name} />
+            ? <img loading="lazy" src={logoUrl} alt={team.display_name} />
             : <div className="tix-record-logo-placeholder" style={{ background: accent }} />
           }
         </div>
@@ -100,7 +100,7 @@ function TeamGridCard({ entry }: { entry: AllTeamEntry }) {
     >
       <div className="tix-grid-logo">
         {logoUrl
-          ? <img src={logoUrl} alt={display_name} />
+          ? <img loading="lazy" src={logoUrl} alt={display_name} />
           : <div className="tix-grid-logo-placeholder" style={accent ? { background: accent } : undefined} />
         }
       </div>

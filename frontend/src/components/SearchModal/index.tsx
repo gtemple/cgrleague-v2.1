@@ -225,7 +225,7 @@ export function SearchModal({ open, onClose }: Props) {
                   >
                     <div className="srch-result-avatar">
                       {item.image && (item.type === "driver" || item.type === "team") ? (
-                        <img
+                        <img loading="lazy"
                           src={displayImage(item.image, item.type)}
                           alt=""
                         />

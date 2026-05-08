@@ -29,7 +29,7 @@ function DriverFlag({ country }: { country: string | null }) {
   if (!country) return null;
   const src = displayImage(country, "flags");
   if (!src) return null;
-  return <img className="th2h-flag" src={src} alt={country} />;
+  return <img loading="lazy" className="th2h-flag" src={src} alt={country} />;
 }
 
 function DriverH2H({ drivers, color }: { drivers: TeamDriver[]; color: string }) {
@@ -128,7 +128,7 @@ export function TeamPage() {
 
         {/* Blurred logo as atmospheric background */}
         <div className="team-hero-bg">
-          {logoSrc && <img src={logoSrc} alt="" aria-hidden />}
+          {logoSrc && <img loading="lazy" src={logoSrc} alt="" aria-hidden />}
           <div
             className="team-hero-bg-overlay"
             style={accentColor ? {
@@ -169,7 +169,7 @@ export function TeamPage() {
             style={accentColor ? { borderColor: `${accentColor}30` } : {}}
           >
             {logoSrc
-              ? <img src={logoSrc} alt={team.name} className="team-logo-img" />
+              ? <img loading="lazy" src={logoSrc} alt={team.name} className="team-logo-img" />
               : <div className="team-logo-fallback" />}
           </div>
 
@@ -201,13 +201,13 @@ export function TeamPage() {
               <Link className="team-best-driver" to={`/drivers/${best_driver.id}`}>
                 <div className="team-bd-avatar">
                   {portrait
-                    ? <img src={portrait} alt={best_driver.display_name} />
+                    ? <img loading="lazy" src={portrait} alt={best_driver.display_name} />
                     : <div className="team-bd-avatar-fallback" />}
                 </div>
                 <div className="team-bd-info">
                   <div className="team-bd-label">All-time top scorer</div>
                   <div className="team-bd-name">
-                    {flag && <img className="team-bd-flag" src={flag} alt="" aria-hidden />}
+                    {flag && <img loading="lazy" className="team-bd-flag" src={flag} alt="" aria-hidden />}
                     {best_driver.display_name}
                   </div>
                   <div className="team-bd-stats">

@@ -79,12 +79,12 @@ export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: bo
         <div className="teaser-track">
           {trackImg && (
             <div className="teaser-track-image">
-              <img src={trackImg} alt={track.name} />
+              <img loading="lazy" src={trackImg} alt={track.name} />
             </div>
           )}
           <div className="teaser-track-meta">
             <div className="teaser-track-title">
-              {flagImg && <img className="teaser-flag" src={flagImg} alt={track.country} />}
+              {flagImg && <img loading="lazy" className="teaser-flag" src={flagImg} alt={track.country} />}
               <span>{track.name}</span>
             </div>
             <div className="teaser-track-sub">
@@ -106,7 +106,7 @@ export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: bo
                   <div className={"winner-row" + (i === 0 ? " first" : "")} key={`${w.season_id}-${w.driver.id}`}>
                     <div className="wr-left">
                       <div className="wr-avatar">
-                        {driverImg ? <img src={driverImg} alt={w.driver.display_name} /> : <div className="wr-avatar-fallback" />}
+                        {driverImg ? <img loading="lazy" src={driverImg} alt={w.driver.display_name} /> : <div className="wr-avatar-fallback" />}
                       </div>
                       <div className="wr-meta">
                         <div className="wr-name">{w.driver.display_name}</div>
@@ -114,7 +114,7 @@ export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: bo
                       </div>
                     </div>
                     <div className="wr-right">
-                      {teamLogo && <img className="wr-team-logo" src={teamLogo} alt={w.team.name} />}
+                      {teamLogo && <img loading="lazy" className="wr-team-logo" src={teamLogo} alt={w.team.name} />}
                     </div>
                   </div>
                 );
@@ -151,7 +151,7 @@ export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: bo
                 <div className="nexttwo-row" key={event.id}>
                   {tImg ? (
                     <div className="nt-thumb">
-                      <img src={tImg} alt={t.name || "Track"} />
+                      <img loading="lazy" src={tImg} alt={t.name || "Track"} />
                     </div>
                   ) : (
                     <div className="nt-thumb nt-thumb-fallback" />
@@ -159,7 +159,7 @@ export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: bo
 
                   <div className="nt-meta">
                     <div className="nt-title">
-                      {fImg && <img className="teaser-flag" src={fImg} alt={t.country} />}
+                      {fImg && <img loading="lazy" className="teaser-flag" src={fImg} alt={t.country} />}
                       <span>{t.name || "TBA"}</span>
                     </div>
                     <div className="nt-sub">
@@ -172,14 +172,14 @@ export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: bo
                       <>
                         <div className="nt-winner-left">
                           <div className="nt-avatar">
-                            {winnerAvatar ? <img src={winnerAvatar} alt={last_winner.driver.display_name} /> : <div className="nt-avatar-fallback" />}
+                            {winnerAvatar ? <img loading="lazy" src={winnerAvatar} alt={last_winner.driver.display_name} /> : <div className="nt-avatar-fallback" />}
                           </div>
                           <div className="nt-winner-meta">
                             <div className="nt-winner-name">{last_winner.driver.display_name}</div>
                             <div className="nt-winner-sub">{last_winner.team?.name || ""}</div>
                           </div>
                         </div>
-                        {winnerTeamLogo && <img className="nt-team-logo" src={winnerTeamLogo} alt={last_winner.team?.name || "Team"} />}
+                        {winnerTeamLogo && <img loading="lazy" className="nt-team-logo" src={winnerTeamLogo} alt={last_winner.team?.name || "Team"} />}
                       </>
                     ) : (
                       <span className="teaser-muted">No prior winner</span>

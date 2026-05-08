@@ -4,7 +4,7 @@ import "./style.css"
 export const PortraitContainer = (imagePath: string) => {
   return (
     <div className="portrait-container">
-      <img src={displayImage(imagePath, 'driver')} alt={`${imagePath} portrait`} />
+      <img loading="lazy" src={displayImage(imagePath, 'driver')} alt={`${imagePath} portrait`} />
       </div>
   );
 }

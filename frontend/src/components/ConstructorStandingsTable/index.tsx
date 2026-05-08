@@ -52,7 +52,7 @@ export function ConstructorStandingsTable({ seasonId, limit }: { seasonId: numbe
               <span className="standings-pos">{pos}</span>
               <div className="standings-team-logo-wrap">
                 {logo
-                  ? <img src={logo} alt={label} />
+                  ? <img loading="lazy" src={logo} alt={label} />
                   : <div className="standings-avatar-fallback" />}
               </div>
               <div className="standings-info">

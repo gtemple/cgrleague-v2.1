@@ -210,9 +210,9 @@
 ═══════════════════════════════════════ */
 
 .rivalry-callout {
-  border-left: 3px solid rgba(255, 199, 14, 0.5);
+  border: 1px solid rgba(255, 199, 14, 0.22);
   background: rgba(255, 199, 14, 0.05);
-  border-radius: 0 8px 8px 0;
+  border-radius: 8px;
   padding: 14px 18px;
 }
 

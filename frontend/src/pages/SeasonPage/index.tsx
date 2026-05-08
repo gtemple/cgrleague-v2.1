@@ -78,7 +78,7 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
             >
               {row?.is_sprint && <div className="sprint-indicator">S</div>}
               {row?.track?.country ? (
-                <img src={displayImage(row?.track?.country, 'flags')} />
+                <img loading="lazy" src={displayImage(row?.track?.country, 'flags')} />
               ) : (
                 <div className="matrix-chart-driver-label"></div>
               )}
@@ -94,7 +94,7 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
               <div className="matrix-driver-cell">
                 <div className="matrix-chart-driver-image-container">
                   {driver.profile_image
-                    ? <img src={displayImage(driver.profile_image, 'driver')} alt={`${driver.initials} portrait`} />
+                    ? <img loading="lazy" src={displayImage(driver.profile_image, 'driver')} alt={`${driver.initials} portrait`} />
                     : null}
                 </div>
                 <span className="matrix-driver-code">{driver.initials}</span>
@@ -220,7 +220,7 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
         <tbody>
           {constructors.map((constructor) => (
             <tr key={constructor.constructor}>
-              <td><div className='team-logo'>{constructor?.profileImage && <img src={displayImage(constructor.profileImage, 'team')} alt={constructor.constructor} />}</div></td>
+              <td><div className='team-logo'>{constructor?.profileImage && <img loading="lazy" src={displayImage(constructor.profileImage, 'team')} alt={constructor.constructor} />}</div></td>
               <td>{constructor.teamId ? <Link to={`/teams/${constructor.teamId}`} style={{ textDecoration: "none", color: "inherit" }}>{constructor.displayName}</Link> : constructor.displayName}</td>
               <td className="stat-bar-cell">
                 <div className="stat-bar-wrap">
@@ -270,7 +270,7 @@ const PodiumsTable = ({ data }: MatrixProps) => {
         <tbody>
           {podiums.map((driver) => (
             <tr key={driver.driver}>
-              <td><div className='avatar-sm'>{driver?.profileImage && <img src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
+              <td><div className='avatar-sm'>{driver?.profileImage && <img loading="lazy" src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
               <td>{driver.driver}</td>
               <td className="stat-bar-cell">
                 <div className="stat-bar-wrap">
@@ -320,7 +320,7 @@ const FastestLapTable = ({ data }: MatrixProps) => {
         <tbody>
           {fastestLaps.map((driver) => (
             <tr key={driver.driver}>
-              <td><div className='avatar-sm'>{driver?.profileImage && <img src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
+              <td><div className='avatar-sm'>{driver?.profileImage && <img loading="lazy" src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
               <td>{driver.driver}</td>
               <td className="stat-bar-cell">
                 <div className="stat-bar-wrap">
@@ -370,7 +370,7 @@ const DotdsTable = ({ data }: MatrixProps) => {
         <tbody>
           {dotds.map((driver) => (
             <tr key={driver.driver}>
-              <td><div className='avatar-sm'>{driver?.profileImage && <img src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
+              <td><div className='avatar-sm'>{driver?.profileImage && <img loading="lazy" src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
               <td>{driver.driver}</td>
               <td className="stat-bar-cell">
                 <div className="stat-bar-wrap">
@@ -433,7 +433,7 @@ const LastRaceResults = ({ data, seasonId }: { data?: SeasonLastRaceResponse; se
       </div>
       <div className="lr-track-name">{last_race?.race?.track?.name}</div>
       <div className="track-image">
-        {last_race?.race?.track?.image && <img src={displayImage(last_race.race.track.image, 'trackImage')} alt={last_race.race.track.name} />}
+        {last_race?.race?.track?.image && <img loading="lazy" src={displayImage(last_race.race.track.image, 'trackImage')} alt={last_race.race.track.name} />}
       </div>
       {last_race?.results.map((result, i) => (
         <div className="last-race-result" key={result.driver.id}>
@@ -441,7 +441,7 @@ const LastRaceResults = ({ data, seasonId }: { data?: SeasonLastRaceResponse; se
           <div>
             <div className='last-race-driver-info'>
               <div className='avatar-sm'>
-                {result?.driver?.profile_image && <img src={displayImage(result.driver.profile_image, 'driver')} alt={result.driver.display_name} />}
+                {result?.driver?.profile_image && <img loading="lazy" src={displayImage(result.driver.profile_image, 'driver')} alt={result.driver.display_name} />}
               </div>
               <div>{result.driver.display_name}</div>
             </div>

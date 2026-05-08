@@ -52,7 +52,7 @@ export const RacePage = () => {
 
         {race?.track.image && (
           <div className="race-track-hero">
-            <img
+            <img loading="eager"
               src={displayImage(race.track.image, "trackImage")}
               alt={race.track.name}
             />
@@ -133,7 +133,7 @@ export const RacePage = () => {
                     <div className="driver-cell">
                       {r.driver.profile_image && (
                         <div className="avatar">
-                          <img
+                          <img loading="lazy"
                             src={displayImage(r.driver.profile_image, "driver")}
                             alt={r.driver.display_name}
                           />
@@ -151,7 +151,7 @@ export const RacePage = () => {
                     <div className="team-cell">
                       {r.team.logo_image && (
                         <div className="team-logo-sm">
-                          <img
+                          <img loading="lazy"
                             src={displayImage(r.team.logo_image, "team")}
                             alt={r.team.name}
                           />
@@ -202,7 +202,7 @@ export const RacePage = () => {
                   <div className="rmc-top">
                     {r.driver.profile_image && (
                       <div className="avatar rmc-avatar">
-                        <img
+                        <img loading="lazy"
                           src={displayImage(r.driver.profile_image, "driver")}
                           alt={r.driver.display_name}
                         />
@@ -220,7 +220,7 @@ export const RacePage = () => {
                     <div className="rmc-team">
                       {r.team.logo_image && (
                         <div className="team-logo-sm">
-                          <img src={displayImage(r.team.logo_image, "team")} alt={r.team.name} />
+                          <img loading="lazy" src={displayImage(r.team.logo_image, "team")} alt={r.team.name} />
                         </div>
                       )}
                       <span>{r.team.name}</span>

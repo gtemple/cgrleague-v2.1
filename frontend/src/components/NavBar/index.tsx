@@ -47,7 +47,7 @@ export function NavBar() {
         <div className="nav-inner">
           <div className="nav-brand">
             <div className="nav-logo-container">
-              <img src={displayImage("cgr-icon", "siteImage")} alt="CGR Logo" />
+              <img loading="eager" src={displayImage("cgr-icon", "siteImage")} alt="CGR Logo" />
             </div>
             <NavLink to="/" className="brand">CGR League</NavLink>
           </div>

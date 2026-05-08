@@ -36,18 +36,18 @@ function StandingsRow({ entry }: { entry: HumanSpotlightEntry }) {
         <span className={posBadgeClass(position)}>P{position}</span>
         <div className="dix-row-avatar">
           {avatarUrl
-            ? <img src={avatarUrl} alt={driver.display_name} />
+            ? <img loading="lazy" src={avatarUrl} alt={driver.display_name} />
             : <div className="dix-row-avatar-placeholder" />
           }
         </div>
         <div className="dix-row-identity">
           <div className="dix-row-name">
-            {flagUrl && <img className="dix-flag" src={flagUrl} alt={driver.country_of_representation ?? ""} />}
+            {flagUrl && <img loading="lazy" className="dix-flag" src={flagUrl} alt={driver.country_of_representation ?? ""} />}
             {driver.display_name}
           </div>
           {team && (
             <div className="dix-row-team">
-              {logoUrl && <img className="dix-team-logo" src={logoUrl} alt={team.display_name ?? ""} />}
+              {logoUrl && <img loading="lazy" className="dix-team-logo" src={logoUrl} alt={team.display_name ?? ""} />}
               {team.display_name ?? team.name}
             </div>
           )}
@@ -90,13 +90,13 @@ function DriverGridCard({ entry }: { entry: AllDriverEntry }) {
     >
       <div className="dix-grid-avatar">
         {avatarUrl
-          ? <img src={avatarUrl} alt={driver.display_name} />
+          ? <img loading="lazy" src={avatarUrl} alt={driver.display_name} />
           : <div className="dix-grid-avatar-placeholder" />
         }
       </div>
       <div className="dix-grid-info">
         <div className="dix-grid-name">
-          {flagUrl && <img className="dix-flag" src={flagUrl} alt={driver.country_of_representation ?? ""} />}
+          {flagUrl && <img loading="lazy" className="dix-flag" src={flagUrl} alt={driver.country_of_representation ?? ""} />}
           {driver.display_name}
         </div>
         <div className="dix-grid-stats">

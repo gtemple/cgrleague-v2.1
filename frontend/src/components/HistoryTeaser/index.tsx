@@ -26,7 +26,7 @@ export function HistoryTeaser() {
     <section className="ht-card">
       {trackImg && (
         <>
-          <img className="ht-bg" src={trackImg} alt="" aria-hidden="true" />
+          <img loading="lazy" className="ht-bg" src={trackImg} alt="" aria-hidden="true" />
           <div className="ht-overlay" />
         </>
       )}
@@ -39,7 +39,7 @@ export function HistoryTeaser() {
         <div className="ht-header">
           <span className="ht-eyebrow">Season {season_id} Flashback</span>
           <span className="ht-meta">
-            {flagImg && <img className="ht-flag" src={flagImg} alt={race.track.country} />}
+            {flagImg && <img loading="lazy" className="ht-flag" src={flagImg} alt={race.track.country} />}
             R{race.round} · {race.track.name}
           </span>
         </div>
@@ -54,7 +54,7 @@ export function HistoryTeaser() {
             <div className="ht-quote">
               <div className="ht-quote-avatar">
                 {winnerAvatar
-                  ? <img src={winnerAvatar} alt={winner.driver.display_name} />
+                  ? <img loading="lazy" src={winnerAvatar} alt={winner.driver.display_name} />
                   : <div className="ht-avatar-fallback" />}
               </div>
               <div className="ht-quote-body">
@@ -80,7 +80,7 @@ export function HistoryTeaser() {
               >
                 <div className="ht-avatar">
                   {avatar
-                    ? <img src={avatar} alt={r.driver.display_name} />
+                    ? <img loading="lazy" src={avatar} alt={r.driver.display_name} />
                     : <div className="ht-avatar-fallback" />}
                 </div>
                 <span className={`ht-pos-badge ht-pos-${r.finish_position}`}>

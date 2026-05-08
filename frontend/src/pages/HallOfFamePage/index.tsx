@@ -13,7 +13,7 @@ type SeasonBestDriverInfo = NonNullable<SeasonBestEntry>["driver"];
 const DriverAvatar = ({ driver, size = "md" }: { driver: HallOfFameDriver | SeasonBestDriverInfo; size?: "sm" | "md" | "lg" }) => (
   <div className={`hof-avatar hof-avatar-${size}`}>
     {driver?.profile_image
-      ? <img src={displayImage(driver.profile_image, "driver")} alt={driver.last_name} />
+      ? <img loading="lazy" src={displayImage(driver.profile_image, "driver")} alt={driver.last_name} />
       : null}
   </div>
 );

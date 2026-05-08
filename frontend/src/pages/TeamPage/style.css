@@ -51,6 +51,7 @@
   object-fit: contain;
   opacity: 0.07;
   filter: blur(32px) saturate(0.5);
+  will-change: filter;
 }
 
 .team-hero-bg-overlay {
@@ -296,8 +297,7 @@
   display: flex;
   flex-wrap: wrap;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .team-stat {

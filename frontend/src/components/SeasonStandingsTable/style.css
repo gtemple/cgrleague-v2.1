@@ -52,40 +52,16 @@
   gap: 10px;
   padding: 10px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  position: relative;
 }
 
 .standings-row:last-child {
   border-bottom: none;
 }
 
-/* Podium left accent bar */
-.standings-row.pos-1::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--pos-1);
-  border-radius: 0 2px 2px 0;
-}
-.standings-row.pos-2::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--pos-2);
-  border-radius: 0 2px 2px 0;
-}
-.standings-row.pos-3::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--pos-3);
-  border-radius: 0 2px 2px 0;
-}
+/* Podium row tints */
+.standings-row.pos-1 { background: oklch(82% 0.12 78 / 4%); }
+.standings-row.pos-2 { background: oklch(78% 0.005 255 / 3%); }
+.standings-row.pos-3 { background: oklch(65% 0.08 63 / 3%); }
 
 /* Position number */
 .standings-pos {

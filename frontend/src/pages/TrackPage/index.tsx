@@ -56,7 +56,7 @@ export const TrackPage = () => {
       <header className="tp-hero">
         {trackImg && (
           <div className="tp-hero-bg">
-            <img src={trackImg} alt="" aria-hidden />
+            <img loading="lazy" src={trackImg} alt="" aria-hidden />
           </div>
         )}
 
@@ -64,7 +64,7 @@ export const TrackPage = () => {
           <div className="tp-hero-left">
             {trackImg && (
               <div className="tp-track-img-wrap">
-                <img src={trackImg} alt={track?.name} className="tp-track-img" />
+                <img loading="lazy" src={trackImg} alt={track?.name} className="tp-track-img" />
               </div>
             )}
             <div className="tp-hero-text">
@@ -73,7 +73,7 @@ export const TrackPage = () => {
               {subtitle && (
                 <div className="tp-subtitle">
                   {track?.country && displayImage(track.country, "flags") && (
-                    <img
+                    <img loading="lazy"
                       className="tp-flag"
                       src={displayImage(track.country, "flags")}
                       alt={track.country}
@@ -193,7 +193,7 @@ export const TrackPage = () => {
                       <div className="tp-driver-cell">
                         <div className="tp-avatar">
                           {row.driver.profile_image ? (
-                            <img
+                            <img loading="lazy"
                               src={displayImage(row.driver.profile_image, "driver")}
                               alt={row.driver.display_name}
                             />

@@ -49,7 +49,7 @@ export const DriverPage = () => {
 
             {/* Full-bleed atmospheric background */}
             <div className="dp-hero-bg">
-              {portraitSrc && <img src={portraitSrc} alt="" aria-hidden />}
+              {portraitSrc && <img loading="lazy" src={portraitSrc} alt="" aria-hidden />}
               <div className="dp-hero-bg-overlay" />
             </div>
 
@@ -84,7 +84,7 @@ export const DriverPage = () => {
             <div className="dp-hero-body">
               <div className="dp-portrait-wrap">
                 {portraitSrc
-                  ? <img className="dp-portrait-img" src={portraitSrc} alt={driver.display_name} />
+                  ? <img loading="lazy" className="dp-portrait-img" src={portraitSrc} alt={driver.display_name} />
                   : <div className="dp-portrait-fallback" />}
               </div>
 
@@ -93,7 +93,7 @@ export const DriverPage = () => {
                 <div className="dp-name-last">{driver.last_name}</div>
                 {driver.country_of_representation && (
                   <div className="dp-nationality">
-                    <img
+                    <img loading="lazy"
                       className="dp-flag"
                       src={displayImage(driver.country_of_representation, "flags")}
                       alt={driver.country_of_representation}

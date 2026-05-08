@@ -38,7 +38,7 @@ export function H2HMatrix() {
                 <th key={col.id} className="h2h-col-header">
                   <div className="h2h-col-avatar">
                     {col.profile_image
-                      ? <img src={displayImage(col.profile_image, "driver")} alt={shortName(col)} />
+                      ? <img loading="lazy" src={displayImage(col.profile_image, "driver")} alt={shortName(col)} />
                       : <span className="h2h-initials">{initials(col)}</span>}
                   </div>
                   <span className="h2h-col-name">{shortName(col)}</span>
@@ -66,7 +66,7 @@ export function H2HMatrix() {
                     <div className="h2h-row-driver">
                       <div className="h2h-row-avatar">
                         {row.profile_image
-                          ? <img src={displayImage(row.profile_image, "driver")} alt={shortName(row)} />
+                          ? <img loading="lazy" src={displayImage(row.profile_image, "driver")} alt={shortName(row)} />
                           : <span className="h2h-initials">{initials(row)}</span>}
                       </div>
                       <span className="h2h-row-name">{row.first_name} {row.last_name}</span>
