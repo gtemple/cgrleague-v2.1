@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useRaceDetail } from "../../hooks/useRaceDetail";
 import { useRaceArticles } from "../../hooks/useArticles";
@@ -10,9 +9,21 @@ import "./style.css";
 
 export const RacePage = () => {
   const { seasonId, round } = useParams<{ seasonId: string; round: string }>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [isSprint, setIsSprint] = useState(searchParams.get("is_sprint") === "1");
+  const isSprint = searchParams.get("is_sprint") === "1";
+
+  const setIsSprint = (value: boolean) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (value) next.set("is_sprint", "1");
+        else next.delete("is_sprint");
+        return next;
+      },
+      { replace: true }
+    );
+  };
 
   const { data, isLoading, error } = useRaceDetail(seasonId, round, isSprint);
   const { data: articles } = useRaceArticles(seasonId, round);
@@ -61,14 +72,22 @@ export const RacePage = () => {
       </header>
 
       <div className="race-controls border">
-        <label className="race-control">
-          <input
-            type="checkbox"
-            checked={isSprint}
-            onChange={(e) => setIsSprint(e.target.checked)}
-          />
-          Sprint result
-        </label>
+        <div className="race-mode-toggle" role="group" aria-label="Result type">
+          <button
+            className={!isSprint ? "rmt-active" : ""}
+            aria-pressed={!isSprint}
+            onClick={() => setIsSprint(false)}
+          >
+            Race
+          </button>
+          <button
+            className={isSprint ? "rmt-active" : ""}
+            aria-pressed={isSprint}
+            onClick={() => setIsSprint(true)}
+          >
+            Sprint
+          </button>
+        </div>
 
         <div className="race-nav">
           <button
@@ -94,7 +113,9 @@ export const RacePage = () => {
       {error && (
         <div className="race-error">
           {(error as { status?: number }).status === 404
-            ? "No race found for this round."
+            ? isSprint
+              ? `No sprint race for Round ${round}.`
+              : "No race found for this round."
             : `Failed to load race: ${error.message}`}
         </div>
       )}
