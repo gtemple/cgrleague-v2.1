@@ -175,19 +175,19 @@
   filter: brightness(0.62);
 }
 
-/* Season featured variant — gradient background instead of photo */
+/* Season featured variant — solid dark surface with atmospheric bloom */
 .article-card--featured-season {
-  border: none;
+  background: var(--bg);
 }
 
 .article-card--featured-season-recap {
-  background: linear-gradient(135deg, rgba(90, 40, 160, 0.7) 0%, rgba(20, 5, 50, 0.95) 100%);
-  border: 1px solid rgba(160, 100, 240, 0.2);
+  background: radial-gradient(ellipse 80% 60% at 20% 0%, oklch(83% 0.18 88 / 10%) 0%, transparent 70%), var(--bg);
+  border: 1px solid oklch(83% 0.18 88 / 20%);
 }
 
 .article-card--featured-season-preview {
-  background: linear-gradient(135deg, rgba(20, 100, 80, 0.7) 0%, rgba(5, 30, 30, 0.95) 100%);
-  border: 1px solid rgba(40, 180, 140, 0.2);
+  background: radial-gradient(ellipse 80% 60% at 80% 0%, oklch(75% 0.035 240 / 8%) 0%, transparent 70%), var(--bg);
+  border: 1px solid oklch(75% 0.035 240 / 18%);
 }
 
 .article-card-featured-overlay {
@@ -201,12 +201,13 @@
   );
 }
 
-/* No overlay needed for season featured cards (already dark gradient) */
+/* Season featured cards need a stronger overlay to ensure text legibility without a photo */
 .article-card--featured-season .article-card-featured-overlay {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(5, 5, 20, 0.5) 100%
+    oklch(9% 0.005 265 / 55%) 65%,
+    oklch(9% 0.005 265 / 88%) 100%
   );
 }
 
@@ -264,19 +265,19 @@
 }
 
 .article-card--season-pinned-recap {
-  border: 1px solid rgba(160, 100, 240, 0.2);
+  border: 1px solid oklch(83% 0.18 88 / 18%);
 }
 
 .article-card--season-pinned-preview {
-  border: 1px solid rgba(40, 180, 140, 0.2);
+  border: 1px solid oklch(75% 0.035 240 / 15%);
 }
 
 .article-card--season-pinned:hover.article-card--season-pinned-recap {
-  border-color: rgba(160, 100, 240, 0.4);
+  border-color: oklch(83% 0.18 88 / 32%);
 }
 
 .article-card--season-pinned:hover.article-card--season-pinned-preview {
-  border-color: rgba(40, 180, 140, 0.4);
+  border-color: oklch(75% 0.035 240 / 28%);
 }
 
 .season-pinned-banner {
@@ -290,13 +291,13 @@
 }
 
 .article-card--season-pinned-recap .season-pinned-banner {
-  background: linear-gradient(135deg, rgba(90, 40, 160, 0.45) 0%, rgba(30, 10, 70, 0.6) 100%);
-  border-bottom: 1px solid rgba(160, 100, 240, 0.15);
+  background: oklch(83% 0.18 88 / 7%);
+  border-bottom: 1px solid oklch(83% 0.18 88 / 12%);
 }
 
 .article-card--season-pinned-preview .season-pinned-banner {
-  background: linear-gradient(135deg, rgba(20, 100, 80, 0.45) 0%, rgba(5, 40, 40, 0.6) 100%);
-  border-bottom: 1px solid rgba(40, 180, 140, 0.15);
+  background: oklch(75% 0.035 240 / 6%);
+  border-bottom: 1px solid oklch(75% 0.035 240 / 10%);
 }
 
 .season-pinned-num {
@@ -392,15 +393,15 @@
 }
 
 .article-badge--season-recap {
-  background: rgba(160, 100, 240, 0.18);
-  color: #c080f5;
-  border: 1px solid rgba(160, 100, 240, 0.3);
+  background: oklch(83% 0.18 88 / 14%);
+  color: var(--accent);
+  border: 1px solid oklch(83% 0.18 88 / 28%);
 }
 
 .article-badge--season-preview {
-  background: rgba(40, 180, 140, 0.18);
-  color: #50d4a8;
-  border: 1px solid rgba(40, 180, 140, 0.3);
+  background: oklch(75% 0.035 240 / 10%);
+  color: oklch(78% 0.04 240);
+  border: 1px solid oklch(75% 0.035 240 / 22%);
 }
 
 .article-badge--power-rankings {

@@ -110,15 +110,15 @@
 }
 
 .article-badge--season-recap {
-  background: rgba(160, 100, 240, 0.18);
-  color: #c080f5;
-  border: 1px solid rgba(160, 100, 240, 0.3);
+  background: oklch(83% 0.18 88 / 14%);
+  color: var(--accent);
+  border: 1px solid oklch(83% 0.18 88 / 28%);
 }
 
 .article-badge--season-preview {
-  background: rgba(40, 180, 140, 0.18);
-  color: #50d4a8;
-  border: 1px solid rgba(40, 180, 140, 0.3);
+  background: oklch(75% 0.035 240 / 10%);
+  color: oklch(78% 0.04 240);
+  border: 1px solid oklch(75% 0.035 240 / 22%);
 }
 
 .article-detail-race-meta {
