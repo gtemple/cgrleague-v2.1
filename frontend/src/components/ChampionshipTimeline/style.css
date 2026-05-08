@@ -58,7 +58,7 @@
 .ct-toggle-btn--active {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.25);
-  color: #fff;
+  color: var(--text-bright);
 }
 
 /* ═══════════════════════════════════════
@@ -92,7 +92,7 @@
 }
 
 .ct-tooltip-row--human .ct-tooltip-name {
-  color: #fff;
+  color: var(--text-bright);
   font-weight: 600;
 }
 

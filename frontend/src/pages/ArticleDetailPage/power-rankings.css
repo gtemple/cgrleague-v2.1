@@ -112,7 +112,7 @@
 .pr-name {
   font-size: 15px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-bright);
   white-space: nowrap;
 }
 
@@ -235,6 +235,11 @@
   border-color: rgba(255, 255, 255, 0.25);
   color: rgba(255, 255, 255, 0.8);
 }
+
+.prh-filter-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .prh-filter-btn--active {
   background: rgba(255, 199, 14, 0.12);
   border-color: rgba(255, 199, 14, 0.35);
@@ -288,7 +293,7 @@
 
 .prh-tooltip-rank {
   font-weight: 700;
-  color: #fff;
+  color: var(--text-bright);
 }
 
 .prh-legend {

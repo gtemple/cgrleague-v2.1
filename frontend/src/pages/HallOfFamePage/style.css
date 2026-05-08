@@ -41,7 +41,7 @@
 .hof-title {
   font-size: clamp(1.4rem, 5vw, 2rem);
   font-weight: 800;
-  color: #fff;
+  color: var(--text-bright);
   letter-spacing: -0.02em;
   line-height: 1;
   margin: 0;
@@ -67,13 +67,18 @@
 
 .hof-tab:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--text-bright);
+}
+
+.hof-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .hof-tab-active {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.35);
-  color: #fff;
+  color: var(--text-bright);
 }
 
 /* ═══════════════════════════════════════
@@ -147,7 +152,7 @@
 .hof-podium-value {
   font-size: 1.4rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-bright);
 }
 
 /* Rank-specific avatar rings */
@@ -196,7 +201,7 @@
   font-size: 1.6rem;
   font-weight: 800;
   opacity: 0.25;
-  color: #fff;
+  color: var(--text-bright);
   line-height: 1;
 }
 

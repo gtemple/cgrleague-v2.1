@@ -154,7 +154,7 @@
   font-size: clamp(1.8rem, 5vw, 3rem);
   font-weight: 900;
   letter-spacing: -0.03em;
-  color: #fff;
+  color: var(--text-bright);
   margin: 0;
   line-height: 1;
   white-space: nowrap;
@@ -313,7 +313,7 @@
 .team-stat-value {
   font-size: 1.45rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-bright);
   line-height: 1;
   margin-bottom: 4px;
 }
@@ -415,7 +415,7 @@
 
 .team-season-pill:hover {
   background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: var(--text-bright);
 }
 
 /* Team name cell */

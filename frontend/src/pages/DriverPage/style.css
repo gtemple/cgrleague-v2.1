@@ -173,7 +173,7 @@
 .dp-name-last {
   font-size: clamp(2rem, 6vw, 3.8rem);
   font-weight: 900;
-  color: #fff;
+  color: var(--text-bright);
   letter-spacing: -0.03em;
   line-height: 0.95;
   text-transform: uppercase;
@@ -236,7 +236,7 @@
 .dp-stat-value {
   font-size: 1.45rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-bright);
   line-height: 1;
   margin-bottom: 4px;
   white-space: nowrap;
@@ -375,7 +375,7 @@
 
 .season-pill:hover {
   background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: var(--text-bright);
 }
 
 /* Team column */
@@ -544,7 +544,7 @@
 .spec-big-value {
   font-size: 2rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-bright);
   line-height: 1;
 }
 

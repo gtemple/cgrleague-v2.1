@@ -34,6 +34,12 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
+.article-back:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 /* ═══════════════════════════════════════
    HERO IMAGE
 ═══════════════════════════════════════ */
@@ -146,6 +152,11 @@
   border-color: rgba(255, 255, 255, 0.3);
 }
 
+.article-race-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .article-sprint-tag {
   font-size: 10px;
   font-weight: 700;
@@ -179,7 +190,7 @@
   margin: 0;
   font-size: clamp(22px, 4vw, 32px);
   font-weight: 800;
-  color: #fff;
+  color: var(--text-bright);
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -272,7 +283,7 @@
 
 .driver-highlight {
   background: transparent;
-  color: #fff;
+  color: var(--text-bright);
   font-weight: 600;
 }
 
@@ -332,7 +343,7 @@
 .preview-h2h-name {
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-bright);
 }
 
 .preview-h2h-vs {
@@ -371,7 +382,7 @@
 .preview-dtw-name {
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-bright);
 }
 
 .preview-dtw-stat {

@@ -69,8 +69,8 @@ export function LoginPage() {
           style={{
             width: "100%",
             padding: "0.65rem 1rem",
-            background: "#e10600",
-            color: "#fff",
+            background: "oklch(83% 0.18 88)",
+            color: "oklch(15% 0.01 88)",
             border: "none",
             borderRadius: 6,
             fontWeight: 600,

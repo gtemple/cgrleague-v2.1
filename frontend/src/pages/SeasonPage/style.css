@@ -25,7 +25,7 @@
   border: none;
   border-radius: 8px;
   background-color: rgb(20, 22, 34);
-  color: white;
+  color: var(--text-bright);
   font-size: 0.7rem;
   font-weight: 400;
   cursor: pointer;
@@ -35,7 +35,7 @@
 .season-container button.active {
   background-color: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
+  color: var(--text-bright);
   font-weight: 600;
 }
 
@@ -71,13 +71,18 @@
 
 .season-tab:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--text-bright);
+}
+
+.season-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .season-tab-active {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.35);
-  color: #fff;
+  color: var(--text-bright);
 }
 
 /* Override button.active so it doesn't conflict with season-tab-active */
@@ -85,7 +90,7 @@
 .season-tab-active {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.35);
-  color: #fff;
+  color: var(--text-bright);
 }
 
 /* ═══════════════════════════════════════
@@ -281,7 +286,7 @@
 .season-title {
   font-size: 2rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-bright);
   letter-spacing: -0.02em;
   line-height: 1;
   margin: 0;
@@ -480,7 +485,7 @@
 .matrix-chart-cell { width: var(--cell); }
 
 .matrix-chart-driver-label {
-  color: white;
+  color: var(--text-bright);
   align-items: center;
 }
 
@@ -510,7 +515,7 @@
   bottom: 110%;
   transform: translateX(-50%);
   background: #181f2a;
-  color: #fff;
+  color: var(--text-bright);
   padding: 8px 12px;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.18);
@@ -522,7 +527,7 @@
 
 .tooltip-emphasis {
   font-weight: 700;
-  color: #fff;
+  color: var(--text-bright);
 }
 
 .matrix-chart-cell-content:hover .matrix-chart-tooltip {
@@ -650,9 +655,14 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+.filter-segmented button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 .filter-segmented button.seg-active {
   background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  color: var(--text-bright);
 }
 
 /* Heat Map standalone toggle */
@@ -672,6 +682,11 @@
 .heatmap-toggle:hover {
   background: var(--border);
   color: rgba(255, 255, 255, 0.8);
+}
+
+.heatmap-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .heatmap-toggle.active {
@@ -826,7 +841,7 @@
 
   .mobile-tab-active {
     background: rgba(255,255,255,0.12) !important;
-    color: #fff !important;
+    color: var(--text-bright) !important;
   }
 
   .mobile-hidden { display: none !important; }

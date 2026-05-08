@@ -98,7 +98,7 @@
   margin: 0;
   font-size: clamp(24px, 5vw, 42px);
   font-weight: 800;
-  color: #fff;
+  color: var(--text-bright);
   line-height: 1.05;
   letter-spacing: -0.02em;
 }
@@ -570,7 +570,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-bright);
   line-height: 1.25;
   letter-spacing: -0.02em;
   display: -webkit-box;
