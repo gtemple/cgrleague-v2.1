@@ -170,7 +170,7 @@ main.container { padding-top: calc(var(--nav-h) + 12px); }
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
 }

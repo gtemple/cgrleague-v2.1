@@ -167,7 +167,7 @@
   object-fit: cover;
   object-position: center 40%;
   filter: brightness(0.5);
-  transition: transform 0.4s, filter 0.4s;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), filter 0.2s;
 }
 
 .article-card--featured:hover .article-card-featured-bg {
@@ -344,7 +344,7 @@
   object-fit: cover;
   object-position: center 40%;
   filter: brightness(0.72);
-  transition: transform 0.3s, filter 0.3s;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), filter 0.2s;
 }
 
 .article-card:hover .article-card-img img {

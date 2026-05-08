@@ -29,7 +29,7 @@
   font-size: 0.7rem;
   font-weight: 400;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background 0.15s;
 }
 
 .season-container button.active {
@@ -65,7 +65,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
   width: auto;
 }
 
@@ -638,7 +638,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s, color 0.15s;
 }
 
 .filter-segmented button:last-child {
@@ -666,7 +666,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .heatmap-toggle:hover {

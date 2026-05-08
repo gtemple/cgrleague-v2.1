@@ -575,7 +575,12 @@
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.2);
   min-width: 4px;
-  transition: width 0.4s ease;
+  animation: bar-reveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bar-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
 }
 
 .spec-card--best .spec-bar-fill {

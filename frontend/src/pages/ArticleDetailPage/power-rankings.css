@@ -229,7 +229,7 @@
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .prh-filter-btn:hover {
   border-color: rgba(255, 255, 255, 0.25);
