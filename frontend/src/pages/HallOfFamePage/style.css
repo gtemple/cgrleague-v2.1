@@ -13,9 +13,9 @@
 ═══════════════════════════════════════ */
 
 .hof-header {
-  background: rgba(5, 5, 20, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 3px solid rgb(255, 199, 14);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
   border-radius: 10px;
   padding: 18px 24px;
   display: flex;
@@ -153,17 +153,17 @@
 
 /* Rank-specific avatar rings */
 .hof-rank-1 .hof-avatar {
-  border-color: rgb(255, 199, 14);
+  border-color: var(--accent);
   border-width: 3px;
   box-shadow: 0 0 18px rgba(255, 199, 14, 0.3);
 }
 
-.hof-rank-2 .hof-avatar { border-color: #b8bec5; }
-.hof-rank-3 .hof-avatar { border-color: #cd8b45; }
+.hof-rank-2 .hof-avatar { border-color: var(--pos-2); }
+.hof-rank-3 .hof-avatar { border-color: var(--pos-3); }
 
-.hof-rank-1 .hof-podium-value { color: rgb(255, 199, 14); }
-.hof-rank-2 .hof-podium-value { color: #b8bec5; }
-.hof-rank-3 .hof-podium-value { color: #cd8b45; }
+.hof-rank-1 .hof-podium-value { color: var(--accent); }
+.hof-rank-2 .hof-podium-value { color: var(--pos-2); }
+.hof-rank-3 .hof-podium-value { color: var(--pos-3); }
 
 /* Podium steps */
 .hof-podium-step {
@@ -268,9 +268,9 @@
   flex-shrink: 0;
 }
 
-.hof-lb-rank-1 .hof-lb-rank { color: rgb(255, 199, 14); }
-.hof-lb-rank-2 .hof-lb-rank { color: #b8bec5; }
-.hof-lb-rank-3 .hof-lb-rank { color: #cd8b45; }
+.hof-lb-rank-1 .hof-lb-rank { color: var(--accent); }
+.hof-lb-rank-2 .hof-lb-rank { color: var(--pos-2); }
+.hof-lb-rank-3 .hof-lb-rank { color: var(--pos-3); }
 
 .hof-lb-rank-1 .hof-avatar { border-color: rgba(255, 199, 14, 0.5); }
 .hof-lb-rank-2 .hof-avatar { border-color: rgba(184, 190, 197, 0.4); }

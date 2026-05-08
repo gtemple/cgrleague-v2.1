@@ -21,10 +21,11 @@
 }
 
 /* NEW: burger */
-.nav-toggle { display: none; }
-
 .nav-burger {
-  display: none;            /* hidden on desktop */
+  display: none;
+  background: none;
+  border: none;
+  padding: 0;
   width: 40px;
   height: 40px;
   margin-left: 8px;
@@ -36,6 +37,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 .nav-burger:hover { background: #1b1b1b; }
+.nav-burger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .nav-burger span {
   display: block;
@@ -129,22 +131,22 @@
   }
 
   /* Toggle open */
-  .nav-toggle:checked + .nav-burger + .nav-links {
+  .nav-links--open {
     transform: translateY(0) scaleY(1);
     opacity: 1;
     pointer-events: auto;
   }
 
   /* Animate burger to "X" */
-  .nav-toggle:checked + .nav-burger span:nth-child(1) {
+  .nav-burger--open span:nth-child(1) {
     transform: translateY(6px) rotate(45deg);
     transition: transform 160ms ease;
   }
-  .nav-toggle:checked + .nav-burger span:nth-child(2) {
+  .nav-burger--open span:nth-child(2) {
     opacity: 0;
     transition: opacity 120ms ease;
   }
-  .nav-toggle:checked + .nav-burger span:nth-child(3) {
+  .nav-burger--open span:nth-child(3) {
     transform: translateY(-6px) rotate(-45deg);
     transition: transform 160ms ease;
   }

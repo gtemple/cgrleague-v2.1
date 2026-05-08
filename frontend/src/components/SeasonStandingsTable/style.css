@@ -37,7 +37,7 @@
   100% { background-position: -200% 0; }
 }
 
-.standings-state-error { color: #ff6b6b; padding: 12px 16px; margin: 0; }
+.standings-state-error { color: var(--error); padding: 12px 16px; margin: 0; }
 .standings-muted { color: rgba(255,255,255,0.4); padding: 12px 16px; margin: 0; }
 
 /* ── Rows ── */
@@ -67,7 +67,7 @@
   top: 0;
   bottom: 0;
   width: 3px;
-  background: #f3c14b;
+  background: var(--pos-1);
   border-radius: 0 2px 2px 0;
 }
 .standings-row.pos-2::before {
@@ -75,7 +75,7 @@
   position: absolute;
   left: 0; top: 0; bottom: 0;
   width: 3px;
-  background: #b8bec5;
+  background: var(--pos-2);
   border-radius: 0 2px 2px 0;
 }
 .standings-row.pos-3::before {
@@ -83,7 +83,7 @@
   position: absolute;
   left: 0; top: 0; bottom: 0;
   width: 3px;
-  background: #cd8b45;
+  background: var(--pos-3);
   border-radius: 0 2px 2px 0;
 }
 
@@ -97,9 +97,9 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
-.standings-row.pos-1 .standings-pos { color: #f3c14b; }
-.standings-row.pos-2 .standings-pos { color: #b8bec5; }
-.standings-row.pos-3 .standings-pos { color: #cd8b45; }
+.standings-row.pos-1 .standings-pos { color: var(--pos-1); }
+.standings-row.pos-2 .standings-pos { color: var(--pos-2); }
+.standings-row.pos-3 .standings-pos { color: var(--pos-3); }
 
 /* Avatar */
 .standings-avatar {
@@ -139,7 +139,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #e9edf3;
+  color: var(--text-bright);
 }
 
 .standings-team {
@@ -177,7 +177,7 @@
 .standings-points {
   font-size: 15px;
   font-weight: 700;
-  color: #e9edf3;
+  color: var(--text-bright);
   flex: 0 0 auto;
   min-width: 36px;
   text-align: right;

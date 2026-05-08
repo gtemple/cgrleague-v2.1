@@ -226,7 +226,7 @@ export function HallOfFamePage() {
               <SeasonBestCard
                 title="Most Wins in a Season"
                 entry={(data as HallOfFameData).season_bests?.most_wins ?? null}
-                accent="rgb(255, 199, 14)"
+                accent="var(--accent)"
               />
               <SeasonBestCard
                 title="Most Points in a Season"
@@ -261,7 +261,7 @@ export function HallOfFamePage() {
                 <AwardCard title="Cleanest Driver"   value={stats.cleanDriver.total_clean_driver} driver={stats.cleanDriver} accent="rgb(72, 199, 142)" />
               )}
               {stats.overtakes && (
-                <AwardCard title="Most Overtakes"    value={stats.overtakes.total_overtakes}      driver={stats.overtakes}   accent="rgb(255, 199, 14)" />
+                <AwardCard title="Most Overtakes"    value={stats.overtakes.total_overtakes}      driver={stats.overtakes}   accent="var(--accent)" />
               )}
             </div>
           </section>

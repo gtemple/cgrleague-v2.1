@@ -10,12 +10,24 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function NavBar() {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const location = useLocation();
   const latestSeasonId = useLatestSeasonId();
   const seasonsHref = latestSeasonId ? `/seasons/${latestSeasonId}` : "/seasons/1";
   const seasonsClass = location.pathname.startsWith("/seasons")
     ? "nav-link nav-link-active"
     : "nav-link";
+
+  useEffect(() => { setNavOpen(false); }, [location]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [navOpen]);
 
   // Cmd+K / Ctrl+K global shortcut
   useEffect(() => {
@@ -40,20 +52,19 @@ export function NavBar() {
             <NavLink to="/" className="brand">CGR League</NavLink>
           </div>
 
-          <input id="nav-toggle" type="checkbox" className="nav-toggle" aria-hidden="true" />
-          <label
-            htmlFor="nav-toggle"
-            className="nav-burger"
+          <button
+            className={"nav-burger" + (navOpen ? " nav-burger--open" : "")}
             aria-label="Toggle navigation"
             aria-controls="site-nav"
-            aria-expanded="false"
+            aria-expanded={navOpen}
+            onClick={() => setNavOpen((v) => !v)}
           >
             <span />
             <span />
             <span />
-          </label>
+          </button>
 
-          <nav id="site-nav" className="nav-links">
+          <nav id="site-nav" className={"nav-links" + (navOpen ? " nav-links--open" : "")}>
             <NavLink to={seasonsHref} className={() => seasonsClass}>Seasons</NavLink>
             <NavLink to="/drivers"      className={linkClass} end={false}>Drivers</NavLink>
             <NavLink to="/teams"        className={linkClass} end={false}>Teams</NavLink>

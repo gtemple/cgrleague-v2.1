@@ -64,7 +64,7 @@
   border-radius: 8px;
   overflow: hidden;
   background: #0e1116;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
 }
 .race-track-hero img {
   width: 100%;
@@ -103,7 +103,7 @@
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: #172033;
-  color: #e9edf3;
+  color: var(--text-bright);
   cursor: pointer;
   font-size: 13px;
 }
@@ -113,7 +113,7 @@
 }
 
 .race-error {
-  color: #ff6b6b;
+  color: var(--error);
   padding: 12px 0;
 }
 
@@ -136,7 +136,7 @@
   text-align: left;
   font-weight: 700;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border);
   background: rgba(5, 5, 20, 0.92);
   position: sticky;
   top: 0;
@@ -185,7 +185,7 @@
   font-size: 13px;
   font-weight: 700;
   color: #fff;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border);
 }
 
 /* Driver cell */
@@ -268,13 +268,13 @@
 }
 .chip-pole  { background: rgba(77, 255, 42, 0.15);  color: #4dff2a; }
 .chip-fl    { background: rgba(231, 109, 255, 0.15); color: #e76dff; }
-.chip-dotd  { background: rgba(255, 199, 14, 0.15);  color: #ffc70e; }
+.chip-dotd  { background: rgba(255, 199, 14, 0.15);  color: var(--accent); }
 .chip-clean { background: rgba(80, 200, 255, 0.15);  color: #50c8ff; }
 .chip-ov    { background: rgba(255, 140, 50, 0.15);  color: #ff8c32; }
 
 /* Shared border card */
 .border {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   background: rgba(5, 5, 20, 0.6);
   border-radius: 10px;
   padding: 12px;

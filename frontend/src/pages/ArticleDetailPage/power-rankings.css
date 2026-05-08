@@ -20,8 +20,8 @@
 ═══════════════════════════════════════ */
 
 .pr-card {
-  background: rgba(5, 5, 20, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-left: 3px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   padding: 14px 18px 14px 16px;
@@ -52,7 +52,7 @@
 }
 
 .pr-rank-num--top3 {
-  color: #f3c14b;
+  color: var(--pos-1);
 }
 
 .pr-delta {
@@ -173,9 +173,9 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
-.pr-form-chip--p1  { background: rgba(255, 199, 14, 0.22); color: #f3c14b; }
+.pr-form-chip--p1  { background: rgba(255, 199, 14, 0.22); color: var(--pos-1); }
 .pr-form-chip--p2  { background: rgba(190, 190, 190, 0.18); color: #c8cdd3; }
-.pr-form-chip--p3  { background: rgba(205, 139, 69, 0.22); color: #cd8b45; }
+.pr-form-chip--p3  { background: rgba(205, 139, 69, 0.22); color: var(--pos-3); }
 .pr-form-chip--pts { background: rgba(165, 22, 22, 0.18);  color: #e57373; }
 .pr-form-chip--dns { background: rgba(255, 255, 255, 0.03); color: rgba(255,255,255,0.18); }
 
@@ -193,8 +193,8 @@
 ═══════════════════════════════════════ */
 
 .prh-card {
-  background: rgba(5, 5, 20, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px 16px 12px;
   margin-bottom: 10px;
@@ -329,7 +329,7 @@
   align-items: center;
   gap: 6px;
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 3px 10px 3px 8px;
   cursor: pointer;

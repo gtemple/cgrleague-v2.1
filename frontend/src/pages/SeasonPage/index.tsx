@@ -17,7 +17,7 @@ type MatrixProps = {
 };
 
 const LEGEND_ZONES = [
-  { color: 'rgb(255, 199, 14)', name: 'Win',     range: 'P1' },
+  { color: 'var(--accent)',      name: 'Win',     range: 'P1' },
   { color: 'rgb(255, 110, 20)', name: 'Podium',  range: 'P2–3' },
   { color: 'rgb(165, 22,  22)', name: 'Points',  range: 'P4–10' },
   { color: 'rgb(30,  12,  42)', name: 'Outside', range: 'P11+' },

@@ -11,53 +11,83 @@ CGR League v2 is a private Formula 1-style racing league statistics platform bui
 - 
 ● Here are feature and improvement ideas organized by category:
 
+  --
   ---
-  Stats & Data
+  Stats & Analysis
 
-  - Mid-season standings snapshots — add ?through_round=N to standings endpoints so you can replay the championship at any point
-  - Season comparison page — compare two seasons side-by-side (standings, win counts, dominant team)
-  - Driver progression charts — points-per-race trend line, position distribution histogram over a season
-  - Head-to-head single page — /h2h?a=driverId1&b=driverId2 dedicated comparison page with qualifying, race, and finishing delta
-  - Overtake/clean driver season leaderboard — current data tracks most_overtakes and cleanest_driver per race but there's no aggregate view
-
-  ---
-  Admin / Data Entry
-
-  - Cache invalidation on result write — the admin POST /admin/races/<id>/results/ endpoint should clear relevant cache keys after writing
-  - Race creation via UI — currently races must be seeded via SQL; add admin form to create/edit races
-  - Driver/team management UI — add/edit drivers and teams without going into Django admin
-  - Bulk import from CSV — paste a results grid, parse and commit
+  - Driver rivalries page — dedicated page for any two drivers: head-to-head record, points delta over time, who beats who at which tracks,
+  best/worst race between them
+  - "What if" points calculator — interactive tool: "what if Driver X hadn't DNF'd at Baku?" — re-run the standings with modified results
+  - Season records board — biggest winning margin, most positions gained in a single race, most dominant season (wins/races %), tightest
+  championship (final margin)
+  - Driver peaks — highlight each driver's single best season statistically: best avg finish, highest PPR, most wins
+  - Form guide — rolling 5-race form window for every driver in the current season, shown as a sparkline on the standings table
 
   ---
-  Content / Articles
+  Social & Content
 
-  - Article pinning — pin featured articles to the homepage separately from "latest"
-  - Preview sidebar data rendered in UI — the JSON preview_sidebar field exists but may not be fully surfaced in the frontend
-  - Article search — backend search on article title/teaser (currently all frontend-filtered)
-
-  ---
-  UX / Frontend
-
-  - Dark mode — toggle with localStorage persistence
-  - Season selector in nav — quick-switch between seasons without going back to a season page
-  - Driver nationality flags — use country codes already stored on Driver to render flag icons
-  - Keyboard shortcuts — S for search, number keys for season switching
-  - Page transitions / skeleton loaders — replace spinner with skeleton UI matching content shape
+  - Season wrap video script generator — AI prompt that takes the full season data and writes a recap script summarizing the championship
+  narrative, key battles, and turning points
+  - Discord bot — slash command that pulls latest standings, next race info, or a driver's stats on demand from the API
+  - Shareable result cards — generate an OG-image-style card for a race result (podium + winner photo + track) that's easy to screenshot and
+   post
 
   ---
-  Infrastructure / Code Quality
+  Pages & Navigation
 
-  - Automatic cache invalidation — signal or post-save hook to bust relevant caches when results change
-  - Unit tests for scoring logic — scoring.py is pure Python and untested; highest-value test to add
-  - Pagination metadata — driver/article endpoints should return {count, next, previous, results} consistently
-  - Rate limiting — add django-ratelimit to public endpoints
-  - Error response standardization — consistent {error: string, code: string} shape across all endpoints
+  - All-time season comparison table — one row per season: champion, races, most wins, most poles, total DNFs — a quick historical overview
+  - Track records page expansion — for each track, show the lap record holder (fastest lap winner who set the best time if time_ms is
+  populated), all-time podiums, DNF rate
+  - Team history page — team across all seasons: constructors standings history, driver lineups per season, season-by-season points chart
+  - "Current form" homepage widget — top 3 drivers ranked by last-3-race points instead of championship position, with trend arrows
 
   ---
-  Bigger Ideas
+  Admin & Data
 
-  - Elo/rating system — compute a rolling driver rating based on relative finishing positions (beyond pure points)
-  - Prediction game — let users predict race outcomes before each round, score after
-  - Season awards page — auto-generated "most improved", "biggest crash out", etc. from race data
-  - RSS/webhook for new articles — push notifications when a new article is published
-  - Embeddable widgets — small iframe-ready standings table for sharing in Discord/forums
+  - Season schedule builder — admin UI to create a full season schedule at once: pick tracks, assign rounds, set dates
+  - Bulk results import from CSV/paste — paste a results table (position, driver, team, laps, status), parse it, preview it, commit it
+  - Results diff view — show what changed between two saves of the same race result (e.g. penalty applied after the fact)
+  - AI article regeneration button — one-click regenerate a stale article with updated data, without going to a management command
+
+  ---
+  Big Swings
+
+  - Live race mode — a real-time leaderboard page that you manually update lap-by-lap during a race; followers can watch the positions
+  change live (WebSocket or polling)
+  - Fantasy league layer — let the human players pick a driver lineup before each race and score points based on results; leaderboard tracks
+   across the season
+  - Multi-league support — allow the platform to host multiple separate leagues under one deployment, each with their own seasons, drivers,
+  and teams
+  - Public API + docs page — expose a read-only REST API with a simple docs page, so league members can build their own dashboards or
+  Discord bots against real data
+  - Predictions game — before each race, everyone submits a predicted podium; after results, auto-score and maintain a season-long
+  prediction leaderboard
+
+  ● Good — DriversListView returns a list of serialize_driver(d) which has id, display_name,
+  country_of_representation. The bot code is correct. Let me do a final review of the
+  complete bot:
+
+● Read 1 file (ctrl+o to expand)
+
+● Looks solid. Here's how to get it running:
+
+  1. Create a Discord application
+  - Go to discord.com/developers/applications → New Application
+  - Under Bot: create a bot, copy the token
+  - Under OAuth2 → URL Generator: scopes = bot + applications.commands, permissions = Send
+  Messages + Embed Links → invite to your server
+  - Copy your server's ID (right-click server → Copy Server ID, needs Developer Mode
+  enabled)
+
+  2. Set up the bot
+  cd bot
+  pip install -r requirements.txt
+  cp .env.example .env
+  # fill in DISCORD_TOKEN, DISCORD_GUILD_ID, API_BASE_URL, SITE_URL
+
+  3. Run it
+  python bot.py
+
+  The slash commands (/standings, /constructors, /lastrace, /nextrace, /driver, /articles)
+  are synced to your specific guild on startup — they'll appear within seconds, no waiting
+  for global propagatio

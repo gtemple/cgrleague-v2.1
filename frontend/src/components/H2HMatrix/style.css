@@ -9,14 +9,14 @@
 .h2h-table-scroll {
   overflow-x: auto;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
 }
 
 .h2h-table {
   border-collapse: collapse;
   width: 100%;
   min-width: 480px;
-  background: rgba(5, 5, 20, 0.75);
+  background: var(--surface);
 }
 
 /* ── Corner cell ─────────────────────────────────────────── */
@@ -27,8 +27,8 @@
   min-width: 140px;
   padding: 10px 12px;
   background: rgba(255, 255, 255, 0.03);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
 
@@ -58,7 +58,7 @@
 .h2h-col-header {
   padding: 8px 4px 10px;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   min-width: 56px;
   max-width: 72px;
@@ -105,7 +105,7 @@
 
 .h2h-row-header {
   padding: 6px 12px 6px 10px;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid var(--border);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   background: rgba(255, 255, 255, 0.02);
   white-space: nowrap;
@@ -184,8 +184,8 @@
 }
 
 .h2h-win .h2h-cell-wins   { color: rgb(72, 199, 142); }
-.h2h-loss .h2h-cell-wins  { color: rgb(240, 82, 82); }
-.h2h-even .h2h-cell-wins  { color: rgb(255, 199, 14); }
+.h2h-loss .h2h-cell-wins  { color: var(--negative); }
+.h2h-even .h2h-cell-wins  { color: var(--accent); }
 
 .h2h-cell-sep {
   margin: 0 1px;
@@ -214,14 +214,14 @@
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.3);
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
   min-width: 64px;
   white-space: nowrap;
 }
 
 .h2h-totals {
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.02);
   white-space: nowrap;
   font-size: 13px;
@@ -240,7 +240,7 @@
 
 .h2h-total-losses {
   font-weight: 800;
-  color: rgb(240, 82, 82);
+  color: var(--negative);
 }
 
 /* ── Legend ──────────────────────────────────────────────── */

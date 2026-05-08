@@ -1,4 +1,28 @@
 :root {
+  /* Backgrounds */
+  --bg:      oklch(9% 0.005 265);
+  --surface: oklch(7% 0.005 265 / 70%);
+
+  /* Borders */
+  --border:  oklch(100% 0 0 / 8%);
+
+  /* Text */
+  --text-bright: oklch(94% 0.004 265);
+
+  /* Accent (gold) */
+  --accent:  var(--accent);
+
+  /* Podium positions */
+  --pos-1:   oklch(82% 0.12 78);
+  --pos-2:   oklch(78% 0.005 255);
+  --pos-3:   oklch(65% 0.08 63);
+
+  /* Status */
+  --error:    oklch(63% 0.17 22);
+  --negative: oklch(59% 0.2  22);
+}
+
+:root {
   font-family: "Arimo", ui-sans-serif, system-ui, -apple-system, Segoe UI,
     Roboto, Helvetica, Arial;
   line-height: 1.5;
@@ -16,7 +40,7 @@ body {
   flex-direction: column;
   min-width: 320px;
   min-height: 100vh;
-  background-color: rgb(10, 12, 20);
+  background-color: var(--bg);
 }
 
 h1 {

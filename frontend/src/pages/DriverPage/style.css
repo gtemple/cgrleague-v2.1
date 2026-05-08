@@ -8,7 +8,7 @@
   gap: 16px;
 }
 
-.dp-state-error { color: #ff6b6b; }
+.dp-state-error { color: var(--error); }
 
 .dp-back {
   display: inline-block;
@@ -28,7 +28,7 @@
   position: relative;
   border-radius: 14px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   background: rgba(5, 5, 20, 0.9);
   min-height: 300px;
   display: flex;
@@ -100,6 +100,11 @@
 .dp-picker:hover,
 .dp-picker:focus {
   border-color: rgba(255, 255, 255, 0.28);
+}
+
+.dp-picker:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .dp-picker option {
@@ -197,7 +202,7 @@
 .dp-quick-chip {
   padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border);
   border: 1px solid rgba(255, 255, 255, 0.12);
   font-size: 12px;
   font-weight: 600;
@@ -258,7 +263,7 @@
 }
 
 .dp-pos { color: rgb(72, 199, 142); }
-.dp-neg { color: rgb(240, 82, 82); }
+.dp-neg { color: var(--negative); }
 
 .dp-info-tip {
   display: inline-flex;
@@ -281,8 +286,8 @@
 ═══════════════════════════════════════ */
 
 .history-section {
-  background: rgba(5, 5, 20, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -402,7 +407,7 @@
 }
 
 .dht-team-logo-fallback {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border);
   border-radius: 4px;
   width: 24px;
   height: 24px;
@@ -422,7 +427,7 @@
 }
 
 .stat-positive { color: rgb(72, 199, 142); font-weight: 600; }
-.stat-negative { color: rgb(240, 82, 82);  font-weight: 600; }
+.stat-negative { color: var(--negative);  font-weight: 600; }
 
 /* Info tooltip */
 .info-tooltip {

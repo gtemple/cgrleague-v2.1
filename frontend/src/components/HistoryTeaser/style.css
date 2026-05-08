@@ -2,7 +2,7 @@
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   background: rgba(5, 5, 20, 0.85);
 }
 
@@ -227,9 +227,9 @@
   border-radius: 3px;
   flex-shrink: 0;
 }
-.ht-pos-1 { background: rgba(255, 199, 14, 0.2); color: #f3c14b; }
+.ht-pos-1 { background: rgba(255, 199, 14, 0.2); color: var(--pos-1); }
 .ht-pos-2 { background: rgba(190, 190, 190, 0.15); color: #c0c5cb; }
-.ht-pos-3 { background: rgba(205, 139, 69, 0.18); color: #cd8b45; }
+.ht-pos-3 { background: rgba(205, 139, 69, 0.18); color: var(--pos-3); }
 
 /* Driver name */
 .ht-driver-name {

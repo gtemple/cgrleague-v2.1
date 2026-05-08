@@ -7,8 +7,8 @@
   --gap: 16px;
   --radius: 12px;
   --panel: rgba(5, 5, 20, 0.62);
-  --border: rgba(255,255,255,0.08);
-  --text: #e9edf3;
+  --border: var(--border);
+  --text: var(--text-bright);
   --muted: #9aa5b1;
 }
 
@@ -190,9 +190,9 @@
   height: 110px;
   border-radius: 6px;
   background: linear-gradient(90deg,
-    rgba(255,255,255,0.08) 0%,
+    var(--border) 0%,
     rgba(255,255,255,0.04) 40%,
-    rgba(255,255,255,0.08) 80%);
+    var(--border) 80%);
   background-size: 200% 100%;
   animation: shimmer 1.3s infinite;
 }
@@ -264,7 +264,7 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.18);
 }
 .nt-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.nt-thumb-fallback { width: 100%; height: 100%; background: rgba(255,255,255,0.08); }
+.nt-thumb-fallback { width: 100%; height: 100%; background: var(--border); }
 
 .nt-title {
   display: flex;
