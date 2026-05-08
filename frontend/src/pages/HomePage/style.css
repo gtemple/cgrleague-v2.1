@@ -416,7 +416,7 @@
 .home-articles-see-all {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
   text-decoration: none;
   transition: color 0.15s;
 }
@@ -605,7 +605,7 @@
 .home-article-read {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.55);
   transition: color 0.15s;
 }
 

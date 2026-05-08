@@ -61,7 +61,7 @@
 .nav-link:hover { background: #1b1b1b; }
 .nav-link-active {
   color: #ffffff;
-  border-bottom: solid 3px #9e1212;
+  border-bottom: solid 2px var(--accent);
 }
 
 .nav-brand {
@@ -127,7 +127,8 @@
   }
   .nav-link-active {
     border-bottom: none;
-    background: #1b1b1b;
+    background: rgba(255, 199, 14, 0.08);
+    color: var(--accent);
   }
 
   /* Toggle open */

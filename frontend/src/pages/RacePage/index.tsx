@@ -81,6 +81,7 @@ export const RacePage = () => {
           <span className="race-round-label">Round {round}</span>
           <button
             className="btn"
+            disabled={!!error && (error as { status?: number }).status === 404}
             onClick={() => navigate(`/seasons/${seasonId}/races/${Number(round) + 1}`)}
           >
             Next →

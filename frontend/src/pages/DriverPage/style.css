@@ -254,7 +254,7 @@
 }
 
 .dp-stat-label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -714,7 +714,7 @@
   .dp-picker { min-width: unset; width: 160px; }
   .dp-stat { min-width: 60px; padding: 10px 8px; }
   .dp-stat-value { font-size: 1rem; }
-  .dp-stat-label { font-size: 8px; }
+  .dp-stat-label { font-size: 9px; }
   .history-table thead th { top: 0; }
   .col-team { min-width: 160px; }
 }
