@@ -19,6 +19,7 @@ export type CategoryStats = {
 export type DriverSpecialization = {
   categories: CategoryStats[];
   best_category: string | null;
+  specialist_label: string | null;
 };
 
 export function useDriverSpecialization(driverId?: string | number) {

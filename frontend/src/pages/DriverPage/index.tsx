@@ -5,6 +5,7 @@ import { useDriverDetail } from "../../hooks/useDriverDetails";
 import { DriverHistoryTable } from "./DriverHistoryTable";
 import { DriverTrackGrid } from "./DriverTrackGrid";
 import { DriverSpecialization } from "./DriverSpecialization";
+import { useDriverSpecialization } from "../../hooks/useDriverSpecialization";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./style.css";
@@ -15,6 +16,8 @@ export const DriverPage = () => {
 
   const { data: list = [], isLoading: listLoading, error: listError } = useDriversList();
   const { data, isLoading, error } = useDriverDetail(driverId);
+  const specQuery = useDriverSpecialization(driverId);
+  const specialistLabel = specQuery.data?.specialist_label ?? null;
 
   const driver = data?.driver;
   const totals = data?.totals;
@@ -100,6 +103,9 @@ export const DriverPage = () => {
                     />
                   </div>
                 )}
+                {specialistLabel && (
+                  <div className="dp-specialty-chip">{specialistLabel}</div>
+                )}
                 <div className="dp-hero-quick-stats">
                   <span className="dp-quick-chip">{totals.wins} Wins</span>
                   <span className="dp-quick-chip">{totals.podiums} Podiums</span>
@@ -148,7 +154,7 @@ export const DriverPage = () => {
           <DriverHistoryTable driverId={driverId} />
 
           {/* ══════════════════════ SPECIALIZATION ══════════════════════ */}
-          <DriverSpecialization driverId={driverId} />
+          <DriverSpecialization query={specQuery} />
 
           {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
           <DriverTrackGrid driverId={driverId} />

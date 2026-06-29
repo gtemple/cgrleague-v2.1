@@ -1,8 +1,10 @@
-import { useDriverSpecialization } from "../../hooks/useDriverSpecialization";
+import type { useDriverSpecialization } from "../../hooks/useDriverSpecialization";
 import { Loader } from "../../components/Loader";
 
-export function DriverSpecialization({ driverId }: { driverId?: string }) {
-  const { data, isLoading, error } = useDriverSpecialization(driverId);
+type Props = { query: ReturnType<typeof useDriverSpecialization> };
+
+export function DriverSpecialization({ query }: Props) {
+  const { data, isLoading, error } = query;
 
   if (isLoading) {
     return (

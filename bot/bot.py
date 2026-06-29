@@ -248,13 +248,13 @@ async def driver(interaction: discord.Interaction, name: str):
 # /articles
 # ─────────────────────────────────────────────────
 TYPE_LABEL = {
-    "RACE_RECAP":      "Recap",
-    "RACE_PREVIEW":    "Preview",
+    "RECAP":           "Recap",
+    "PREVIEW":         "Preview",
     "POWER_RANKINGS":  "Power Rankings",
 }
 TYPE_EMOJI = {
-    "RACE_RECAP":      "📋",
-    "RACE_PREVIEW":    "🔭",
+    "RECAP":           "📋",
+    "PREVIEW":         "🔭",
     "POWER_RANKINGS":  "📊",
 }
 

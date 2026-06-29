@@ -609,15 +609,29 @@ class DriverSpecializationView(APIView):
 
         # Determine best category
         best = None
-        if len(rows) >= 2:
+        qualified = [r for r in rows if r["races"] >= 3 and r["avg_finish"] is not None]
+        if len(rows) >= 2 and qualified:
             # Best = lowest avg finish with at least 3 races
-            qualified = [r for r in rows if r["races"] >= 3 and r["avg_finish"] is not None]
-            if qualified:
-                best = min(qualified, key=lambda r: r["avg_finish"])["category"]
+            best = min(qualified, key=lambda r: r["avg_finish"])["category"]
+
+        # Plain-language verdict. Requires both categories comparable (>=3 races each);
+        # otherwise null. A >=1.5-position avg-finish gap reads as a specialty, else all-rounder.
+        specialist_label = None
+        if len(qualified) >= 2:
+            best_row = min(qualified, key=lambda r: r["avg_finish"])
+            worst_row = max(qualified, key=lambda r: r["avg_finish"])
+            if worst_row["avg_finish"] - best_row["avg_finish"] >= 1.5:
+                specialist_label = {
+                    "STREET": "Street Specialist",
+                    "PERMANENT": "Permanent-Circuit Specialist",
+                }.get(best_row["category"])
+            else:
+                specialist_label = "All-Rounder"
 
         payload = {
             "categories": rows,
             "best_category": best,
+            "specialist_label": specialist_label,
         }
         cache.set(ck, payload, timeout=CACHE_TTL)
         return Response(payload)

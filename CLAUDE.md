@@ -1,0 +1,77 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+CGR League is a private F1-style racing league stats platform (see `PRODUCT.md` for product intent). Three pieces:
+
+- `backend/` — Django + DRF API (Python 3.12), serves JSON under `/api/`. Deployed on Render.
+- `frontend/` — React 19 + TypeScript + Vite SPA. Deployed on Netlify.
+- `bot/` — standalone Discord bot (discord.py) that reads the public API and posts standings/results/articles to a guild.
+
+The three run independently; the frontend and bot are pure API clients of the backend.
+
+## Commands
+
+Backend (run from `backend/`, `.venv` lives at repo root):
+```
+python manage.py runserver 0.0.0.0:8002   # dev server (port 8002)
+python manage.py migrate
+python manage.py makemigrations
+python manage.py shell
+```
+
+Frontend (run from `frontend/`):
+```
+npm run dev       # Vite dev server on 5173, proxies /api to VITE_API_TARGET (default http://localhost:8002)
+npm run build     # tsc -b && vite build
+npm run lint      # eslint (also runs inline via vite-plugin-eslint during dev)
+```
+
+Full stack via Docker: `docker-compose up` (backend 8002, frontend 5173).
+
+There is no automated test suite.
+
+## Backend architecture
+
+Django apps are split by domain, each with its own `models.py` and (for public data) an `api/` subpackage of `urls.py` + `views.py` + `serializers.py`. All routes are wired in `config/urls.py` under `/api/`.
+
+Core data model and relationships:
+- `seasons.Season` — a league season, tied to a `game`. Has optional `season_notes` injected into AI prompts.
+- `drivers.Driver`, `teams.Team`, `tracks.Track` — season-independent entities.
+- `entries.TeamSeason` — a team's entry in one season (per-season `display_name`, `color`). `entries.DriverSeason` — a driver's seat in one season, linking driver → `TeamSeason`. **Driver→team is locked per season through `DriverSeason`, not directly.**
+- `results.Race` — one race (GP or sprint) in a season at a track, unique per `(season, round, is_sprint)`.
+- `results.RaceResult` — one driver's result in a race, FK'd to `DriverSeason` (so the team is implied by the season seat). Postgres partial unique constraints enforce exactly one fastest_lap / dotd / pole per race.
+- `articles.Article` — AI-generated content (recaps, previews, season articles, power rankings), FK'd to a race and/or season.
+
+Points are **computed, not stored**: `RaceResult.points` is a property delegating to `results/scoring.py` (`points_for_result`). For DB-level aggregation, equivalent SQL `Case` expressions live in `results/api/views/utils.py` (`points_case`, `fl_bonus_case`) — keep these in sync with `scoring.py` if scoring rules change.
+
+`results/api/views/` is a package, one module per heavy read endpoint: `standings.py`, `matrices.py`, `h2h.py`, `hall_of_fame.py`, `races.py`, plus `admin.py`.
+
+### Caching (important)
+
+Expensive read endpoints cache their full response in Django's `LocMemCache` (24h TTL). Cache keys and the invalidation list live in `results/cache.py`. `invalidate_for_result()` deletes every dependent key and is fired by `post_save`/`post_delete` signals on `RaceResult` (wired in `results/apps.py`). When you add a cached endpoint, add its key builder AND add the key to `invalidate_for_result`, or it will serve stale data. Note LocMemCache is per-process — multiple workers each hold their own cache.
+
+### AI article generation
+
+`articles/generator.py` is the entry point (`generate_articles_for_race`, plus season/bio variants). Uses the `anthropic` SDK, model `claude-opus-4-6`, requires `ANTHROPIC_API_KEY`. Shared league facts (driver relationships, banned words, DNF-tracking caveat) live in `LEAGUE_CONTEXT` / `SYSTEM_PROMPT` constants — edit those rather than duplicating rules per prompt. Triggered via management commands in `articles/management/commands/` (`generate_articles`, `generate_season_articles`, `generate_track_bio`, `generate_driver_bio`), not automatically on race save.
+
+Seed/import data commands live across apps: `seed_*` in each app, plus `results/management/commands/import_legacy_results.py` and `set_track_laps.py`.
+
+### Auth
+
+DRF `TokenAuthentication`, default permission `AllowAny`. Login/logout in `api/auth_views.py`. Admin-only write endpoints under `/api/admin/...` (e.g. `SeasonGridView`, `SeasonRacesAdminView`). The frontend admin route is gated client-side by `ProtectedRoute`.
+
+## Frontend architecture
+
+Vanilla React Router 7 SPA, no Redux/React Query. Data fetching is a custom hook layer:
+- `src/api/client.ts` — `fetchJson` + `ApiError`, resolves API base from `VITE_BACKEND_URL_DEV` (dev) / `VITE_BACKEND_URL` (prod), falling back to same-origin (dev proxy).
+- `src/hooks/useApiQuery.ts` — generic query hook (loading/error/refetch, optional `transform`, `keepPreviousData`). Almost every `use*` hook in `src/hooks/` wraps this for one endpoint. Add a new hook per endpoint rather than calling `fetchJson` from components.
+- `src/lib/api.ts` (`apiGet` with `credentials: 'include'`) + `src/lib/csrf.ts` are the cookie/session path used for authenticated admin calls; `src/api/admin.ts` uses these.
+
+Routes are declared in `src/App.tsx`. Pages live in `src/pages/<PageName>/`, reusable widgets in `src/components/<Name>/`. Styling is plain CSS, **not** CSS Modules — each component/page folder has its own `style.css` imported directly; global styles in `index.css`, `App.css`, `styles/fonts.css`. (Recent history is heavy CSS refactoring; match the existing per-component `style.css` convention.)
+
+## Environment / secrets
+
+Backend reads repo-root `.env` (loaded in `config/settings.py`): `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DATABASE_URL` (Neon Postgres in prod; SQLite `db.sqlite3` for local testing — toggle commented block in `.env`), `DB_SSL_REQUIRED`, `ANTHROPIC_API_KEY`. CORS/CSRF origins are read from `FRONTEND_ORIGINS` (comma-separated) plus Netlify/`cgr-league.net` regexes. The bot reads its own env: `DISCORD_TOKEN`, `DISCORD_GUILD_ID`, `API_BASE_URL`, `SITE_URL`, `CURRENT_SEASON`.
