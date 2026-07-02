@@ -37,6 +37,7 @@ export interface AllDriverEntry {
   career_points: number;
   career_wins: number;
   career_races: number;
+  specialist_label: string | null;
 }
 
 export interface DriversHomepageData {

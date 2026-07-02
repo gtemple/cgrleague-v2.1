@@ -77,7 +77,7 @@ function StandingsRow({ entry }: { entry: HumanSpotlightEntry }) {
 // ─── Driver grid card ─────────────────────────────────────────────────────────
 
 function DriverGridCard({ entry }: { entry: AllDriverEntry }) {
-  const { driver, is_human, career_points, career_wins, career_races } = entry;
+  const { driver, is_human, career_points, career_wins, career_races, specialist_label } = entry;
   const avatarUrl = driver.profile_image ? displayImage(driver.profile_image, "driver") : null;
   const flagUrl = driver.country_of_representation
     ? displayImage(driver.country_of_representation, "flags")
@@ -104,6 +104,9 @@ function DriverGridCard({ entry }: { entry: AllDriverEntry }) {
           {career_wins > 0 && <span className="dix-grid-wins">{career_wins}W</span>}
           <span className="dix-grid-races">{career_races}R</span>
         </div>
+        {specialist_label && (
+          <div className="dix-grid-specialty">{specialist_label}</div>
+        )}
       </div>
     </Link>
   );

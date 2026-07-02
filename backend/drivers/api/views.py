@@ -21,6 +21,26 @@ from results.cache import CACHE_TTL, key_driver_detail, key_driver_history, key_
 from tracks.models import Track
 
 
+def specialist_label_from_rows(rows: List[Dict[str, Any]]) -> Optional[str]:
+    """
+    Plain-language track-specialty verdict from per-category rows
+    (each with category, races, avg_finish). Requires both categories
+    comparable (>=3 races each); otherwise None. A >=1.5-position
+    avg-finish gap reads as a specialty, else all-rounder.
+    """
+    qualified = [r for r in rows if r["races"] >= 3 and r["avg_finish"] is not None]
+    if len(qualified) < 2:
+        return None
+    best_row = min(qualified, key=lambda r: r["avg_finish"])
+    worst_row = max(qualified, key=lambda r: r["avg_finish"])
+    if worst_row["avg_finish"] - best_row["avg_finish"] >= 1.5:
+        return {
+            "STREET": "Street Specialist",
+            "PERMANENT": "Permanent-Circuit Specialist",
+        }.get(best_row["category"])
+    return "All-Rounder"
+
+
 def serialize_driver(d: Driver) -> Dict[str, Any]:
     """Consistent driver payload."""
     first = getattr(d, "first_name", "") or ""
@@ -506,6 +526,23 @@ class DriversHomepageView(APIView):
         )
         all_driver_map = {d.id: d for d in Driver.objects.all()}
 
+        # ── Track-specialty label per driver (one grouped query) ──────────
+        from collections import defaultdict
+        spec_by_driver: Dict[int, List[Dict[str, Any]]] = defaultdict(list)
+        spec_rows = (
+            RaceResult.objects
+            .filter(race__is_sprint=False, race__track__category__in=["STREET", "PERMANENT"])
+            .values("driver_season__driver_id", "race__track__category")
+            .annotate(races=Count("id"), avg_finish=Avg("finish_position"))
+        )
+        for row in spec_rows:
+            avg = row["avg_finish"]
+            spec_by_driver[row["driver_season__driver_id"]].append({
+                "category": row["race__track__category"],
+                "races": row["races"],
+                "avg_finish": round(avg, 1) if avg is not None else None,
+            })
+
         all_drivers = sorted(
             [
                 {
@@ -514,6 +551,7 @@ class DriversHomepageView(APIView):
                     "career_points": r["total_points"] or 0,
                     "career_wins": r["wins"] or 0,
                     "career_races": r["races"] or 0,
+                    "specialist_label": specialist_label_from_rows(spec_by_driver.get(r["driver"], [])),
                 }
                 for r in all_career
                 if r["driver"] in all_driver_map
@@ -614,24 +652,10 @@ class DriverSpecializationView(APIView):
             # Best = lowest avg finish with at least 3 races
             best = min(qualified, key=lambda r: r["avg_finish"])["category"]
 
-        # Plain-language verdict. Requires both categories comparable (>=3 races each);
-        # otherwise null. A >=1.5-position avg-finish gap reads as a specialty, else all-rounder.
-        specialist_label = None
-        if len(qualified) >= 2:
-            best_row = min(qualified, key=lambda r: r["avg_finish"])
-            worst_row = max(qualified, key=lambda r: r["avg_finish"])
-            if worst_row["avg_finish"] - best_row["avg_finish"] >= 1.5:
-                specialist_label = {
-                    "STREET": "Street Specialist",
-                    "PERMANENT": "Permanent-Circuit Specialist",
-                }.get(best_row["category"])
-            else:
-                specialist_label = "All-Rounder"
-
         payload = {
             "categories": rows,
             "best_category": best,
-            "specialist_label": specialist_label,
+            "specialist_label": specialist_label_from_rows(rows),
         }
         cache.set(ck, payload, timeout=CACHE_TTL)
         return Response(payload)
