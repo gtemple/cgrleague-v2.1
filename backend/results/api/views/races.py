@@ -438,13 +438,79 @@ def _generate_history_blurb(
         return None
 
 
+def choose_flashback_race() -> Optional["Race"]:
+    """
+    Pick the history-teaser ("flashback") race: a completed non-sprint race from
+    a PRIOR season at the same track as the upcoming race ("last time we raced
+    here"). Prefers a race a human won. Deterministic per calendar day.
+
+    Shared by HistoryTeaserView and the admin "generate today's blurb" action so
+    the featured race and the blurb it generates can't drift apart. Returns None
+    when there's no suitable candidate.
+    """
+    latest_season = Season.objects.order_by("-id").first()
+    if not latest_season:
+        return None
+
+    # Target track = the upcoming race's track (next non-sprint race with no
+    # results). If the season is complete, fall back to the most recently
+    # completed race's track.
+    upcoming = (
+        Race.objects
+        .filter(season=latest_season, is_sprint=False)
+        .annotate(result_count=Count("results"))
+        .filter(result_count=0)
+        .order_by("round")
+        .first()
+    )
+    if upcoming:
+        target_track_id = upcoming.track_id
+    else:
+        last_completed = (
+            Race.objects
+            .filter(season=latest_season, is_sprint=False, results__isnull=False)
+            .order_by("-round")
+            .first()
+        )
+        target_track_id = last_completed.track_id if last_completed else None
+
+    if target_track_id is None:
+        return None
+
+    # Completed non-sprint races at that track in prior seasons
+    candidates = list(
+        Race.objects
+        .filter(track_id=target_track_id, is_sprint=False, season_id__lt=latest_season.id)
+        .annotate(result_count=Count("results"))
+        .filter(result_count__gt=0)
+        .select_related("track", "season")
+        .order_by("season_id")
+    )
+    if not candidates:
+        return None
+
+    # Prefer a race where a human driver won; fall back to any
+    human_wins = [
+        r for r in candidates
+        if RaceResult.objects.filter(
+            race=r, finish_position=1,
+            driver_season__driver__human=True,
+        ).exists()
+    ]
+    pool = human_wins if human_wins else candidates
+
+    rng = random.Random(date.today().toordinal())
+    return rng.choice(pool)
+
+
 class HistoryTeaserView(APIView):
     """
     GET /api/teasers/history/
 
-    Returns a notable result from the same round number in a past season.
-    Picks deterministically per calendar day (date-seeded random) so it
-    changes daily but is stable within a day.
+    Returns a notable result from a PRIOR season at the same track as the
+    upcoming race — i.e. "last time we raced here." Picks deterministically
+    per calendar day (date-seeded random) so it changes daily but is stable
+    within a day.
     """
     permission_classes = [AllowAny]
 
@@ -454,46 +520,10 @@ class HistoryTeaserView(APIView):
         if cached is not None:
             return Response(cached)
 
-        latest_season = Season.objects.order_by("-id").first()
-        if not latest_season:
-            return Response(None)
-
-        # Determine current round: most recently completed race, or round 1
-        last_completed = (
-            Race.objects
-            .filter(season=latest_season, is_sprint=False, results__isnull=False)
-            .order_by("-round")
-            .first()
-        )
-        current_round = last_completed.round if last_completed else 1
-
-        # Find all completed non-sprint races at this round in prior seasons
-        candidates = list(
-            Race.objects
-            .filter(round=current_round, is_sprint=False)
-            .exclude(season=latest_season)
-            .annotate(result_count=Count("results"))
-            .filter(result_count__gt=0)
-            .select_related("track", "season")
-            .order_by("season_id")
-        )
-
-        if not candidates:
+        chosen = choose_flashback_race()
+        if chosen is None:
             cache.set(ck, None, timeout=CACHE_TTL)
             return Response(None)
-
-        # Prefer a race where a human driver won; fall back to any
-        human_wins = [
-            r for r in candidates
-            if RaceResult.objects.filter(
-                race=r, finish_position=1,
-                driver_season__driver__human=True,
-            ).exists()
-        ]
-        pool = human_wins if human_wins else candidates
-
-        rng = random.Random(date.today().toordinal())
-        chosen = rng.choice(pool)
 
         top3 = list(
             RaceResult.objects

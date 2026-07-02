@@ -1,7 +1,4 @@
-import random
-from datetime import date
 from django.contrib import admin, messages
-from django.db.models import Count
 from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 from .models import Race, RaceResult, HistoryTeaserBlurb
@@ -118,51 +115,18 @@ class HistoryTeaserBlurbAdmin(admin.ModelAdmin):
 
     def generate_today_view(self, request):
         from django.core.cache import cache
-        from django.db.models import Count as DCount
-        from seasons.models import Season
-        from results.api.views.races import _generate_history_blurb
+        from results.api.views.races import _generate_history_blurb, choose_flashback_race
         from results.api.views.utils import serialize_driver, serialize_team
         from results.scoring import points_for_result
         from results.cache import key_history_teaser
 
         try:
-            latest_season = Season.objects.order_by("-id").first()
-            if not latest_season:
-                self.message_user(request, "No seasons found.", level=messages.ERROR)
+            # Same selection the frontend teaser uses, so the blurb we generate
+            # is for the race actually featured on the homepage.
+            chosen = choose_flashback_race()
+            if chosen is None:
+                self.message_user(request, "No history candidate for today's flashback.", level=messages.WARNING)
                 return HttpResponseRedirect("../")
-
-            last_completed = (
-                Race.objects
-                .filter(season=latest_season, is_sprint=False, results__isnull=False)
-                .order_by("-round")
-                .first()
-            )
-            current_round = last_completed.round if last_completed else 1
-
-            candidates = list(
-                Race.objects
-                .filter(round=current_round, is_sprint=False)
-                .exclude(season=latest_season)
-                .annotate(result_count=DCount("results"))
-                .filter(result_count__gt=0)
-                .select_related("track", "season")
-                .order_by("season_id")
-            )
-
-            if not candidates:
-                self.message_user(request, "No history candidates for today's round.", level=messages.WARNING)
-                return HttpResponseRedirect("../")
-
-            human_wins = [
-                r for r in candidates
-                if RaceResult.objects.filter(
-                    race=r, finish_position=1,
-                    driver_season__driver__human=True,
-                ).exists()
-            ]
-            pool = human_wins if human_wins else candidates
-            rng = random.Random(date.today().toordinal())
-            chosen = rng.choice(pool)
 
             top3 = list(
                 RaceResult.objects
