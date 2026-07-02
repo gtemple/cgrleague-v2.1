@@ -79,6 +79,10 @@ export const HomePage = () => {
   const km = track?.distance ? (track.distance / 1000).toFixed(3) : null;
   const countdown = useCountdown(race?.started_at ?? null);
 
+  // Preview article, only if it's for the race in the hero (not a stale fallback)
+  const upcomingPreview =
+    race && latestArticles?.preview?.race?.id === race.id ? latestArticles.preview : null;
+
   const seasonId = teaser?.season_id ?? latestSeasonId ?? null;
   const { data: driverStandings } = useSeasonStandings(seasonId ?? 0);
   const { data: constructorStandings } = useConstructorStandings(seasonId ?? 0);
@@ -141,6 +145,11 @@ export const HomePage = () => {
                   </>
                 )}
               </div>
+              {upcomingPreview && (
+                <Link to={`/articles/${upcomingPreview.id}`} className="hero-preview-link">
+                  Read race preview →
+                </Link>
+              )}
             </div>
           ) : (
             <div className="hero-content">

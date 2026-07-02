@@ -80,6 +80,29 @@ function ArchiveRow({ article }: { article: ArticleSummary }) {
 
 // ─── grouping ─────────────────────────────────────────────────────────────────
 
+// Within a season: season preview first, then each round newest→oldest, each
+// round grouped newest-first (power rankings → recap → preview), season review last.
+const WITHIN_ROUND_RANK: Record<string, number> = { POWER_RANKINGS: 0, RECAP: 1, PREVIEW: 2 };
+
+function articleSection(a: ArticleSummary): number {
+  if (a.type === "SEASON_PREVIEW") return 0;
+  if (a.type === "SEASON_RECAP") return 2;
+  return 1; // per-round article
+}
+
+function compareArticles(a: ArticleSummary, b: ArticleSummary): number {
+  const sa = articleSection(a);
+  const sb = articleSection(b);
+  if (sa !== sb) return sa - sb;
+  if (sa === 1) {
+    const ra = a.race?.round ?? 0;
+    const rb = b.race?.round ?? 0;
+    if (ra !== rb) return rb - ra; // rounds descending (most recent/upcoming first)
+    return (WITHIN_ROUND_RANK[a.type] ?? 9) - (WITHIN_ROUND_RANK[b.type] ?? 9);
+  }
+  return +new Date(a.generated_at) - +new Date(b.generated_at);
+}
+
 function groupBySeasonDesc(articles: ArticleSummary[]): { seasonId: number; items: ArticleSummary[] }[] {
   const map = new Map<number, ArticleSummary[]>();
   for (const a of articles) {
@@ -91,7 +114,7 @@ function groupBySeasonDesc(articles: ArticleSummary[]): { seasonId: number; item
     .sort(([a], [b]) => b - a)
     .map(([seasonId, items]) => ({
       seasonId,
-      items: [...items].sort((a, b) => +new Date(b.generated_at) - +new Date(a.generated_at)),
+      items: [...items].sort(compareArticles),
     }));
 }
 

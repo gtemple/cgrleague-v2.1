@@ -121,6 +121,27 @@
   color: #6a6457;
 }
 
+.hero-preview-link {
+  align-self: flex-start;
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--cgr-red);
+  border-radius: var(--cgr-radius-chip);
+  padding: 8px 13px;
+  transition: background 0.15s;
+}
+.hero-preview-link:hover {
+  background: #c81f27;
+}
+
 /* countdown card */
 
 .hero-countdown-card {
