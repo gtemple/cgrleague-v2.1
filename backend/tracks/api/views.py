@@ -29,6 +29,7 @@ def _serialize_track_full(track: Track) -> Dict[str, Any]:
         "country": getattr(track, "country", ""),
         "image": getattr(track, "img", None),
         "bio": getattr(track, "bio", None),
+        "distance": getattr(track, "distance", None),
     }
 
 

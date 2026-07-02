@@ -242,61 +242,63 @@ export function TeamPage() {
         </div>
       </header>
 
-      {/* ══════════════════════ SEASON HISTORY ══════════════════════ */}
-      <section className="team-history-section">
-        <h2 className="team-section-title">Season History</h2>
-        <div className="team-table-scroll">
-          <div className="team-table-hint">Drag sideways to see more →</div>
-          <table className="team-history-table">
-            <thead>
-              <tr>
-                <th>Season</th>
-                <th>Name</th>
-                <th>Pos</th>
-                <th>Pts</th>
-                <th>Wins</th>
-                <th>Podiums</th>
-                <th>Poles</th>
-                <th>FL</th>
-                <th>Races</th>
-                <th className="th2h-col-header">Driver Split</th>
-              </tr>
-            </thead>
-            <tbody>
-              {seasons.map((row) => (
-                <tr key={row.season.id}>
-                  <td>
-                    <Link className="team-season-pill" to={`/seasons/${row.season.id}`}>
-                      S{row.season.id}
-                    </Link>
-                  </td>
-                  <td>
-                    <div className="team-name-cell">
-                      <span
-                        className="team-color-dot"
-                        style={{ background: row.color || "rgba(255,255,255,0.2)" }}
-                      />
-                      <span className="team-display-name">{row.display_name}</span>
-                    </div>
-                  </td>
-                  <td className={`team-champ-pos ${champPosClass(row.champ_pos)}`}>
-                    {ordinal(row.champ_pos)}
-                  </td>
-                  <td className="team-pts-cell">{row.points}</td>
-                  <td>{row.wins > 0 ? row.wins : <span className="team-zero">—</span>}</td>
-                  <td>{row.podiums > 0 ? row.podiums : <span className="team-zero">—</span>}</td>
-                  <td>{row.poles > 0 ? row.poles : <span className="team-zero">—</span>}</td>
-                  <td>{row.fastest_laps > 0 ? row.fastest_laps : <span className="team-zero">—</span>}</td>
-                  <td>{row.races}</td>
-                  <td className="th2h-cell">
-                    <DriverH2H drivers={row.drivers} color={row.color} />
-                  </td>
+      <div className="team-body">
+        {/* ══════════════════════ SEASON HISTORY ══════════════════════ */}
+        <section className="team-history-section">
+          <h2 className="team-section-title">Season History</h2>
+          <div className="team-table-scroll">
+            <div className="team-table-hint">Drag sideways to see more →</div>
+            <table className="team-history-table">
+              <thead>
+                <tr>
+                  <th>Season</th>
+                  <th>Name</th>
+                  <th>Pos</th>
+                  <th>Pts</th>
+                  <th>Wins</th>
+                  <th>Podiums</th>
+                  <th>Poles</th>
+                  <th>FL</th>
+                  <th>Races</th>
+                  <th className="th2h-col-header">Driver Split</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody>
+                {seasons.map((row) => (
+                  <tr key={row.season.id}>
+                    <td>
+                      <Link className="team-season-pill" to={`/seasons/${row.season.id}`}>
+                        S{row.season.id}
+                      </Link>
+                    </td>
+                    <td>
+                      <div className="team-name-cell">
+                        <span
+                          className="team-color-dot"
+                          style={{ background: row.color || "rgba(255,255,255,0.2)" }}
+                        />
+                        <span className="team-display-name">{row.display_name}</span>
+                      </div>
+                    </td>
+                    <td className={`team-champ-pos ${champPosClass(row.champ_pos)}`}>
+                      {ordinal(row.champ_pos)}
+                    </td>
+                    <td className="team-pts-cell">{row.points}</td>
+                    <td>{row.wins > 0 ? row.wins : <span className="team-zero">—</span>}</td>
+                    <td>{row.podiums > 0 ? row.podiums : <span className="team-zero">—</span>}</td>
+                    <td>{row.poles > 0 ? row.poles : <span className="team-zero">—</span>}</td>
+                    <td>{row.fastest_laps > 0 ? row.fastest_laps : <span className="team-zero">—</span>}</td>
+                    <td>{row.races}</td>
+                    <td className="th2h-cell">
+                      <DriverH2H drivers={row.drivers} color={row.color} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

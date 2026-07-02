@@ -1,0 +1,59 @@
+/* Design tokens for the CGR League redesign (design_handoff_cgr_league_site).
+   Scoped under --cgr-* so pages not yet migrated keep using the legacy
+   tokens in index.css untouched. */
+:root {
+  /* Ink / dark panels */
+  --cgr-ink: #16140f;
+  --cgr-ink-alt: #211e16;
+  --cgr-ink-alt-2: #1b1810;
+  --cgr-ink-border: #2a261d;
+  --cgr-ink-border-2: #332e25;
+
+  /* Paper / light surfaces */
+  --cgr-paper: #ecebe5;
+  --cgr-card: #fff;
+  --cgr-chip: #e3e1d8;
+
+  /* Borders */
+  --cgr-border-card: #d9d6cd;
+  --cgr-border-rule: #d9d6cd;
+  --cgr-border-hairline: #ece9e1;
+  --cgr-border-hairline-2: #f0ede5;
+  --cgr-border-hairline-3: #f4f1e9;
+  --cgr-border-ticker: #d3d0c5;
+  --cgr-border-chip: #e2dfd6;
+  --cgr-border-hover: #a8a496;
+
+  /* Text (light backgrounds) */
+  --cgr-text-primary: #16140f;
+  --cgr-text-body: #33312a;
+  --cgr-text-secondary: #6a685f;
+  --cgr-text-muted: #7a766b;
+  --cgr-text-muted-2: #9b988d;
+  --cgr-text-faint: #b0ada2;
+
+  /* Text (dark backgrounds) */
+  --cgr-text-on-dark: #f7f5ef;
+  --cgr-text-on-dark-muted: #b3afa4;
+  --cgr-text-on-dark-faint: #8a8579;
+
+  /* Accents */
+  --cgr-red: #e8232c;
+  --cgr-gold: #f5b21a;
+  --cgr-gold-text: #241a00;
+  --cgr-blue: #2a6fdb;
+  --cgr-purple: #7c5cff;
+
+  /* Hover states */
+  --cgr-row-hover: #f6f4ee;
+
+  /* Radii */
+  --cgr-radius-chip: 3px;
+  --cgr-radius-card: 5px;
+  --cgr-radius-panel: 6px;
+
+  /* Fonts */
+  --cgr-font-display: "Saira Condensed", sans-serif;
+  --cgr-font-body: "Saira", sans-serif;
+  --cgr-font-mono: "JetBrains Mono", monospace;
+}

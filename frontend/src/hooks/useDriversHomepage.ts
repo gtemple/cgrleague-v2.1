@@ -24,6 +24,7 @@ export interface HumanSpotlightEntry {
   wins: number;
   team: TeamLite | null;
   last_finish: number | null;
+  form: (number | "DNF")[];
 }
 
 export interface LeaderEntry {
@@ -42,6 +43,7 @@ export interface AllDriverEntry {
 
 export interface DriversHomepageData {
   latest_season_id: number | null;
+  last_race: { round: number; track_name: string } | null;
   human_spotlight: HumanSpotlightEntry[];
   leaders: {
     points: LeaderEntry | null;

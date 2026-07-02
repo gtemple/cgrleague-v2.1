@@ -54,6 +54,7 @@ def serialize_driver(d: Driver) -> Dict[str, Any]:
         "profile_image": getattr(d, "profile_image", None),
         "country_of_representation": getattr(d, "country_of_representation", None),
         "bio": getattr(d, "bio", None),
+        "is_human": bool(getattr(d, "human", False)),
     }
 
 
@@ -154,9 +155,12 @@ class DriverDetailView(APIView):
         points_finishes = int(agg["points_finishes"] or 0)
         pole_wins = int(agg["pole_wins"] or 0)
 
+        seasons_played = DriverSeason.objects.filter(driver_id=driver_id).count()
+
         payload = {
             "driver": serialize_driver(driver),
             "totals": {
+                "seasons_played": seasons_played,
                 "points": total_points,
                 "points_breakdown": {
                     "base": int(agg["base_points"]),
@@ -429,6 +433,7 @@ class DriversHomepageView(APIView):
         # ── Human spotlight ───────────────────────────────────────────────
         human_spotlight = []
         latest_season_id = None
+        last_race = None
 
         if latest_season:
             latest_season_id = latest_season.id
@@ -462,6 +467,23 @@ class DriversHomepageView(APIView):
                 for rr in RaceResult.objects.filter(race=last_race).select_related("driver_season__driver"):
                     last_results[rr.driver_season.driver_id] = rr.finish_position
 
+            # ── Last-5 race form per human driver (oldest → newest) ────────
+            human_ds_ids = [ds.id for ds in season_ds if ds.driver.human]
+            recent_form: Dict[int, List] = {}
+            if human_ds_ids:
+                recent_results = (
+                    RaceResult.objects
+                    .filter(driver_season_id__in=human_ds_ids, race__season=latest_season)
+                    .select_related("race")
+                    .order_by("driver_season_id", "-race__round", "-race__is_sprint")
+                )
+                for rr in recent_results:
+                    bucket = recent_form.setdefault(rr.driver_season_id, [])
+                    if len(bucket) < 5:
+                        bucket.append("DNF" if rr.status != "FIN" else rr.finish_position)
+                for bucket in recent_form.values():
+                    bucket.reverse()
+
             for ds in season_ds:
                 if not ds.driver.human:
                     continue
@@ -479,6 +501,7 @@ class DriversHomepageView(APIView):
                         "color": ds.team_season.color if ds.team_season else None,
                     } if team else None,
                     "last_finish": last_results.get(ds.driver_id),
+                    "form": recent_form.get(ds.id, []),
                 })
 
         # ── All-time leaders (human only) ─────────────────────────────────
@@ -561,6 +584,7 @@ class DriversHomepageView(APIView):
 
         return Response({
             "latest_season_id": latest_season_id,
+            "last_race": {"round": last_race.round, "track_name": last_race.track.name} if last_race else None,
             "human_spotlight": human_spotlight,
             "leaders": leaders,
             "all_drivers": all_drivers,

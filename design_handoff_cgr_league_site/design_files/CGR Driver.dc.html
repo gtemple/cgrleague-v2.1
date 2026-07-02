@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Saira', sans-serif; background: #ecebe5; }
+  a { color: inherit; text-decoration: none; }
+  select { font-family: 'Saira', sans-serif; outline: none; }
+  ::-webkit-scrollbar { height: 9px; } ::-webkit-scrollbar-thumb { background: #cbc7bb; border-radius: 5px; } ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</helmet>
+
+<div style="background:#ecebe5; min-height:100vh; color:#16140f;">
+
+  <!-- nav -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; row-gap:6px; min-height:62px; padding:8px 26px; background:#16140f; border-bottom:3px solid #e8232c; position:sticky; top:0; z-index:20;">
+    <a href="CGR%20Home.dc.html" style="display:flex; align-items:center; gap:11px;">
+      <div style="width:32px; height:32px; border-radius:4px; background:#e8232c; display:flex; align-items:center; justify-content:center; font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:15px; color:#fff;">CGR</div>
+      <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; color:#f7f5ef;">CGR LEAGUE</div>
+    </a>
+    <div style="display:flex; align-items:center; gap:14px 26px; flex-wrap:wrap; font-family:'Saira',sans-serif; font-weight:500; font-size:14px; color:#b3afa4;">
+      <a href="CGR%20Seasons.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Seasons</a>
+      <a href="CGR%20Drivers.dc.html" style="color:#fff; border-bottom:2px solid #e8232c; padding-bottom:3px;">Drivers</a>
+      <a href="CGR%20Teams.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Teams</a><a href="CGR%20Tracks.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Tracks</a><a href="CGR%20Hall%20of%20Fame.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Hall of Fame</a><a href="CGR%20Articles.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Articles</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8579; border:1px solid rgba(255,255,255,0.18); border-radius:5px; padding:7px 11px;">⌕ SEARCH <span style="color:#5a564c;">⌘K</span></div>
+  </div>
+
+  <!-- hero (dark) -->
+  <div style="background:#16140f; padding:18px 26px 30px;">
+    <div style="max-width:1440px; margin:0 auto;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+        <a href="CGR%20Drivers.dc.html" style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em; color:#b3afa4;">← ALL DRIVERS</a>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#8a8579;">CGR LEAGUE · DRIVER</span>
+        <select style="background:#211e16; color:#f0eee7; border:1px solid #3a352b; border-radius:5px; padding:7px 12px; font-size:13px; font-weight:600;">
+          <option>Giordano Temple</option>
+          <option>Cole Reynolds</option>
+          <option>Ryan Reynolds</option>
+          <option>Max Verstappen</option>
+        </select>
+      </div>
+
+      <div style="display:grid; grid-template-columns:200px 1fr; gap:28px; align-items:start;">
+        <div style="width:200px; height:200px; border-radius:6px; background:repeating-linear-gradient(118deg,#26221a 0 2px,#1b1810 2px 10px); border:1px solid #332e25; display:flex; align-items:flex-end; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:9px; color:#5a5343; padding-bottom:8px;">[ DRIVER PHOTO ]</div>
+        <div style="min-width:0;">
+          <div style="font-family:'Saira Condensed',sans-serif; font-weight:600; font-size:26px; color:#b3afa4; line-height:0.9; letter-spacing:0.01em;">GIORDANO</div>
+          <div style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:64px; color:#f7f5ef; line-height:0.86; text-transform:uppercase; letter-spacing:-0.01em;">TEMPLE</div>
+          <div style="display:flex; align-items:center; gap:12px; margin-top:12px;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#f0eee7; border:1px solid #3a352b; border-radius:3px; padding:3px 7px;">CAN</span>
+            <span style="width:6px; height:6px; border-radius:50%; background:#e8232c;"></span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#8a8579;">HUMAN · 7 SEASONS</span>
+          </div>
+          <!-- driver dna -->
+          <div style="margin-top:18px; max-width:560px; background:#1b1810; border:1px solid #2a261d; border-radius:6px; padding:14px 18px 12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+              <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.16em; color:#8a8579;">DRIVER DNA</span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.12em; color:#241a00; background:#f5b21a; border-radius:3px; padding:3px 8px;">{{ archName }}</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:14px; align-items:end;">
+              <sc-for list="{{ dna }}" as="t" hint-placeholder-count="5">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                  <span style="font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:{{ t.topColor }};">{{ t.v }}</span>
+                  <div style="width:100%; height:72px; background:#26221a; border-radius:3px; display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden;">
+                    <div style="height:{{ t.h }}; background:{{ t.fill }}; border-radius:3px;"></div>
+                  </div>
+                  <span style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.06em; color:#6a6457; text-align:center; line-height:1.1;">{{ t.l }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.04em; color:#4f4a3e; margin-top:12px; padding-top:10px; border-top:1px solid #26221a;">COMPUTED FROM CAREER DATA · 0–100 VS LEAGUE REFERENCE · ARCHETYPE AUTO-DERIVED FROM PROFILE SPREAD</div>
+          </div>
+          <!-- pills -->
+          <div style="display:flex; gap:10px; margin-top:18px;">
+            <div style="display:flex; align-items:baseline; gap:7px; background:#211e16; border:1px solid #332e25; border-radius:5px; padding:8px 13px;"><span style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:#f7f5ef;">6</span><span style="font-family:'Saira',sans-serif; font-size:13px; color:#b3afa4;">Wins</span></div>
+            <div style="display:flex; align-items:baseline; gap:7px; background:#211e16; border:1px solid #332e25; border-radius:5px; padding:8px 13px;"><span style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:#f7f5ef;">26</span><span style="font-family:'Saira',sans-serif; font-size:13px; color:#b3afa4;">Podiums</span></div>
+            <div style="display:flex; align-items:baseline; gap:7px; background:#211e16; border:1px solid #332e25; border-radius:5px; padding:8px 13px;"><span style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:#f7f5ef;">5</span><span style="font-family:'Saira',sans-serif; font-size:13px; color:#b3afa4;">Poles</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- stat row -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(92px,1fr)); margin-top:26px; border:1px solid #2a261d; border-radius:6px; overflow:hidden; background:#1b1810;">
+        <sc-for list="{{ stats }}" as="s" hint-placeholder-count="10">
+          <div style="padding:15px 10px; text-align:center; border-right:1px solid #2a261d;">
+            <div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:22px; color:{{ s.color }}; line-height:1;">{{ s.v }}</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.1em; color:#6a6457; margin-top:6px;">{{ s.l }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- bio -->
+      <p style="max-width:1100px; margin-top:22px; font-family:'Saira',sans-serif; font-size:15px; line-height:1.65; color:#c9c4b8; text-wrap:pretty;">Giordano Temple has worn seven different team colours across seven seasons and somehow made every garage feel like home — 832 points and 26 podiums across one of the most nomadic careers in CGR League history. Bahrain is where he truly comes alive: 102 points and two of his six career wins at a single circuit, a dominance that borders on obsession. His 16 Driver of the Day awards tell the real story — Temple doesn't just finish races, he makes them memorable. From Ferrari to Aston Martin the team changes, but the output stays remarkably consistent: an average finish inside the top nine, with flashes of brilliance that keep him perpetually dangerous.</p>
+    </div>
+  </div>
+
+  <div style="max-width:1440px; margin:0 auto; padding:26px 26px 60px;">
+
+    <!-- career by season -->
+    <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:13px;">
+      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b;">CAREER BY SEASON</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#b0ada2;">drag sideways to see more →</span>
+    </div>
+    <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden; margin-bottom:30px;">
+      <div style="overflow-x:auto;">
+        <div style="min-width:1320px;">
+          <!-- header -->
+          <div style="display:grid; grid-template-columns:62px 150px repeat(15,1fr); align-items:center; padding:11px 16px; background:#faf9f4; border-bottom:1px solid #ece9e1; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.04em; color:#9b988d;">
+            <div>SEASON</div><div>TEAM</div>
+            <div style="text-align:right;">PTS</div><div style="text-align:right;">PPR</div><div style="text-align:right;">W</div><div style="text-align:right;">POD</div><div style="text-align:right;">POL</div><div style="text-align:right;">FL</div><div style="text-align:right;">LAPS</div><div style="text-align:right;">RCS</div><div style="text-align:right;">FIN</div><div style="text-align:right;">DNF</div><div style="text-align:right;">AVG</div><div style="text-align:right;">BST</div><div style="text-align:right;">±</div><div style="text-align:right;">TPTS</div><div style="text-align:right;">DOTD</div>
+          </div>
+          <sc-for list="{{ seasons }}" as="r" hint-placeholder-count="7">
+            <div style="display:grid; grid-template-columns:62px 150px repeat(15,1fr); align-items:center; padding:0 16px; height:46px; border-bottom:1px solid #f4f1e9; border-left:3px solid {{ r.accent }};">
+              <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:16px; color:#16140f;">{{ r.s }}</div>
+              <div style="display:flex; align-items:center; gap:9px; min-width:0;">
+                <span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:#fff; background:{{ r.color }}; border-radius:3px; padding:3px 4px; flex:none;">{{ r.tcode }}</span>
+                <span style="font-family:'Saira',sans-serif; font-size:13px; color:#3a382f; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ r.team }}</span>
+              </div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:14px; font-weight:700; color:#16140f;">{{ r.pts }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#5a564c;">{{ r.ppr }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:{{ r.wColor }}; font-weight:600;">{{ r.w }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#5a564c;">{{ r.pod }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:{{ r.polColor }};">{{ r.pol }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#5a564c;">{{ r.fl }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#7a766b;">{{ r.laps }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#7a766b;">{{ r.races }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#7a766b;">{{ r.fin }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:{{ r.dnfColor }};">{{ r.dnf }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#16140f; font-weight:600;">{{ r.avg }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#5a564c;">{{ r.best }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:{{ r.pmColor }}; font-weight:600;">{{ r.pm }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#7a766b;">{{ r.tpts }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#5a564c;">{{ r.dotd }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- track specialization -->
+    <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b; margin-bottom:13px;">TRACK SPECIALIZATION</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; margin-bottom:30px;">
+      <sc-for list="{{ specs }}" as="sp" hint-placeholder-count="2">
+        <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; padding:20px 22px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <span style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; color:#16140f;">{{ sp.name }}</span>
+            <sc-if value="{{ sp.strong }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.1em; color:#241a00; background:#f5b21a; border-radius:3px; padding:3px 8px;">STRONGEST</span></sc-if>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:8px;">
+            <span style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:46px; color:#16140f; line-height:0.9;">{{ sp.avg }}</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#9b988d;">AVG FINISH</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; margin:14px 0 18px;">
+            <div style="flex:1; height:8px; background:#f0ede5; border-radius:4px; overflow:hidden;"><div style="height:100%; width:{{ sp.barPct }}; background:{{ sp.bar }}; border-radius:4px;"></div></div>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#7a766b; white-space:nowrap;">{{ sp.races }} races</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid #ece9e1;">
+            <sc-for list="{{ sp.cells }}" as="c" hint-placeholder-count="6">
+              <div style="padding:12px 0; text-align:center; border-right:1px solid #f4f1e9; border-bottom:1px solid #f4f1e9;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:#16140f;">{{ c.v }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.08em; color:#9b988d; margin-top:4px;">{{ c.l }}</div></div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- track record -->
+    <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b; margin-bottom:13px;">TRACK RECORD</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px;">
+      <sc-for list="{{ tracks }}" as="t" hint-placeholder-count="21">
+        <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; padding:13px 14px;">
+          <div style="display:flex; align-items:center; gap:7px; margin-bottom:9px;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:8px; font-weight:700; color:#5a564c; border:1px solid #e2dfd6; border-radius:3px; padding:1px 4px;">{{ t.nat }}</span>
+            <span style="font-family:'Saira Condensed',sans-serif; font-weight:600; font-size:14px; color:#16140f; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ t.name }}</span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:6px;">
+            <span style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:#16140f;">{{ t.pts }}</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#9b988d;">pts</span>
+            <sc-if value="{{ t.wins }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:#fff; background:#e8232c; border-radius:3px; padding:1px 5px; margin-left:2px;">{{ t.wins }}</span></sc-if>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#7a766b; margin-top:7px;">{{ t.avg }} avg</div>
+        </div>
+      </sc-for>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  stats = [
+    { v: '832', l: 'POINTS', color: '#f7f5ef' },
+    { v: '108', l: 'RACES', color: '#f7f5ef' },
+    { v: '7.7', l: 'PTS / RACE', color: '#f7f5ef' },
+    { v: '8.7', l: 'AVG FINISH', color: '#f7f5ef' },
+    { v: '+2.0', l: 'AVG POS +/-', color: '#46e0a0' },
+    { v: '8', l: 'FASTEST LAPS', color: '#f7f5ef' },
+    { v: '16', l: 'DOTDS', color: '#f5b21a' },
+    { v: '2', l: 'CLEANEST', color: '#f7f5ef' },
+    { v: '0', l: 'OVERTAKES', color: '#6a6457' },
+    { v: '1,616', l: 'LAPS', color: '#f7f5ef' },
+  ];
+
+  seasonsRaw = [
+    { s: 'S7', team: 'Aston Martin', tcode: 'AMR', color: '#1f9e74', pts: 34, ppr: '6.8', w: 0, pod: 2, pol: 1, fl: 1, laps: 71, races: 5, fin: 4, dnf: 2, avg: '10.2', best: 'P2', pm: '+2.0', tpts: 69, dotd: 1, accent: '#e8232c' },
+    { s: 'S6', team: 'Mercedes', tcode: 'MER', color: '#16c4a6', pts: 140, ppr: '7.8', w: 1, pod: 2, pol: 0, fl: 2, laps: 243, races: 18, fin: 17, dnf: 1, avg: '7.7', best: 'P1', pm: '—', tpts: 272, dotd: 3, accent: 'transparent' },
+    { s: 'S5', team: 'Alfa Romeo', tcode: 'ALF', color: '#9b2031', pts: 34, ppr: '1.8', w: 0, pod: 1, pol: 0, fl: 1, laps: 277, races: 19, fin: 19, dnf: 0, avg: '13.4', best: 'P3', pm: '—', tpts: 47, dotd: 1, accent: 'transparent' },
+    { s: 'S4', team: 'McLaren', tcode: 'MCL', color: '#ff8000', pts: 124, ppr: '10.3', w: 0, pod: 5, pol: 0, fl: 0, laps: 200, races: 12, fin: 12, dnf: 0, avg: '5.8', best: 'P2', pm: '—', tpts: 192, dotd: 4, accent: 'transparent' },
+    { s: 'S3', team: 'Mercedes', tcode: 'MER', color: '#16c4a6', pts: 238, ppr: '12.5', w: 2, pod: 10, pol: 4, fl: 1, laps: 291, races: 19, fin: 19, dnf: 0, avg: '6.3', best: 'P1', pm: '—', tpts: 517, dotd: 2, accent: 'transparent' },
+    { s: 'S2', team: 'AlphaTauri', tcode: 'APT', color: '#2b4bce', pts: 148, ppr: '8.7', w: 2, pod: 3, pol: 0, fl: 1, laps: 258, races: 17, fin: 17, dnf: 0, avg: '7.6', best: 'P1', pm: '—', tpts: 199, dotd: 2, accent: 'transparent' },
+    { s: 'S1', team: 'Ferrari', tcode: 'FER', color: '#e8232c', pts: 114, ppr: '6.3', w: 1, pod: 3, pol: 0, fl: 2, laps: 276, races: 18, fin: 18, dnf: 0, avg: '10.1', best: 'P1', pm: '—', tpts: 156, dotd: 3, accent: 'transparent' },
+  ];
+
+  specs = [
+    { name: 'Permanent Circuit', strong: true, avg: '8.5', races: 88, barPct: '85%', bar: '#f5b21a', cells: [
+      { v: '697', l: 'PTS' }, { v: '7.9', l: 'PPR' }, { v: '5', l: 'WINS' },
+      { v: '23', l: 'PODIUMS' }, { v: '5.7%', l: 'WIN %' }, { v: '26.1%', l: 'PODIUM %' },
+    ] },
+    { name: 'Street Circuit', strong: false, avg: '9.8', races: 16, barPct: '16%', bar: '#b0ada2', cells: [
+      { v: '115', l: 'PTS' }, { v: '7.2', l: 'PPR' }, { v: '1', l: 'WINS' },
+      { v: '3', l: 'PODIUMS' }, { v: '6.2%', l: 'WIN %' }, { v: '18.8%', l: 'PODIUM %' },
+    ] },
+  ];
+
+  tracksRaw = [
+    { name: 'Bahrain GP', nat: 'BHR', pts: 102, wins: '2W', avg: 'P4.3' },
+    { name: 'French GP', nat: 'FRA', pts: 68, wins: '', avg: 'P6.0' },
+    { name: 'Belgian GP', nat: 'BEL', pts: 65, wins: '', avg: 'P6.9' },
+    { name: 'Azerbaijan GP', nat: 'AZE', pts: 58, wins: '1W', avg: 'P7.5' },
+    { name: 'Abu Dhabi GP', nat: 'UAE', pts: 53, wins: '', avg: 'P6.7' },
+    { name: 'Austrian GP', nat: 'AUT', pts: 51, wins: '', avg: 'P7.8' },
+    { name: 'Portuguese GP', nat: 'POR', pts: 47, wins: '', avg: 'P8.7' },
+    { name: 'Sao Paolo GP', nat: 'BRA', pts: 42, wins: '', avg: 'P9.2' },
+    { name: 'Emilia Romagna GP', nat: 'ITA', pts: 38, wins: '1W', avg: 'P11.9' },
+    { name: 'Chinese GP', nat: 'CHN', pts: 38, wins: '1W', avg: 'P6.5' },
+    { name: 'Canadian GP', nat: 'CAN', pts: 34, wins: '', avg: 'P5.8' },
+    { name: 'Dutch GP', nat: 'NED', pts: 34, wins: '', avg: 'P10.2' },
+    { name: 'Italian GP', nat: 'ITA', pts: 33, wins: '1W', avg: 'P9.4' },
+    { name: 'Russian GP', nat: 'RUS', pts: 27, wins: '', avg: 'P10.5' },
+    { name: 'Saudi Arabian GP', nat: 'SAU', pts: 26, wins: '', avg: 'P8.0' },
+    { name: 'Spanish GP', nat: 'ESP', pts: 25, wins: '', avg: 'P10.8' },
+    { name: 'British GP', nat: 'GBR', pts: 25, wins: '', avg: 'P11.5' },
+    { name: 'Hungarian GP', nat: 'HUN', pts: 24, wins: '', avg: 'P10.0' },
+    { name: 'United States GP', nat: 'USA', pts: 18, wins: '', avg: 'P12.4' },
+    { name: 'Miami GP', nat: 'USA', pts: 4, wins: '', avg: 'P14.0' },
+    { name: 'Australian GP', nat: 'AUS', pts: 0, wins: '', avg: 'P18.0' },
+  ];
+
+  // Computes the five DNA traits from the career-by-season data.
+  // Each raw rate is normalized 0..100 against a league reference ceiling, then clamped.
+  computeDNA() {
+    const s = this.seasonsRaw;
+    const sum = f => s.reduce((a, r) => a + (typeof r[f] === 'number' ? r[f] : 0), 0);
+    const races = sum('races'), pod = sum('pod'), pol = sum('pol'), fl = sum('fl'), dnf = sum('dnf'), dotd = sum('dotd'), pts = sum('pts');
+    const fin = races - dnf;
+    const avgFin = s.reduce((a, r) => a + parseFloat(r.avg) * r.races, 0) / races;
+    const ppr = pts / races;
+    const posGain = 2.0; // career avg positions gained (AVG +/-); only logged seasons contribute
+    const clamp = x => Math.max(2, Math.min(100, Math.round(x * 100)));
+
+    const qualifying = clamp((pol / races) / 0.08);                       // pole rate vs 8% ceiling
+    const pace = clamp(0.7 * (ppr / 16) + 0.3 * ((fl / races) / 0.12));   // points/race + fastest-lap rate
+    const racecraft = clamp(0.45 * ((pod / fin) / 0.40) + 0.30 * ((posGain + 3) / 8) + 0.25 * ((dotd / races) / 0.20)); // podium conversion + places gained + DOTD rate
+    const consistency = clamp(0.45 * (fin / races) + 0.25 * (1 - dnf / races) + 0.30 * ((21 - avgFin) / 20)); // finish rate + steadiness + avg-finish quality
+    const reliability = clamp((races - dnf) / races);                     // non-DNF rate
+
+    const traits = [
+      { l: 'PACE', v: pace }, { l: 'QUALIFYING', v: qualifying }, { l: 'RACECRAFT', v: racecraft },
+      { l: 'CONSISTENCY', v: consistency }, { l: 'RELIABILITY', v: reliability },
+    ];
+    const vals = traits.map(t => t.v), mx = Math.max(...vals), mn = Math.min(...vals);
+    let arch = 'All-Rounder';
+    if (mx - mn > 18) {
+      const top = traits.find(t => t.v === mx).l;
+      arch = top === 'QUALIFYING' ? 'Qualifier' : top === 'PACE' ? 'Pace Setter' : top === 'RACECRAFT' ? 'Racer' : 'Iron Man';
+    }
+    return { traits, arch };
+  }
+
+  renderVals() {
+    const seasons = this.seasonsRaw.map(r => ({
+      ...r,
+      wColor: r.w > 0 ? '#16140f' : '#c2bfb4',
+      polColor: r.pol > 0 ? '#16140f' : '#c2bfb4',
+      dnfColor: r.dnf > 0 ? '#c0392b' : '#c2bfb4',
+      pmColor: r.pm.startsWith('+') ? '#1f9e74' : '#b0ada2',
+    }));
+    const tracks = this.tracksRaw.map(t => ({ ...t, wins: t.wins || false }));
+    const { traits, arch } = this.computeDNA();
+    const max = Math.max(...traits.map(d => d.v));
+    const dna = traits.map(d => ({
+      ...d, h: d.v + '%',
+      fill: d.v === max ? 'linear-gradient(180deg,#ffc63d,#f5b21a)' : 'linear-gradient(180deg,#6a6049,#5a5341)',
+      topColor: d.v === max ? '#f5b21a' : '#c9c4b8',
+    }));
+    return { stats: this.stats, seasons, specs: this.specs, tracks, dna, archName: arch.toUpperCase() };
+  }
+}
+</script>
+</body>
+</html>

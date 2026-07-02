@@ -3,82 +3,121 @@
 ═══════════════════════════════════════ */
 
 .hof-page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  background: var(--cgr-paper);
+  min-height: 100vh;
+  font-family: var(--cgr-font-body);
+  color: var(--cgr-text-primary);
 }
 
 /* ═══════════════════════════════════════
-   HEADER
+   HEADER BAND
 ═══════════════════════════════════════ */
 
-.hof-header {
-  background: var(--surface);
-  border: 1px solid rgba(255, 199, 14, 0.15);
-  border-radius: 10px;
-  padding: 18px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
+.hof-header-band {
+  background: var(--cgr-ink);
+  padding: 26px;
 }
 
-.hof-header-left {
+.hof-header-inner {
+  max-width: 1320px;
+  margin: 0 auto;
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
 .hof-eyebrow {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 199, 14, 0.65);
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--cgr-text-on-dark-faint);
+  margin-bottom: 6px;
 }
 
 .hof-title {
-  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-family: var(--cgr-font-display);
   font-weight: 800;
-  color: var(--text-bright);
-  letter-spacing: -0.02em;
-  line-height: 1;
+  font-size: clamp(36px, 6vw, 54px);
+  line-height: 0.9;
+  color: var(--cgr-text-on-dark);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
-/* Filter tabs */
 .hof-filter-tabs {
   display: flex;
-  gap: 6px;
+  background: var(--cgr-ink-alt);
+  border: 1px solid var(--cgr-ink-border-2);
+  border-radius: 6px;
+  padding: 3px;
 }
 
 .hof-tab {
-  padding: 6px 16px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.8rem;
+  font-family: var(--cgr-font-body);
+  padding: 8px 16px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: var(--cgr-text-on-dark-muted);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
-
-.hof-tab:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-bright);
-}
-
-.hof-tab:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
+.hof-tab:hover { color: var(--cgr-text-on-dark); }
+.hof-tab:focus-visible { outline: 2px solid var(--cgr-red); outline-offset: 2px; }
 .hof-tab-active {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.35);
-  color: var(--text-bright);
+  background: var(--cgr-red);
+  color: #fff;
+}
+
+/* ═══════════════════════════════════════
+   BODY
+═══════════════════════════════════════ */
+
+.hof-body {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 22px 26px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hof-awards-section {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin-top: 12px;
+}
+
+.hof-awards-label {
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--cgr-text-muted);
+}
+
+/* ═══════════════════════════════════════
+   CARD BASE
+═══════════════════════════════════════ */
+
+.hof-card {
+  background: var(--cgr-card);
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-card);
+  overflow: hidden;
+}
+
+.hof-card-header {
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--cgr-text-muted);
+  padding: 16px 18px 4px;
 }
 
 /* ═══════════════════════════════════════
@@ -89,8 +128,10 @@
   border-radius: 999px;
   overflow: hidden;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.06);
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: var(--cgr-border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hof-avatar img {
@@ -101,28 +142,20 @@
   display: block;
 }
 
-.hof-avatar-sm { width: 32px; height: 32px; }
-.hof-avatar-md { width: 56px; height: 56px; }
-.hof-avatar-lg { width: 90px; height: 90px; }
+.hof-avatar-sm { width: 28px; height: 28px; }
+.hof-avatar-md { width: 44px; height: 44px; }
+.hof-avatar-lg { width: 72px; height: 72px; }
 
 /* ═══════════════════════════════════════
    HERO PODIUM (Career Points)
 ═══════════════════════════════════════ */
 
-.hof-hero-section {
-  width: 100%;
-}
-
-.hof-hero-card {
-  /* uses .stats-card base */
-}
-
 .hof-podium-stage {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 8px;
-  padding: 24px 16px 0;
+  gap: 18px;
+  padding: 18px 40px 0;
 }
 
 .hof-podium-spot {
@@ -130,88 +163,78 @@
   flex-direction: column;
   align-items: center;
   flex: 1;
-  max-width: 220px;
+  max-width: 260px;
 }
 
 .hof-podium-info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   padding-bottom: 12px;
 }
 
 .hof-podium-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--cgr-font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--cgr-text-primary);
   text-align: center;
-  line-height: 1.2;
+  margin-top: 10px;
 }
 
 .hof-podium-value {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--text-bright);
+  font-family: var(--cgr-font-mono);
+  font-weight: 700;
+  font-size: 26px;
+  color: var(--cgr-text-primary);
+  margin: 4px 0 0;
 }
 
-/* Rank-specific avatar rings */
 .hof-rank-1 .hof-avatar {
-  border-color: var(--accent);
-  border-width: 3px;
-  box-shadow: 0 0 18px rgba(255, 199, 14, 0.3);
+  border: 3px solid var(--cgr-gold);
+  box-shadow: 0 0 0 4px rgba(245, 178, 26, 0.18);
 }
+.hof-rank-2 .hof-avatar { border: 3px solid var(--cgr-border-card); }
+.hof-rank-3 .hof-avatar { border: 3px solid var(--cgr-border-card); }
 
-.hof-rank-2 .hof-avatar { border-color: var(--pos-2); }
-.hof-rank-3 .hof-avatar { border-color: var(--pos-3); }
+.hof-rank-1 .hof-podium-value { color: var(--cgr-red); }
 
-.hof-rank-1 .hof-podium-value { color: var(--accent); }
-.hof-rank-2 .hof-podium-value { color: var(--pos-2); }
-.hof-rank-3 .hof-podium-value { color: var(--pos-3); }
-
-/* Podium steps */
 .hof-podium-step {
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 12px;
+  padding-top: 14px;
   border-radius: 6px 6px 0 0;
+  border: 1px solid var(--cgr-border-chip);
+  border-bottom: none;
+  background: var(--cgr-border-hairline-3);
 }
 
 .hof-rank-1 .hof-podium-step {
   height: 130px;
-  background: linear-gradient(to top, rgba(40, 30, 4, 0.9), rgba(80, 60, 8, 0.6));
-  border-top: 2px solid rgba(255, 199, 14, 0.4);
+  background: linear-gradient(180deg, #f7e7b8, #f3d98a);
+  border-color: #e7c768;
 }
-
-.hof-rank-2 .hof-podium-step {
-  height: 90px;
-  background: linear-gradient(to top, rgba(20, 20, 30, 0.9), rgba(40, 45, 55, 0.6));
-  border-top: 2px solid rgba(184, 190, 197, 0.35);
-}
-
-.hof-rank-3 .hof-podium-step {
-  height: 65px;
-  background: linear-gradient(to top, rgba(30, 18, 8, 0.9), rgba(55, 35, 14, 0.6));
-  border-top: 2px solid rgba(205, 139, 69, 0.35);
-}
+.hof-rank-2 .hof-podium-step { height: 90px; }
+.hof-rank-3 .hof-podium-step { height: 65px; }
 
 .hof-podium-rank-num {
-  font-size: 1.6rem;
+  font-family: var(--cgr-font-display);
   font-weight: 800;
-  opacity: 0.25;
-  color: var(--text-bright);
+  font-size: 34px;
+  color: var(--cgr-text-faint);
   line-height: 1;
 }
+.hof-rank-1 .hof-podium-rank-num { color: #caa53a; }
 
-/* Ordering: 2nd left, 1st centre, 3rd right */
 .hof-rank-2 { order: 1; }
 .hof-rank-1 { order: 2; }
 .hof-rank-3 { order: 3; }
 
 /* ═══════════════════════════════════════
-   LEADERBOARD CARDS (Championships / Wins / Podiums)
+   LEADERBOARD CARDS
 ═══════════════════════════════════════ */
 
 .hof-grid {
@@ -221,205 +244,145 @@
 }
 
 @media (min-width: 700px) {
-  .hof-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .hof-grid { grid-template-columns: repeat(2, 1fr); }
 }
-
 @media (min-width: 900px) {
-  .hof-grid-4 {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .hof-podium-stage {
-    gap: 4px;
-    padding: 16px 8px 0;
-  }
-  .hof-rank-1 .hof-podium-step { height: 90px; }
-  .hof-rank-2 .hof-podium-step { height: 65px; }
-  .hof-rank-3 .hof-podium-step { height: 48px; }
-  .hof-avatar-lg { width: 64px; height: 64px; }
-  .hof-podium-value { font-size: 1.1rem; }
-  .hof-filter-tabs { flex-wrap: wrap; }
-  .hof-header { padding: 14px 16px; }
-  .hof-awards-grid { grid-template-columns: 1fr 1fr; }
+  .hof-grid-4 { grid-template-columns: repeat(4, 1fr); }
 }
 
 .hof-lb-rows {
   display: flex;
   flex-direction: column;
+  margin-top: 8px;
 }
 
 .hof-lb-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 34px 30px 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 10px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  height: 50px;
+  padding: 0 16px;
+  border-top: 1px solid var(--cgr-border-hairline-3);
 }
-
-.hof-lb-row:last-child {
-  border-bottom: none;
-}
+.hof-lb-row:first-child { border-top: none; }
 
 .hof-lb-rank {
-  font-size: 10px;
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  width: 28px;
-  flex-shrink: 0;
+  color: var(--cgr-text-muted-2);
 }
-
-.hof-lb-rank-1 .hof-lb-rank { color: var(--accent); }
-.hof-lb-rank-2 .hof-lb-rank { color: var(--pos-2); }
-.hof-lb-rank-3 .hof-lb-rank { color: var(--pos-3); }
-
-.hof-lb-rank-1 .hof-avatar { border-color: rgba(255, 199, 14, 0.5); }
-.hof-lb-rank-2 .hof-avatar { border-color: rgba(184, 190, 197, 0.4); }
-.hof-lb-rank-3 .hof-avatar { border-color: rgba(205, 139, 69, 0.4); }
+.hof-lb-rank-1 .hof-lb-rank { color: var(--cgr-gold); }
 
 .hof-lb-name {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--cgr-font-body);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--cgr-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .hof-lb-value {
-  font-size: 14px;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.6);
-  flex-shrink: 0;
-}
-
-/* ═══════════════════════════════════════
-   AWARD CARDS (FL / DOTD / Clean / Overtakes)
-═══════════════════════════════════════ */
-
-.hof-awards-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.hof-awards-label {
-  font-size: 11px;
+  font-family: var(--cgr-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
-  padding: 4px 0 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.hof-awards-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-@media (min-width: 700px) {
-  .hof-awards-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.hof-award-body {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px 16px;
-}
-
-.hof-award-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.hof-award-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.hof-award-value {
-  font-size: 1.8rem;
-  font-weight: 900;
-  line-height: 1;
+  color: var(--cgr-text-primary);
 }
 
 /* ═══════════════════════════════════════
-   SEASON BESTS
+   SEASON BESTS / AWARD CARDS (shared layout)
 ═══════════════════════════════════════ */
 
-.hof-bests-grid {
+.hof-bests-grid,
+.hof-awards-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
 
 @media (min-width: 600px) {
-  .hof-bests-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .hof-bests-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 700px) {
+  .hof-awards-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
-.hof-best-body {
+.hof-best-body,
+.hof-award-body {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px 16px;
+  padding: 12px 18px 16px;
 }
 
-.hof-best-info {
-  flex: 1;
+.hof-best-info,
+.hof-award-info {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  align-items: center;
+  gap: 11px;
   min-width: 0;
 }
 
-.hof-best-name {
-  font-size: 13px;
+.hof-best-name,
+.hof-award-name {
+  font-family: var(--cgr-font-body);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 15px;
+  color: var(--cgr-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .hof-best-season {
+  display: block;
+  font-family: var(--cgr-font-mono);
   font-size: 11px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.35);
-  text-decoration: none;
+  color: var(--cgr-text-muted-2);
+  margin-top: 2px;
   transition: color 0.15s;
 }
+.hof-best-season:hover { color: var(--cgr-text-primary); }
 
-.hof-best-season:hover {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.hof-best-value {
-  font-size: 2rem;
-  font-weight: 900;
+.hof-best-value,
+.hof-award-value {
+  font-family: var(--cgr-font-display);
+  font-weight: 800;
+  font-size: 38px;
   line-height: 1;
-  flex-shrink: 0;
+  flex: none;
 }
 
 .hof-best-unit {
-  font-size: 0.9rem;
+  font-size: 16px;
   font-weight: 600;
   margin-left: 2px;
   opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .hof-body { padding: 16px 16px 40px; }
+  .hof-header-band { padding: 20px 16px 18px; }
+  .hof-header-inner { align-items: flex-start; }
+
+  .hof-podium-stage { gap: 8px; padding: 14px 8px 0; }
+  .hof-rank-1 .hof-podium-step { height: 90px; }
+  .hof-rank-2 .hof-podium-step { height: 65px; }
+  .hof-rank-3 .hof-podium-step { height: 48px; }
+  .hof-avatar-lg { width: 56px; height: 56px; }
+  .hof-podium-value { font-size: 18px; }
+  .hof-podium-name { font-size: 14px; }
+
+  .hof-awards-grid { grid-template-columns: 1fr 1fr; }
+  .hof-best-body, .hof-award-body { padding: 10px 14px 14px; }
+  .hof-best-value, .hof-award-value { font-size: 26px; }
 }

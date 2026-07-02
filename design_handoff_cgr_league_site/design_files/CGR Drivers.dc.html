@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Saira', sans-serif; background: #ecebe5; }
+  a { color: inherit; text-decoration: none; }
+  input { font-family: 'Saira', sans-serif; outline: none; }
+</style>
+</helmet>
+
+<div style="background:#ecebe5; min-height:100vh; color:#16140f;">
+
+  <!-- nav -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; row-gap:6px; min-height:62px; padding:8px 26px; background:#16140f; border-bottom:3px solid #e8232c; position:sticky; top:0; z-index:20;">
+    <a href="CGR%20Home.dc.html" style="display:flex; align-items:center; gap:11px;">
+      <div style="width:32px; height:32px; border-radius:4px; background:#e8232c; display:flex; align-items:center; justify-content:center; font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:15px; color:#fff;">CGR</div>
+      <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; color:#f7f5ef;">CGR LEAGUE</div>
+    </a>
+    <div style="display:flex; align-items:center; gap:14px 26px; flex-wrap:wrap; font-family:'Saira',sans-serif; font-weight:500; font-size:14px; color:#b3afa4;">
+      <a href="CGR%20Seasons.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Seasons</a>
+      <span style="color:#fff; border-bottom:2px solid #e8232c; padding-bottom:3px;">Drivers</span>
+      <a href="CGR%20Teams.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Teams</a><a href="CGR%20Tracks.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Tracks</a><a href="CGR%20Hall%20of%20Fame.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Hall of Fame</a><a href="CGR%20Articles.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Articles</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8579; border:1px solid rgba(255,255,255,0.18); border-radius:5px; padding:7px 11px;">⌕ SEARCH <span style="color:#5a564c;">⌘K</span></div>
+  </div>
+
+  <!-- header band -->
+  <div style="background:#16140f; padding:26px;">
+    <div style="max-width:1440px; margin:0 auto; display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.22em; color:#8a8579; margin-bottom:6px;">CGR LEAGUE · ROSTER</div>
+        <div style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:clamp(36px,6vw,54px); line-height:0.9; color:#f7f5ef; text-transform:uppercase; letter-spacing:-0.01em;">Drivers</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; color:#b3afa4; border:1px solid rgba(255,255,255,0.16); border-radius:4px; padding:8px 12px;">SEASON 7</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; color:#16140f; background:#e8232c; border:1px solid #e8232c; border-radius:4px; padding:8px 12px; color:#fff;">32 DRIVERS</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1440px; margin:0 auto; padding:22px 26px 60px;">
+
+    <!-- humans featured -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b;">THE HUMANS</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#9b988d;">· SEASON 7 · LEAGUE MEMBERS</span>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-bottom:30px;">
+      <sc-for list="{{ humans }}" as="h" hint-placeholder-count="3">
+        <a href="CGR%20Driver.dc.html" style-hover="border-color:#a8a496; transform:translateY(-2px); box-shadow:0 10px 22px rgba(22,20,15,0.09);" style="transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s; background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden; position:relative; display:block; cursor:pointer;">
+          <div style="height:5px; background:{{ h.color }};"></div>
+          <div style="padding:18px 20px;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px;">
+              <div style="display:flex; align-items:center; gap:13px;">
+                <div style="width:54px; height:54px; border-radius:6px; background:repeating-linear-gradient(118deg,#e7e4da 0 2px,#f1efe8 2px 9px); border:1px solid #e2dfd6; display:flex; align-items:flex-end; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:8px; color:#b0ada2; padding-bottom:4px;">PHOTO</div>
+                <div>
+                  <div style="display:flex; align-items:center; gap:7px;">
+                    <span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:#5a564c; border:1px solid #d9d6cd; border-radius:3px; padding:1px 4px;">{{ h.nat }}</span>
+                    <span style="width:6px; height:6px; border-radius:50%; background:#e8232c;"></span>
+                  </div>
+                  <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:24px; color:#16140f; line-height:1.05; margin-top:3px;">{{ h.name }}</div>
+                  <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:#9b988d; margin-top:2px;">{{ h.team }}</div>
+                </div>
+              </div>
+              <div style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:30px; color:{{ h.color }}; line-height:1;">{{ h.pos }}</div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid #ece9e1;">
+              <div style="padding:12px 0; text-align:center; border-right:1px solid #ece9e1;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:22px; color:#16140f;">{{ h.pts }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.12em; color:#9b988d; margin-top:3px;">POINTS</div></div>
+              <div style="padding:12px 0; text-align:center; border-right:1px solid #ece9e1;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:22px; color:#16140f;">{{ h.wins }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.12em; color:#9b988d; margin-top:3px;">WINS S7</div></div>
+              <div style="padding:12px 0; text-align:center;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:22px; color:#16140f;">{{ h.last }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.12em; color:#9b988d; margin-top:3px;">LAST RACE</div></div>
+            </div>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+
+    <!-- all drivers table -->
+    <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:16px 18px; border-bottom:1px solid #ece9e1;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b;">ALL DRIVERS · CAREER</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="display:flex; background:#f1efe8; border:1px solid #e2dfd6; border-radius:5px; padding:2px;">
+            <div onClick="{{ onAll }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 14px; border-radius:4px; background:{{ allBg }}; color:{{ allFg }};">All</div>
+            <div onClick="{{ onHuman }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 14px; border-radius:4px; background:{{ humanBg }}; color:{{ humanFg }};">Human</div>
+          </div>
+          <input value="{{ q }}" onInput="{{ onSearch }}" placeholder="Search drivers..." style="font-size:13px; color:#16140f; background:#f6f4ee; border:1px solid #e2dfd6; border-radius:5px; padding:7px 12px; width:210px;"/>
+        </div>
+      </div>
+
+      <!-- column header -->
+      <div style="display:grid; grid-template-columns:46px 1fr 120px 90px 90px; align-items:center; gap:12px; padding:10px 18px; border-bottom:1px solid #ece9e1; background:#faf9f4; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#9b988d;">
+        <div style="text-align:center;">#</div>
+        <div>DRIVER</div>
+        <div style="text-align:right;">CAREER PTS</div>
+        <div style="text-align:right;">WINS</div>
+        <div style="text-align:right;">RACES</div>
+      </div>
+
+      <sc-for list="{{ rows }}" as="d" hint-placeholder-count="20">
+        <a href="CGR%20Driver.dc.html" style="display:grid; grid-template-columns:46px 1fr 120px 90px 90px; align-items:center; gap:12px; padding:0 18px; height:52px; border-bottom:1px solid #f4f1e9; cursor:pointer;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:#b0ada2; text-align:center;">{{ d.rank }}</div>
+          <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+            <span style="width:4px; height:26px; border-radius:2px; background:{{ d.color }}; flex:none;"></span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:#5a564c; border:1px solid #e2dfd6; border-radius:3px; padding:2px 4px; flex:none;">{{ d.nat }}</span>
+            <span style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:18px; color:#16140f; white-space:nowrap;">{{ d.name }}</span>
+            <sc-if value="{{ d.human }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.08em; color:#fff; background:#16140f; padding:2px 5px; border-radius:3px; font-weight:700;">HUMAN</span></sc-if>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:#b0ada2; white-space:nowrap;">{{ d.team }}</span>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+            <div style="width:44px; height:4px; background:#f0ede5; border-radius:2px; overflow:hidden;"><div style="height:100%; border-radius:2px; width:{{ d.barPct }}; background:{{ d.color }};"></div></div>
+            <span style="font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:16px; font-weight:700; color:#16140f; min-width:52px; text-align:right;">{{ d.pts }}</span>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:14px; font-weight:600; color:{{ d.winColor }}; text-align:right;">{{ d.wins }}</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:14px; color:#7a766b; text-align:right;">{{ d.races }}</div>
+        </a>
+      </sc-for>
+      <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:40px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:12px; color:#b0ada2;">NO DRIVERS MATCH “{{ q }}”</div>
+      </sc-if>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { filter: 'all', q: '' };
+
+  humans = [
+    { name: 'Cole Reynolds', nat: 'CAN', team: 'Visa Cash App RB', color: '#3a64d8', pos: 'P1', pts: 90, wins: 3, last: 'P3' },
+    { name: 'Giordano Temple', nat: 'CAN', team: 'Aston Martin', color: '#1f9e74', pos: 'P8', pts: 34, wins: 0, last: 'P17' },
+    { name: 'Ryan Reynolds', nat: 'CAN', team: 'Mercedes', color: '#16c4a6', pos: 'P18', pts: 0, wins: 0, last: 'P19' },
+  ];
+
+  all = [
+    { name: 'Max Verstappen', nat: 'NED', team: 'Red Bull', color: '#2b4bce', pts: 1879, wins: 32, races: 108 },
+    { name: 'Sergio Perez', nat: 'MEX', team: 'Red Bull', color: '#2b4bce', pts: 1256, wins: 16, races: 84 },
+    { name: 'Cole Reynolds', nat: 'CAN', team: 'Visa Cash App RB', color: '#3a64d8', pts: 1170, wins: 21, races: 108, human: true },
+    { name: 'Lewis Hamilton', nat: 'GBR', team: 'Ferrari', color: '#e8232c', pts: 1141, wins: 10, races: 90 },
+    { name: 'Giordano Temple', nat: 'CAN', team: 'Aston Martin', color: '#1f9e74', pts: 832, wins: 6, races: 108, human: true },
+    { name: 'Charles Leclerc', nat: 'MON', team: 'Ferrari', color: '#e8232c', pts: 808, wins: 9, races: 96 },
+    { name: 'Ryan Reynolds', nat: 'CAN', team: 'Mercedes', color: '#16c4a6', pts: 798, wins: 12, races: 108, human: true },
+    { name: 'Valtteri Bottas', nat: 'FIN', team: 'Sauber Kick', color: '#3ad36a', pts: 517, wins: 1, races: 84 },
+    { name: 'Lando Norris', nat: 'GBR', team: 'McLaren', color: '#ff8000', pts: 482, wins: 0, races: 108 },
+    { name: 'Yuki Tsunoda', nat: 'JPN', team: 'Red Bull', color: '#2b4bce', pts: 478, wins: 1, races: 91 },
+    { name: 'Carlos Sainz', nat: 'ESP', team: 'Williams', color: '#1f6fe0', pts: 470, wins: 1, races: 78 },
+    { name: 'Fernando Alonso', nat: 'ESP', team: 'Aston Martin', color: '#1f9e74', pts: 454, wins: 0, races: 108 },
+    { name: 'Esteban Ocon', nat: 'FRA', team: 'Haas', color: '#9aa0a8', pts: 188, wins: 0, races: 90 },
+    { name: 'Pierre Gasly', nat: 'FRA', team: 'Alpine', color: '#1aa0d8', pts: 166, wins: 0, races: 72 },
+    { name: 'George Russell', nat: 'GBR', team: 'Mercedes', color: '#16c4a6', pts: 108, wins: 0, races: 85 },
+    { name: 'Daniel Ricciardo', nat: 'AUS', team: 'Visa Cash App RB', color: '#3a64d8', pts: 93, wins: 0, races: 35 },
+    { name: 'Sebastian Vettel', nat: 'GER', team: 'Aston Martin', color: '#1f9e74', pts: 75, wins: 0, races: 103 },
+    { name: 'Kimi Antonelli', nat: 'ITA', team: 'Mercedes', color: '#16c4a6', pts: 43, wins: 0, races: 5 },
+    { name: 'Kevin Magnussen', nat: 'DEN', team: 'Haas', color: '#9aa0a8', pts: 23, wins: 0, races: 37 },
+    { name: 'Lance Stroll', nat: 'CAN', team: 'Aston Martin', color: '#1f9e74', pts: 19, wins: 0, races: 85 },
+    { name: 'Oscar Piastri', nat: 'AUS', team: 'McLaren', color: '#ff8000', pts: 16, wins: 0, races: 5 },
+    { name: 'Alexander Albon', nat: 'THA', team: 'Williams', color: '#1f6fe0', pts: 11, wins: 0, races: 5 },
+    { name: 'Nico Hulkenberg', nat: 'GER', team: 'Sauber Kick', color: '#3ad36a', pts: 10, wins: 0, races: 5 },
+    { name: 'Gabriel Bortoleto', nat: 'BRA', team: 'Sauber Kick', color: '#3ad36a', pts: 2, wins: 0, races: 5 },
+    { name: 'Nicholas Latifi', nat: 'CAN', team: 'Williams', color: '#1f6fe0', pts: 2, wins: 0, races: 103 },
+    { name: 'Kimi Raikkonen', nat: 'FIN', team: 'Sauber Kick', color: '#3ad36a', pts: 2, wins: 0, races: 66 },
+    { name: 'Antonio Giovinazzi', nat: 'ITA', team: 'Sauber Kick', color: '#3ad36a', pts: 1, wins: 0, races: 49 },
+    { name: 'Oliver Bearman', nat: 'GBR', team: 'Haas', color: '#9aa0a8', pts: 0, wins: 0, races: 5 },
+    { name: 'Jack Doohan', nat: 'AUS', team: 'Alpine', color: '#1aa0d8', pts: 0, wins: 0, races: 5 },
+    { name: 'Isack Hadjar', nat: 'FRA', team: 'Visa Cash App RB', color: '#3a64d8', pts: 0, wins: 0, races: 5 },
+    { name: 'Nikita Mazepin', nat: 'RUS', team: 'Haas', color: '#9aa0a8', pts: 0, wins: 0, races: 49 },
+    { name: 'Mick Schumacher', nat: 'GER', team: 'Mercedes', color: '#16c4a6', pts: 0, wins: 0, races: 103 },
+  ];
+
+  renderVals() {
+    const st = this.state;
+    const q = st.q.trim().toLowerCase();
+    let list = this.all.slice();
+    if (st.filter === 'human') list = list.filter(d => d.human);
+    if (q) list = list.filter(d => d.name.toLowerCase().includes(q));
+    const max = 1879;
+    const rows = list.map((d, i) => ({
+      ...d, rank: i + 1, human: !!d.human,
+      barPct: (d.pts / max * 100).toFixed(0) + '%',
+      winColor: d.wins > 0 ? '#16140f' : '#c2bfb4',
+    }));
+    const aBtn = st.filter === 'all';
+    return {
+      humans: this.humans, rows, q: st.q, empty: rows.length === 0,
+      onAll: () => this.setState({ filter: 'all' }), onHuman: () => this.setState({ filter: 'human' }),
+      onSearch: (e) => this.setState({ q: e.target.value }),
+      allBg: aBtn ? '#16140f' : 'transparent', allFg: aBtn ? '#fff' : '#7a766b',
+      humanBg: !aBtn ? '#16140f' : 'transparent', humanFg: !aBtn ? '#fff' : '#7a766b',
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -2,8 +2,9 @@ import { useApiQuery } from "./useApiQuery";
 
 export type ConstructorRow = {
   team_season_id: number;
-  team: { id: number; name: string, display_name: string; logo_image: string | null };
+  team: { id: number; name: string, display_name: string; logo_image: string | null; color: string | null };
   points: number;
+  trend: number;
 };
 
 export function useConstructorStandings(seasonId: number | string) {

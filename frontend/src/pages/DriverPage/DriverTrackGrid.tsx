@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useDriverTrackStats } from "../../hooks/useDriverTrackStats";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
@@ -8,7 +9,7 @@ export function DriverTrackGrid({ driverId }: { driverId?: string }) {
   if (isLoading) {
     return (
       <section className="dtg-section">
-        <h2 className="section-title">Track Record</h2>
+        <h2 className="dp-section-title">Track Record</h2>
         <Loader label="Loading tracks…" full />
       </section>
     );
@@ -18,7 +19,7 @@ export function DriverTrackGrid({ driverId }: { driverId?: string }) {
 
   return (
     <section className="dtg-section">
-      <h2 className="section-title">Track Record</h2>
+      <h2 className="dp-section-title">Track Record</h2>
       <div className="dtg-grid">
         {data.map((row) => {
           const flagImg = row.track.country
@@ -26,7 +27,7 @@ export function DriverTrackGrid({ driverId }: { driverId?: string }) {
             : undefined;
 
           return (
-            <a key={row.track.id} className="dtg-card" href={`/tracks/${row.track.id}`}>
+            <Link key={row.track.id} className="dtg-card" to={`/tracks/${row.track.id}`}>
               <div className="dtg-track-name">
                 {flagImg && <img loading="lazy" className="dtg-flag" src={flagImg} alt={row.track.country} />}
                 <span>{row.track.name}</span>
@@ -47,7 +48,7 @@ export function DriverTrackGrid({ driverId }: { driverId?: string }) {
                   </>
                 )}
               </div>
-            </a>
+            </Link>
           );
         })}
       </div>

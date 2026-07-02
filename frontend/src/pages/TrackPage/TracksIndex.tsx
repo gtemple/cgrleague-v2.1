@@ -23,16 +23,16 @@ function RecordTile({ stat, entry }: { stat: string; entry: TrackRecord }) {
       <div className="trx-record-left">
         <span className="trx-record-label">{RECORD_LABELS[stat]}</span>
         <span className="trx-record-value">{value.toLocaleString()}</span>
-        <span className="trx-record-track-name">{track.name}</span>
+        <div className="trx-record-track-row">
+          {flagUrl && <img loading="lazy" src={flagUrl} alt={track.country} className="trx-record-flag" />}
+          <span className="trx-record-track-name">{track.name}</span>
+        </div>
       </div>
-      <div className="trx-record-right">
-        {imgUrl ? (
-          <img loading="lazy" src={imgUrl} alt={track.name} className="trx-record-img" />
-        ) : (
-          <div className="trx-record-img-placeholder" />
-        )}
-        {flagUrl && <img loading="lazy" src={flagUrl} alt={track.country} className="trx-record-flag" />}
-      </div>
+      {imgUrl ? (
+        <img loading="lazy" src={imgUrl} alt={track.name} className="trx-record-img" />
+      ) : (
+        <div className="trx-record-img-placeholder" />
+      )}
     </Link>
   );
 }
@@ -92,53 +92,56 @@ export const TracksIndex = () => {
   return (
     <div className="trx-page">
 
-      {/* ── Hero ── */}
-      <div className="trx-hero">
-        <div className="trx-hero-left">
-          <span className="trx-hero-eyebrow">CGR League</span>
-          <h1 className="trx-hero-title">Tracks</h1>
-        </div>
-        <div className="trx-hero-right">
-          <div className="trx-hero-badge">{all_tracks.length} tracks</div>
+      {/* ── Header band ── */}
+      <div className="trx-header-band">
+        <div className="trx-header-inner">
+          <div>
+            <div className="trx-eyebrow">CGR LEAGUE · CIRCUITS</div>
+            <h1 className="trx-title">Tracks</h1>
+          </div>
+          <span className="trx-chip">{all_tracks.length} TRACKS</span>
         </div>
       </div>
 
-      {/* ── Records ── */}
-      {recordEntries.length > 0 && (
+      <div className="trx-body">
+
+        {/* ── Records ── */}
+        {recordEntries.length > 0 && (
+          <section className="trx-section">
+            <div className="trx-section-eyebrow-row">
+              <span className="trx-section-eyebrow">ALL-TIME RECORDS</span>
+            </div>
+            <div className="trx-records">
+              {recordEntries.map(([stat, entry]) => (
+                <RecordTile key={stat} stat={stat} entry={entry} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Track Grid ── */}
         <section className="trx-section">
-          <div className="trx-section-header">
-            <h2 className="trx-section-title">All-time Records</h2>
+          <div className="trx-section-eyebrow-row trx-section-eyebrow-row--space">
+            <span className="trx-section-eyebrow">ALL TRACKS</span>
+            <input
+              className="trx-search"
+              type="search"
+              placeholder="Search tracks…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
-          <div className="trx-records">
-            {recordEntries.map(([stat, entry]) => (
-              <RecordTile key={stat} stat={stat} entry={entry} />
+          <div className="trx-track-grid">
+            {filtered.map((entry) => (
+              <TrackGridCard key={entry.id} entry={entry} />
             ))}
+            {filtered.length === 0 && (
+              <p className="trx-empty">No tracks match "{search}"</p>
+            )}
           </div>
         </section>
-      )}
 
-      {/* ── Track Grid ── */}
-      <section className="trx-section">
-        <div className="trx-section-header">
-          <h2 className="trx-section-title">All Tracks</h2>
-          <input
-            className="trx-search"
-            type="search"
-            placeholder="Search…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="trx-track-grid">
-          {filtered.map((entry) => (
-            <TrackGridCard key={entry.id} entry={entry} />
-          ))}
-          {filtered.length === 0 && (
-            <p className="trx-empty">No tracks match "{search}"</p>
-          )}
-        </div>
-      </section>
-
+      </div>
     </div>
   );
 };

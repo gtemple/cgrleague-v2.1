@@ -61,9 +61,11 @@ class HallOfFameView(APIView):
 
         # ── 2. Championships ──────────────────────────────────────────────────
         championships_map = {}
-        for season in Season.objects.all():
+        season_champions: List[Dict[str, Any]] = []
+        for season in Season.objects.order_by("-id"):
             winner = (
                 DriverSeason.objects.filter(season=season)
+                .select_related("driver", "team_season__team")
                 .annotate(
                     points=Coalesce(Sum(points_case("results__")), 0) + Coalesce(Sum(fl_bonus_case("results__")), 0),
                     avg_finish=Avg(
@@ -78,6 +80,16 @@ class HallOfFameView(APIView):
             )
             if winner:
                 championships_map[winner.driver_id] = championships_map.get(winner.driver_id, 0) + 1
+                team = winner.team_season.team if winner.team_season else None
+                season_champions.append({
+                    "season_id": season.id,
+                    "driver": _serialize_driver_brief(winner),
+                    "team": {
+                        "id": team.id if team else None,
+                        "name": team.team_name if team else None,
+                        "color": (winner.team_season.color or None) if winner.team_season else None,
+                    },
+                })
 
         drivers = []
         for d in metrics:
@@ -129,6 +141,6 @@ class HallOfFameView(APIView):
             "most_poles":  _best(best_poles_ds,  "season_poles"),
         }
 
-        payload = {"drivers": drivers, "season_bests": season_bests}
+        payload = {"drivers": drivers, "season_bests": season_bests, "season_champions": season_champions}
         cache.set(ck, payload, timeout=CACHE_TTL)
         return Response(payload)

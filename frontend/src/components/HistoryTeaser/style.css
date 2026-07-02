@@ -1,9 +1,8 @@
 .ht-card {
   position: relative;
-  border-radius: 12px;
+  border-radius: var(--cgr-radius-card);
   overflow: hidden;
-  border: 1px solid var(--border);
-  background: rgba(5, 5, 20, 0.85);
+  background: var(--cgr-ink);
 }
 
 .ht-bg {
@@ -13,7 +12,7 @@
   height: 100%;
   object-fit: cover;
   object-position: center 40%;
-  opacity: 0.22;
+  opacity: 0.18;
   filter: blur(1px) saturate(0.5);
 }
 
@@ -22,8 +21,8 @@
   inset: 0;
   background: linear-gradient(
     to right,
-    rgba(5, 5, 20, 0.95) 0%,
-    rgba(5, 5, 20, 0.65) 100%
+    rgba(22, 20, 15, 0.95) 0%,
+    rgba(22, 20, 15, 0.7) 100%
   );
 }
 
@@ -33,9 +32,10 @@
   right: -8px;
   top: 50%;
   transform: translateY(-50%);
+  font-family: var(--cgr-font-display);
   font-size: clamp(80px, 14vw, 130px);
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.04);
+  font-weight: 800;
+  color: rgba(247, 245, 239, 0.04);
   letter-spacing: -0.05em;
   line-height: 1;
   pointer-events: none;
@@ -46,10 +46,10 @@
 .ht-content {
   position: relative;
   z-index: 1;
-  padding: 12px 16px 12px;
+  padding: 16px 20px 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 /* ── Header ── */
@@ -58,24 +58,27 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cgr-ink-border);
 }
 
 .ht-eyebrow {
+  font-family: var(--cgr-font-mono);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255, 199, 14, 0.75);
+  color: var(--cgr-gold);
 }
 
 .ht-meta {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  font-family: var(--cgr-font-mono);
   font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--cgr-text-on-dark-muted);
   letter-spacing: 0.03em;
 }
 
@@ -83,23 +86,24 @@
   height: 11px;
   width: auto;
   border-radius: 1px;
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 /* ── Editorial zone (blurb + quote) ── */
 .ht-editorial {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 /* ── AI blurb ── */
 .ht-blurb {
   margin: 0;
+  font-family: var(--cgr-font-body);
   font-size: 15px;
   font-weight: 600;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--cgr-text-on-dark);
   letter-spacing: -0.01em;
 }
 
@@ -107,11 +111,11 @@
 .ht-quote {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 7px 10px;
-  background: rgba(255, 255, 255, 0.03);
+  gap: 9px;
+  padding: 9px 12px;
+  background: var(--cgr-ink-alt);
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--cgr-ink-border);
 }
 
 .ht-quote-avatar {
@@ -119,7 +123,7 @@
   height: 26px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--cgr-ink-border-2);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -140,23 +144,28 @@
 
 .ht-quote-text {
   margin: 0;
+  font-family: var(--cgr-font-body);
   font-size: 12px;
   font-style: italic;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--cgr-text-on-dark-muted);
   line-height: 1.45;
 }
 
 .ht-quote-attr {
+  font-family: var(--cgr-font-mono);
   font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--cgr-text-on-dark-faint);
   letter-spacing: 0.03em;
 }
 
 /* ── Horizontal podium strip ── */
 .ht-podium {
   display: flex;
-  gap: 5px;
+  gap: 1px;
+  background: var(--cgr-ink-border);
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .ht-driver {
@@ -164,29 +173,24 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   text-decoration: none;
-  padding: 5px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: background 0.15s, border-color 0.15s;
+  padding: 8px 10px;
+  background: var(--cgr-ink);
+  transition: background 0.15s;
   min-width: 0;
 }
 
 .ht-driver:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--cgr-ink-alt);
 }
 
 .ht-driver--winner {
-  background: rgba(255, 199, 14, 0.05);
-  border-color: rgba(255, 199, 14, 0.18);
+  background: var(--cgr-ink-alt-2);
 }
 
 .ht-driver--winner:hover {
-  background: rgba(255, 199, 14, 0.1);
-  border-color: rgba(255, 199, 14, 0.3);
+  background: var(--cgr-ink-alt);
 }
 
 /* Avatar */
@@ -195,12 +199,12 @@
   height: 24px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--cgr-ink-border-2);
   flex-shrink: 0;
 }
 
 .ht-driver--winner .ht-avatar {
-  border-color: rgba(255, 199, 14, 0.35);
+  border-color: var(--cgr-gold);
 }
 
 .ht-avatar img {
@@ -213,11 +217,12 @@
 .ht-avatar-fallback {
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--cgr-ink-border);
 }
 
 /* Position badge */
 .ht-pos-badge {
+  font-family: var(--cgr-font-mono);
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -225,15 +230,16 @@
   border-radius: 3px;
   flex-shrink: 0;
 }
-.ht-pos-1 { background: rgba(255, 199, 14, 0.2); color: var(--pos-1); }
-.ht-pos-2 { background: rgba(190, 190, 190, 0.15); color: #c0c5cb; }
-.ht-pos-3 { background: rgba(205, 139, 69, 0.18); color: var(--pos-3); }
+.ht-pos-1 { background: rgba(245, 178, 26, 0.18); color: var(--cgr-gold); }
+.ht-pos-2 { background: rgba(201, 196, 184, 0.16); color: #c9c4b8; }
+.ht-pos-3 { background: rgba(205, 127, 50, 0.18); color: #cd7f32; }
 
 /* Driver name */
 .ht-driver-name {
-  font-size: 11px;
+  font-family: var(--cgr-font-body);
+  font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--cgr-text-on-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -249,21 +255,22 @@
 }
 
 .ht-chip {
-  font-size: 9px;
+  font-family: var(--cgr-font-mono);
+  font-size: 8px;
   font-weight: 700;
-  padding: 1px 4px;
+  padding: 2px 5px;
   border-radius: 3px;
 }
-.ht-chip--pole { background: rgba(77, 255, 42, 0.13); color: #4dff2a; }
-.ht-chip--fl   { background: rgba(231, 109, 255, 0.15); color: #e76dff; }
+.ht-chip--pole { background: #46e0a0; color: #0a0a0c; }
+.ht-chip--fl   { background: #a23ce8; color: #fff; }
 
 /* ── Footer link ── */
 .ht-link {
+  font-family: var(--cgr-font-mono);
   font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--cgr-text-on-dark-muted);
   text-decoration: none;
   align-self: flex-end;
   transition: color 0.15s;
 }
-.ht-link:hover { color: rgba(255, 255, 255, 0.7); }
+.ht-link:hover { color: var(--cgr-text-on-dark); }

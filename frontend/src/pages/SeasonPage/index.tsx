@@ -16,45 +16,15 @@ type MatrixProps = {
   seasonId?: number;
 };
 
-const LEGEND_ZONES = [
-  { color: 'var(--accent)',      name: 'Win',     range: 'P1' },
-  { color: 'rgb(255, 110, 20)', name: 'Podium',  range: 'P2–3' },
-  { color: 'rgb(165, 22,  22)', name: 'Points',  range: 'P4–10' },
-  { color: 'rgb(30,  12,  42)', name: 'Outside', range: 'P11+' },
-] as const;
-
-export function PositionLegend() {
-  return (
-    <div className="position-legend-container stats-card">
-      <div className="stats-card-header">Position Key</div>
-      <div className="legend-body">
-        <div className="legend-gradient-bar" />
-        <div className="legend-gradient-ends">
-          <span>P20</span>
-          <span>P1</span>
-        </div>
-        <div className="legend-zones">
-          {LEGEND_ZONES.map(z => (
-            <div key={z.name} className="legend-zone-item">
-              <div className="legend-zone-dot" style={{ background: z.color }} />
-              <span className="legend-zone-name">{z.name}</span>
-              <span className="legend-zone-range">{z.range}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+type GridMode = 'position' | 'points' | 'heat';
 
 export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
-  const [displayMode, setDisplayMode] = useState<'finishPosition' | 'finishPoints'>('finishPosition');
-  const [showHeatMap, setShowHeatMap] = useState(false);
+  const [mode, setMode] = useState<GridMode>('position');
 
   if (!data) {
     return (
       <div className="stats-card">
-        <div className="stats-card-header">Results Grid</div>
+        <div className="stats-card-header"><span>RESULTS GRID</span></div>
         <div style={{ padding: '16px' }}><Loader variant="skeleton" lines={10} full /></div>
       </div>
     );
@@ -63,126 +33,134 @@ export const MatrixChart = ({ data, seasonId }: MatrixProps) => {
   const { results, races } = data;
 
   return (
-    <div className="matrix-chart-container">
-      <div className='stats-card'>
-        <div className="stats-card-header">Results Grid</div>
-        <div className="matrix-chart-inner">
-        <div className="matrix-chart-row">
-          <div className="matrix-chart-race-header-cell"></div>
-          {races.map((row, raceIndex) => (
-            <Link
-              key={raceIndex}
-              className="matrix-chart-flag-image-container"
-              to={`/seasons/${seasonId}/races/${row.round}${row.is_sprint ? '?is_sprint=1' : ''}`}
-              title={`Round ${row.round}${row.is_sprint ? ' (Sprint)' : ''} — ${row.track?.name ?? ''}`}
+    <div className="stats-card results-grid-card">
+      <div className="stats-card-header">
+        <span>RESULTS GRID</span>
+        <div className="grid-mode-toggle">
+          {(['position', 'points', 'heat'] as GridMode[]).map((m) => (
+            <button
+              key={m}
+              className={mode === m ? 'seg-active' : ''}
+              onClick={() => setMode(m)}
             >
-              {row?.is_sprint && <div className="sprint-indicator">S</div>}
-              {row?.track?.country ? (
-                <img loading="lazy" src={displayImage(row?.track?.country, 'flags')} />
-              ) : (
-                <div className="matrix-chart-driver-label"></div>
-              )}
-              <div className="round-label">R{row.round}</div>
-            </Link>
+              {m === 'position' ? 'Position' : m === 'points' ? 'Points' : 'Heat Map'}
+            </button>
           ))}
-          <div className="matrix-chart-total-cell" aria-hidden="true" />
         </div>
-        {results.map((row, driverIndex) => {
-          const driver = row.driver_info;
-          return (
-            <div key={driverIndex} className="matrix-chart-row">
-              <div className="matrix-driver-cell">
-                <div className="matrix-chart-driver-image-container">
-                  {driver.profile_image
-                    ? <img loading="lazy" src={displayImage(driver.profile_image, 'driver')} alt={`${driver.initials} portrait`} />
-                    : null}
+      </div>
+
+      <div className="matrix-chart-inner">
+        <div className="matrix-chart-scroll">
+          <div className="matrix-chart-row">
+            <div className="matrix-chart-race-header-cell"></div>
+            {races.map((row, raceIndex) => (
+              <Link
+                key={raceIndex}
+                className="matrix-chart-flag-image-container"
+                to={`/seasons/${seasonId}/races/${row.round}${row.is_sprint ? '?is_sprint=1' : ''}`}
+                title={`Round ${row.round}${row.is_sprint ? ' (Sprint)' : ''} — ${row.track?.name ?? ''}`}
+              >
+                {row?.is_sprint && <div className="sprint-indicator">S</div>}
+                {row?.track?.country ? (
+                  <img loading="lazy" src={displayImage(row?.track?.country, 'flags')} />
+                ) : (
+                  <div className="matrix-chart-driver-label"></div>
+                )}
+                <div className="round-label">R{row.round}</div>
+              </Link>
+            ))}
+            <div className="matrix-chart-total-cell" aria-hidden="true">
+              {mode === 'points' ? 'PTS' : 'AVG'}
+            </div>
+          </div>
+          {results.map((row, driverIndex) => {
+            const driver = row.driver_info;
+            return (
+              <div key={driverIndex} className="matrix-chart-row">
+                <div className="matrix-driver-cell">
+                  <div className="matrix-chart-driver-image-container">
+                    {driver.profile_image
+                      ? <img loading="lazy" src={displayImage(driver.profile_image, 'driver')} alt={`${driver.initials} portrait`} />
+                      : null}
+                  </div>
+                  <span className="matrix-driver-code">{driver.initials}</span>
                 </div>
-                <span className="matrix-driver-code">{driver.initials}</span>
-              </div>
 
-              {row.finish_positions.map((finishPos, raceIndex) => {
-                // @ts-expect-error finishPos can be number or string
-                const bg = getPositionColor(finishPos);
-                const cellStyle = showHeatMap && finishPos != null
-                  ? { backgroundColor: bg.replace('rgb(', 'rgba(').replace(')', ', 0.45)') }
-                  : {};
+                {row.finish_positions.map((finishPos, raceIndex) => {
+                  // @ts-expect-error finishPos can be number or string
+                  const heatColor = getPositionColor(finishPos);
+                  const cellStyle = mode === 'heat' && finishPos != null
+                    ? { backgroundColor: heatColor, border: '1px solid rgba(0,0,0,0.05)' }
+                    : {};
+                  const isPole = row.pole_positions[raceIndex];
+                  const isFl = row.fastest_lap[raceIndex];
+                  const isDnf = row.statuses[raceIndex] != null && row.statuses[raceIndex] !== 'FIN';
 
-                return (
-                  <div
-                    key={raceIndex}
-                    className="matrix-chart-cell"
-                    style={cellStyle}
-                  >
-                    <div className="matrix-chart-cell-content">
-                      <div
-                        className={
-                          'cell-data' +
-                          (row.fastest_lap[raceIndex] ? ' fastest-lap' : '') +
-                          (row.pole_positions[raceIndex] ? ' pole-position' : '')
-                        }
-                      >
-                        {displayMode === 'finishPosition'
-                          ? (row.statuses[raceIndex] === 'FIN' ? finishPos : row.statuses[raceIndex])
-                          : row.finish_points[raceIndex]
-                        }
-                      </div>
-
-                      <div className="matrix-chart-tooltip">
-                        <div className="tooltip-header">
-                          <div>
-                            <h2>{row.driver_info.first_name} {row.driver_info.last_name}</h2>
-                            <div>{row.driver_info.team_name}</div>
-                          </div>
-                          <div>{row.statuses[raceIndex] !== 'FIN' && (
-                            <div><span className="tooltip-emphasis">{row.statuses[raceIndex] ?? '-'}</span></div>
-                          )}</div>
+                  return (
+                    <div
+                      key={raceIndex}
+                      className="matrix-chart-cell"
+                      style={cellStyle}
+                    >
+                      <div className="matrix-chart-cell-content">
+                        <div
+                          className={
+                            'cell-data' +
+                            (mode !== 'heat' && isFl ? ' fastest-lap' : '') +
+                            (mode !== 'heat' && isPole ? ' pole-position' : '') +
+                            (mode === 'position' && isDnf ? ' cell-data--dnf' : '') +
+                            (mode === 'heat' ? ' cell-data--heat' : '')
+                          }
+                        >
+                          {mode === 'points'
+                            ? row.finish_points[raceIndex]
+                            : (row.statuses[raceIndex] === 'FIN' ? finishPos : row.statuses[raceIndex])
+                          }
                         </div>
-                        <div className="tooltip-emphasis">{races[raceIndex]?.track.name}</div>
-                        <div>Position: <span className="tooltip-emphasis">{finishPos ?? '-'}</span></div>
-                        <div>Points: <span className="tooltip-emphasis">{row.finish_points[raceIndex] ?? 0}</span></div>
-                        <div>Grid: <span className="tooltip-emphasis">{row.grid_positions[raceIndex] ?? '-'}</span></div>
+
+                        <div className="matrix-chart-tooltip">
+                          <div className="tooltip-header">
+                            <div>
+                              <h2>{row.driver_info.first_name} {row.driver_info.last_name}</h2>
+                              <div>{row.driver_info.team_name}</div>
+                            </div>
+                            <div>{row.statuses[raceIndex] !== 'FIN' && (
+                              <div><span className="tooltip-emphasis">{row.statuses[raceIndex] ?? '-'}</span></div>
+                            )}</div>
+                          </div>
+                          <div className="tooltip-emphasis">{races[raceIndex]?.track.name}</div>
+                          <div>Position: <span className="tooltip-emphasis">{finishPos ?? '-'}</span></div>
+                          <div>Points: <span className="tooltip-emphasis">{row.finish_points[raceIndex] ?? 0}</span></div>
+                          <div>Grid: <span className="tooltip-emphasis">{row.grid_positions[raceIndex] ?? '-'}</span></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-              <div className='matrix-chart-total-cell'>
-                {displayMode === 'finishPosition'
-                  ? row.avg_finish_position !== null
-                    ? Number(row.avg_finish_position).toFixed(1)
-                    : '-'
-                  : `${row.total_points} pts`}
+                  );
+                })}
+                <div className='matrix-chart-total-cell'>
+                  {mode === 'points'
+                    ? `${row.total_points}`
+                    : row.avg_finish_position !== null
+                      ? Number(row.avg_finish_position).toFixed(1)
+                      : '-'}
+                </div>
               </div>
-            </div>
-          )
-        })}
-        </div>{/* matrix-chart-inner */}
-      </div>
-      <div className="matrix-chart-footer">
-        <div className="matrix-chart-filters stats-card">
-          <div className="stats-card-header">Display</div>
-          <div className="filter-body">
-          <div className="filter-row">
-            <div className="filter-group">
-              <div className="filter-segmented">
-                <button className={displayMode === 'finishPosition' ? 'seg-active' : ''} onClick={() => setDisplayMode('finishPosition')}>
-                  Position
-                </button>
-                <button className={displayMode === 'finishPoints' ? 'seg-active' : ''} onClick={() => setDisplayMode('finishPoints')}>
-                  Points
-                </button>
-              </div>
-            </div>
-            <button
-              className={`heatmap-toggle${showHeatMap ? ' active' : ''}`}
-              onClick={() => setShowHeatMap(v => !v)}
-            >
-              Heat Map
-            </button>
-          </div>
-          </div>{/* filter-body */}
+            )
+          })}
         </div>
-        <PositionLegend />
+      </div>
+
+      {/* key */}
+      <div className="matrix-key-row">
+        <span className="matrix-key-label">KEY</span>
+        <div className="matrix-key-item"><span className="key-pole-swatch" /><span>Pole</span></div>
+        <div className="matrix-key-item"><span className="key-fl-swatch">P</span><span>Fastest lap</span></div>
+        <div className="matrix-key-item"><span className="key-dnf-swatch" /><span>DNF</span></div>
+        <div className="matrix-key-gradient">
+          <span>P20</span>
+          <span className="key-gradient-bar" />
+          <span>P1</span>
+        </div>
       </div>
     </div>
   );
@@ -192,7 +170,7 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
   if (!data) {
     return (
       <div className="stats-card">
-        <div className="stats-card-header">Constructors</div>
+        <div className="stats-card-header"><span>CONSTRUCTORS</span></div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
@@ -215,23 +193,25 @@ const ConstructorsTable = ({ data }: MatrixProps) => {
 
   return (
     <div className="stats-card">
-      <div className="stats-card-header">Constructors</div>
-      <table className="table">
-        <tbody>
-          {constructors.map((constructor) => (
-            <tr key={constructor.constructor}>
-              <td><div className='team-logo'>{constructor?.profileImage && <img loading="lazy" src={displayImage(constructor.profileImage, 'team')} alt={constructor.constructor} />}</div></td>
-              <td>{constructor.teamId ? <Link to={`/teams/${constructor.teamId}`} style={{ textDecoration: "none", color: "inherit" }}>{constructor.displayName}</Link> : constructor.displayName}</td>
-              <td className="stat-bar-cell">
-                <div className="stat-bar-wrap">
-                  <div className="stat-bar stat-bar-constructor" style={{ width: `${(constructor.totalPoints / max) * 100}%` }} />
-                  <span className="stat-bar-count">{constructor.totalPoints}</span>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="stats-card-header"><span>CONSTRUCTORS</span></div>
+      <div className="rail-list">
+        {constructors.map((constructor, i) => (
+          <div className="rail-row" key={constructor.constructor}>
+            <span className="rail-pos">{i + 1}</span>
+            <div className="rail-identity">
+              <div className="rail-name">
+                {constructor.teamId
+                  ? <Link to={`/teams/${constructor.teamId}`}>{constructor.displayName}</Link>
+                  : constructor.displayName}
+              </div>
+              <div className="rail-bar-track">
+                <div className="rail-bar-fill" style={{ width: `${(constructor.totalPoints / max) * 100}%` }} />
+              </div>
+            </div>
+            <span className="rail-points">{constructor.totalPoints}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -240,7 +220,7 @@ const PodiumsTable = ({ data }: MatrixProps) => {
   if (!data) {
     return (
       <div className="stats-card">
-        <div className="stats-card-header">Podiums</div>
+        <div className="stats-card-header"><span>PODIUMS</span></div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
@@ -253,7 +233,6 @@ const PodiumsTable = ({ data }: MatrixProps) => {
       const podiumFinishes = row.finish_positions.filter((pos) => pos !== null && pos <= 3).length;
       return {
         driver: `${driver.first_name} ${driver.last_name}`,
-        profileImage: driver.profile_image,
         podiumFinishes,
       };
     })
@@ -261,36 +240,14 @@ const PodiumsTable = ({ data }: MatrixProps) => {
     .sort((a, b) => b.podiumFinishes - a.podiumFinishes)
     .slice(0, 5);
 
-  const max = podiums[0]?.podiumFinishes ?? 1;
-
-  return (
-    <div className="stats-card">
-      <div className="stats-card-header">Podiums</div>
-      <table className="table">
-        <tbody>
-          {podiums.map((driver) => (
-            <tr key={driver.driver}>
-              <td><div className='avatar-sm'>{driver?.profileImage && <img loading="lazy" src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
-              <td>{driver.driver}</td>
-              <td className="stat-bar-cell">
-                <div className="stat-bar-wrap">
-                  <div className="stat-bar" style={{ width: `${(driver.podiumFinishes / max) * 100}%` }} />
-                  <span className="stat-bar-count">{driver.podiumFinishes}</span>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  return <StatPanel title="PODIUMS" barClass="stat-bar--red" rows={podiums.map(p => ({ name: p.driver, val: p.podiumFinishes }))} />;
 }
 
 const FastestLapTable = ({ data }: MatrixProps) => {
   if (!data) {
     return (
       <div className="stats-card">
-        <div className="stats-card-header">Fastest Laps</div>
+        <div className="stats-card-header"><span>FASTEST LAPS</span></div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
@@ -303,7 +260,6 @@ const FastestLapTable = ({ data }: MatrixProps) => {
       const fastestLapCount = row.fastest_lap.filter((hasFastestLap) => hasFastestLap).length;
       return {
         driver: `${driver.first_name} ${driver.last_name}`,
-        profileImage: driver.profile_image,
         fastestLapCount,
       };
     })
@@ -311,36 +267,14 @@ const FastestLapTable = ({ data }: MatrixProps) => {
     .sort((a, b) => b.fastestLapCount - a.fastestLapCount)
     .slice(0, 5);
 
-  const max = fastestLaps[0]?.fastestLapCount ?? 1;
-
-  return (
-    <div className="stats-card">
-      <div className="stats-card-header">Fastest Laps</div>
-      <table className="table">
-        <tbody>
-          {fastestLaps.map((driver) => (
-            <tr key={driver.driver}>
-              <td><div className='avatar-sm'>{driver?.profileImage && <img loading="lazy" src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
-              <td>{driver.driver}</td>
-              <td className="stat-bar-cell">
-                <div className="stat-bar-wrap">
-                  <div className="stat-bar stat-bar-fl" style={{ width: `${(driver.fastestLapCount / max) * 100}%` }} />
-                  <span className="stat-bar-count">{driver.fastestLapCount}</span>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  return <StatPanel title="FASTEST LAPS" barClass="stat-bar--purple" rows={fastestLaps.map(f => ({ name: f.driver, val: f.fastestLapCount }))} />;
 }
 
 const DotdsTable = ({ data }: MatrixProps) => {
   if (!data) {
     return (
       <div className="stats-card">
-        <div className="stats-card-header">Driver of the Day</div>
+        <div className="stats-card-header"><span>DRIVER OF THE DAY</span></div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
@@ -353,7 +287,6 @@ const DotdsTable = ({ data }: MatrixProps) => {
       const dotdCount = row.dotds.filter((hasDotd) => hasDotd).length;
       return {
         driver: `${driver.first_name} ${driver.last_name}`,
-        profileImage: driver.profile_image,
         dotdCount,
       };
     })
@@ -361,27 +294,25 @@ const DotdsTable = ({ data }: MatrixProps) => {
     .sort((a, b) => b.dotdCount - a.dotdCount)
     .slice(0, 5);
 
-  const max = dotds[0]?.dotdCount ?? 1;
+  return <StatPanel title="DRIVER OF THE DAY" barClass="stat-bar--blue" rows={dotds.map(d => ({ name: d.driver, val: d.dotdCount }))} />;
+}
 
+function StatPanel({ title, barClass, rows }: { title: string; barClass: string; rows: { name: string; val: number }[] }) {
+  const max = rows[0]?.val ?? 1;
   return (
     <div className="stats-card">
-      <div className="stats-card-header">Driver of the Day</div>
-      <table className="table">
-        <tbody>
-          {dotds.map((driver) => (
-            <tr key={driver.driver}>
-              <td><div className='avatar-sm'>{driver?.profileImage && <img loading="lazy" src={displayImage(driver.profileImage, 'driver')} alt={driver.driver} />}</div></td>
-              <td>{driver.driver}</td>
-              <td className="stat-bar-cell">
-                <div className="stat-bar-wrap">
-                  <div className="stat-bar stat-bar-dotd" style={{ width: `${(driver.dotdCount / max) * 100}%` }} />
-                  <span className="stat-bar-count">{driver.dotdCount}</span>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="stats-card-header"><span>{title}</span></div>
+      <div className="stat-panel-rows">
+        {rows.map((row) => (
+          <div className="stat-panel-row" key={row.name}>
+            <span className="stat-panel-name">{row.name}</span>
+            <div className="stat-panel-bar-track">
+              <div className={`stat-panel-bar-fill ${barClass}`} style={{ width: `${(row.val / max) * 100}%` }} />
+            </div>
+            <span className="stat-panel-val">{row.val}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -413,53 +344,46 @@ const SeasonSelector = ({
 const LastRaceResults = ({ data, seasonId }: { data?: SeasonLastRaceResponse; seasonId?: number }) => {
   if (!data) {
     return (
-      <div className="stats-card">
-        <div className="stats-card-header">Last Race</div>
+      <div className="stats-card stats-card--dark">
+        <div className="stats-card-header"><span>LAST RACE</span></div>
         <Loader variant="skeleton" lines={5} />
       </div>
     );
   }
   const { last_race } = data;
+  const podiumColors = ['#f5b21a', '#c9c4b8', '#cd7f32'];
 
   return (
-    <div className="stats-card last-race-card">
+    <div className="stats-card stats-card--dark">
       <div className="stats-card-header">
-        <span>Last Race</span>
+        <span>LAST RACE</span>
         {seasonId && last_race?.race?.round && (
           <Link to={`/seasons/${seasonId}/races/${last_race.race.round}`} className="lr-link">
-            View results →
+            RESULTS →
           </Link>
         )}
       </div>
-      <div className="lr-track-name">{last_race?.race?.track?.name}</div>
-      <div className="track-image">
-        {last_race?.race?.track?.image && <img loading="lazy" src={displayImage(last_race.race.track.image, 'trackImage')} alt={last_race.race.track.name} />}
-      </div>
-      {last_race?.results.map((result, i) => (
-        <div className="last-race-result" key={result.driver.id}>
-          <div className={`lr-pos-badge lr-pos-badge-${i + 1}`}>P{i + 1}</div>
-          <div>
-            <div className='last-race-driver-info'>
-              <div className='avatar-sm'>
-                {result?.driver?.profile_image && <img loading="lazy" src={displayImage(result.driver.profile_image, 'driver')} alt={result.driver.display_name} />}
-              </div>
-              <div>{result.driver.display_name}</div>
+      <div className="lr-body">
+        <div className="lr-track-name">R{last_race?.race?.round} · {last_race?.race?.track?.name}</div>
+        {last_race?.results.map((result, i) => (
+          <div className="lr-row" key={result.driver.id}>
+            <span className="lr-pos" style={{ color: podiumColors[i] }}>P{i + 1}</span>
+            <span className="lr-bar" style={{ background: podiumColors[i] }} />
+            <div>
+              <div className="lr-name">{result.driver.display_name}</div>
+              <div className="lr-team">{result.team.name?.toUpperCase()}</div>
             </div>
-            <div className="team-name">{result.team.name}</div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
-
-type MobileTab = 'grid' | 'standings' | 'stats';
 
 export const SeasonPage = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [currentSeason, setCurrentSeason] = useState(Number(params?.seasonId) || 6);
-  const [mobileTab, setMobileTab] = useState<MobileTab>('grid');
 
   const handleSeasonChange = (season: number) => {
     setCurrentSeason(season);
@@ -478,58 +402,67 @@ export const SeasonPage = () => {
         : JSON.stringify(error);
   }, [error]);
 
+  const progress = useMemo(() => {
+    if (!data || data.races.length === 0) return null;
+    const total = data.races.length;
+    const completed = data.races.reduce((acc, _, i) => {
+      const anyResult = data.results.some((r) => r.finish_positions[i] != null);
+      return acc + (anyResult ? 1 : 0);
+    }, 0);
+    return { total, completed, isComplete: completed >= total };
+  }, [data]);
+
   return (
-    <div className="season-container">
-      <header className="season-header">
-        <div className="season-header-left">
-          <div className="season-eyebrow">CGR League</div>
-          <h1 className="season-title">Season {currentSeason}</h1>
+    <div className="season-page">
+      <div className="season-header-band">
+        <div className="season-header-inner">
+          <div>
+            <div className="season-eyebrow">CGR LEAGUE · CHAMPIONSHIP</div>
+            <div className="season-title-row">
+              <h1 className="season-title">Season {currentSeason}</h1>
+              {progress && (
+                <span className="season-progress">
+                  ● {progress.isComplete ? "COMPLETE" : "IN PROGRESS"} · R{String(progress.completed).padStart(2, "0")} / {progress.total}
+                </span>
+              )}
+            </div>
+          </div>
+          <SeasonSelector currentSeasonId={currentSeason} setCurrentSeason={handleSeasonChange} />
         </div>
-        <SeasonSelector currentSeasonId={currentSeason} setCurrentSeason={handleSeasonChange} />
-      </header>
+      </div>
 
-      {isLoading && (
-        <Loader label="Loading season…" full />
-      )}
-      {errorMessage && <p style={{ color: "crimson" }}>Failed to load results: {errorMessage}</p>}
+      <div className="season-body">
+        {isLoading && (
+          <Loader label="Loading season…" full />
+        )}
+        {errorMessage && <p style={{ color: "crimson" }}>Failed to load results: {errorMessage}</p>}
 
-      {!isLoading && !errorMessage && (
-        <div className='season-content'>
+        {!isLoading && !errorMessage && (
+          <div className='season-content'>
 
-          {/* Championship timeline — always visible above the tabs */}
-          <ChampionshipTimeline seasonId={currentSeason} />
+            <ChampionshipTimeline seasonId={currentSeason} />
 
-          {/* Mobile-only tab switcher */}
-          <div className="mobile-tab-bar">
-            {(['grid', 'standings', 'stats'] as MobileTab[]).map(tab => (
-              <button
-                key={tab}
-                className={`mobile-tab${mobileTab === tab ? ' mobile-tab-active' : ''}`}
-                onClick={() => setMobileTab(tab)}
-              >
-                {tab === 'grid' ? 'Grid' : tab === 'standings' ? 'Standings' : 'Stats'}
-              </button>
-            ))}
+            <div className="season-grid-rail">
+              <MatrixChart data={data ?? undefined} seasonId={currentSeason} />
+
+              <div className="season-rail">
+                <ConstructorsTable data={data ?? undefined} />
+                <LastRaceResults data={lastRaceData ?? undefined} seasonId={currentSeason} />
+              </div>
+            </div>
+
+            <div className="season-stats-section">
+              <div className="season-stats-label">SEASON STATS</div>
+              <div className="season-stats-grid">
+                <PodiumsTable data={data ?? undefined} />
+                <FastestLapTable data={data ?? undefined} />
+                <DotdsTable data={data ?? undefined} />
+              </div>
+            </div>
+
           </div>
-
-          <div className={`section-grid${mobileTab !== 'grid' ? ' mobile-hidden' : ''}`}>
-            <MatrixChart data={data ?? undefined} seasonId={currentSeason} />
-          </div>
-
-          <div className={`section-standings${mobileTab !== 'standings' ? ' mobile-hidden' : ''}`}>
-            <ConstructorsTable data={data ?? undefined} />
-            <LastRaceResults data={lastRaceData ?? undefined} seasonId={currentSeason} />
-          </div>
-
-          <div className={`section-stats${mobileTab !== 'stats' ? ' mobile-hidden' : ''}`}>
-            <div className="section-divider">Season Stats</div>
-            <PodiumsTable data={data ?? undefined} />
-            <FastestLapTable data={data ?? undefined} />
-            <DotdsTable data={data ?? undefined} />
-          </div>
-
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

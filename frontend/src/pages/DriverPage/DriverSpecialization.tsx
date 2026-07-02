@@ -9,7 +9,7 @@ export function DriverSpecialization({ query }: Props) {
   if (isLoading) {
     return (
       <section className="spec-section">
-        <h2 className="section-title">Track Specialization</h2>
+        <h2 className="dp-section-title">Track Specialization</h2>
         <Loader label="Loading specialization…" full />
       </section>
     );
@@ -24,7 +24,7 @@ export function DriverSpecialization({ query }: Props) {
 
   return (
     <section className="spec-section">
-      <h2 className="section-title">Track Specialization</h2>
+      <h2 className="dp-section-title">Track Specialization</h2>
 
       <div className="spec-cards">
         {categories.map((cat) => {

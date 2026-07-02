@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Saira', sans-serif; background: #ecebe5; }
+  a { color: inherit; text-decoration: none; }
+  ::-webkit-scrollbar { height: 9px; width: 9px; }
+  ::-webkit-scrollbar-thumb { background: #cbc7bb; border-radius: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</helmet>
+
+<div style="background:#ecebe5; min-height:100vh; color:#16140f;">
+
+  <!-- nav -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; row-gap:6px; min-height:62px; padding:8px 26px; background:#16140f; border-bottom:3px solid #e8232c; position:sticky; top:0; z-index:20;">
+    <a href="CGR%20Home.dc.html" style="display:flex; align-items:center; gap:11px; cursor:pointer; text-decoration:none;">
+      <div style="width:32px; height:32px; border-radius:4px; background:#e8232c; display:flex; align-items:center; justify-content:center; font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:15px; color:#fff;">CGR</div>
+      <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; color:#f7f5ef; letter-spacing:0.01em;">CGR LEAGUE</div>
+    </a>
+    <div style="display:flex; align-items:center; gap:14px 26px; flex-wrap:wrap; font-family:'Saira',sans-serif; font-weight:500; font-size:14px; color:#b3afa4;">
+      <span style="color:#fff; border-bottom:2px solid #e8232c; padding-bottom:3px;">Seasons</span>
+      <a href="CGR%20Drivers.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Drivers</a><a href="CGR%20Teams.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Teams</a><a href="CGR%20Tracks.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Tracks</a><a href="CGR%20Hall%20of%20Fame.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Hall of Fame</a><a href="CGR%20Articles.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Articles</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8579; border:1px solid rgba(255,255,255,0.18); border-radius:5px; padding:7px 11px;">⌕ SEARCH <span style="color:#5a564c;">⌘K</span></div>
+  </div>
+
+  <!-- season header band -->
+  <div style="background:#16140f; padding:26px 26px 24px;">
+    <div style="max-width:1440px; margin:0 auto; display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.22em; color:#8a8579; margin-bottom:6px;">CGR LEAGUE · CHAMPIONSHIP</div>
+        <div style="display:flex; align-items:baseline; gap:16px;">
+          <div style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:clamp(36px,6vw,54px); line-height:0.9; color:#f7f5ef; text-transform:uppercase; letter-spacing:-0.01em;">Season 7</div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#e8232c; letter-spacing:0.1em;">● IN PROGRESS · R6 / 22</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:7px;">
+        <sc-for list="{{ seasons }}" as="s" hint-placeholder-count="7">
+          <div onClick="{{ s.onClick }}" style="cursor:pointer; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; padding:9px 13px; border-radius:4px; background:{{ s.bg }}; color:{{ s.fg }}; border:1px solid {{ s.bd }};">{{ s.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1440px; margin:0 auto; padding:22px 26px 60px;">
+
+    <!-- championship battle -->
+    <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; padding:20px 22px; margin-bottom:18px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px;">
+        <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:23px; color:#16140f; text-transform:uppercase;">Championship Battle</div>
+        <div style="display:flex; gap:10px;">
+          <div style="display:flex; background:#f1efe8; border:1px solid #e2dfd6; border-radius:5px; padding:2px;">
+            <div onClick="{{ onModeDrivers }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 13px; border-radius:4px; background:{{ modeDrvBg }}; color:{{ modeDrvFg }};">Drivers</div>
+            <div onClick="{{ onModeConstructors }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 13px; border-radius:4px; background:{{ modeConBg }}; color:{{ modeConFg }};">Constructors</div>
+          </div>
+          <div style="display:flex; background:#f1efe8; border:1px solid #e2dfd6; border-radius:5px; padding:2px;">
+            <div onClick="{{ onFilterHuman }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 13px; border-radius:4px; background:{{ fHumanBg }}; color:{{ fHumanFg }};">Human</div>
+            <div onClick="{{ onFilterMixed }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 13px; border-radius:4px; background:{{ fMixedBg }}; color:{{ fMixedFg }};">Top</div>
+            <div onClick="{{ onFilterAll }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 13px; border-radius:4px; background:{{ fAllBg }}; color:{{ fAllFg }};">All</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:relative; width:100%;">
+        <svg viewBox="0 0 1000 280" preserveAspectRatio="none" style="width:100%; height:280px; display:block;">
+          <line x1="10" y1="248" x2="990" y2="248" stroke="#e6e2d8" stroke-width="1"/>
+          <line x1="10" y1="189.5" x2="990" y2="189.5" stroke="#efece4" stroke-width="1"/>
+          <line x1="10" y1="131" x2="990" y2="131" stroke="#efece4" stroke-width="1"/>
+          <line x1="10" y1="72.5" x2="990" y2="72.5" stroke="#efece4" stroke-width="1"/>
+          <line x1="10" y1="14" x2="990" y2="14" stroke="#efece4" stroke-width="1"/>
+          <line x1="276.8" y1="14" x2="276.8" y2="248" stroke="#f3f0e8" stroke-width="1"/>
+          <sc-for list="{{ chartSeries }}" as="s" hint-placeholder-count="3">
+            <polyline points="{{ s.points }}" fill="none" stroke="{{ s.color }}" stroke-width="{{ s.width }}" stroke-dasharray="{{ s.dash }}" stroke-linejoin="round" stroke-linecap="round" opacity="{{ s.opacity }}"/>
+          </sc-for>
+        </svg>
+        <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:9px; color:#a8a497; padding:0 6px; margin-top:-4px;">
+          <sc-for list="{{ xLabels }}" as="x" hint-placeholder-count="22">
+            <span style="color:{{ x.color }};">{{ x.label }}</span>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; padding-top:16px; border-top:1px solid #efece4;">
+        <sc-for list="{{ legend }}" as="l" hint-placeholder-count="6">
+          <div style="display:flex; align-items:center; gap:8px; background:#f6f4ee; border:1px solid #ebe7dd; border-radius:5px; padding:6px 11px;">
+            <span style="width:16px; height:0; border-top:3px {{ l.lineStyle }} {{ l.color }}; display:inline-block;"></span>
+            <span style="font-family:'Saira',sans-serif; font-weight:600; font-size:13px; color:#16140f;">{{ l.name }}</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#9b988d;">{{ l.total }}p</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- grid + rail -->
+    <div style="display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start;">
+
+      <!-- results grid -->
+      <div style="flex:999 1 480px; min-width:0; background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px 14px; border-bottom:1px solid #ece9e1;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b;">RESULTS GRID</span>
+          <div style="display:flex; background:#f1efe8; border:1px solid #e2dfd6; border-radius:5px; padding:2px;">
+            <div onClick="{{ onDispPosition }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:5px 12px; border-radius:4px; background:{{ dPosBg }}; color:{{ dPosFg }};">Position</div>
+            <div onClick="{{ onDispPoints }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:5px 12px; border-radius:4px; background:{{ dPtsBg }}; color:{{ dPtsFg }};">Points</div>
+            <div onClick="{{ onDispHeat }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:5px 12px; border-radius:4px; background:{{ dHeatBg }}; color:{{ dHeatFg }};">Heat Map</div>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto; padding:6px 8px 12px;">
+          <div style="min-width:1080px;">
+            <!-- header row -->
+            <div style="display:grid; grid-template-columns:158px repeat(22, 1fr) 52px; align-items:end; height:42px; padding:0 4px; border-bottom:1px solid #ece9e1;">
+              <div></div>
+              <sc-for list="{{ rounds }}" as="r" hint-placeholder-count="22">
+                <div style="text-align:center;">
+                  <div style="font-family:'JetBrains Mono',monospace; font-size:8px; font-weight:700; letter-spacing:0.02em; color:{{ r.codeColor }}; line-height:1;">{{ r.code }}</div>
+                  <div style="font-family:'JetBrains Mono',monospace; font-size:9px; color:#b0ada2; margin-top:3px;">{{ r.r }}</div>
+                </div>
+              </sc-for>
+              <div style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.06em; color:#9b988d;">AVG</div>
+            </div>
+            <!-- driver rows -->
+            <sc-for list="{{ gridRows }}" as="d" hint-placeholder-count="20">
+              <div style="display:grid; grid-template-columns:158px repeat(22, 1fr) 52px; align-items:center; height:34px; padding:0 4px; border-bottom:1px solid #f4f1e9;">
+                <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+                  <span style="width:5px; height:18px; border-radius:2px; background:{{ d.color }}; flex:none;"></span>
+                  <span style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#16140f; flex:none;">{{ d.code }}</span>
+                  <span style="font-family:'Saira',sans-serif; font-size:12px; color:#5a564c; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ d.name }}</span>
+                  <sc-if value="{{ d.human }}" hint-placeholder-val="{{ false }}"><span style="width:6px; height:6px; border-radius:50%; background:#e8232c; flex:none;"></span></sc-if>
+                </div>
+                <sc-for list="{{ d.cells }}" as="c" hint-placeholder-count="22">
+                  <div style="margin:2px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:3px; background:{{ c.bg }}; border:{{ c.border }}; font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; font-weight:{{ c.weight }}; color:{{ c.color }};">{{ c.t }}</div>
+                </sc-for>
+                <div style="text-align:center; font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; font-weight:600; color:#7a766b;">{{ d.avg }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- key -->
+        <div style="display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:13px 18px; border-top:1px solid #ece9e1; background:#faf9f4;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#9b988d;">KEY</span>
+          <div style="display:flex; align-items:center; gap:7px;"><span style="width:14px; height:14px; border-radius:3px; border:2px solid #2bbf6a; background:#fff;"></span><span style="font-family:'Saira',sans-serif; font-size:12px; color:#5a564c;">Pole</span></div>
+          <div style="display:flex; align-items:center; gap:7px;"><span style="font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; color:#a23ce8;">P</span><span style="font-family:'Saira',sans-serif; font-size:12px; color:#5a564c;">Fastest lap</span></div>
+          <div style="display:flex; align-items:center; gap:7px;"><span style="width:14px; height:14px; border-radius:3px; background:#211d18;"></span><span style="font-family:'Saira',sans-serif; font-size:12px; color:#5a564c;">DNF</span></div>
+          <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:9px; color:#9b988d;">P20</span>
+            <span style="width:130px; height:9px; border-radius:5px; background:linear-gradient(90deg,#3a322a,#bd3a30,#e15a37,#ef8f2c,#f5b21a);"></span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:9px; color:#9b988d;">P1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- right rail -->
+      <div style="flex:1 1 300px; display:flex; flex-direction:column; gap:18px;">
+        <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden;">
+          <div style="padding:15px 16px 12px; border-bottom:1px solid #ece9e1; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.16em; color:#7a766b;">CONSTRUCTORS</div>
+          <sc-for list="{{ constructors }}" as="c" hint-placeholder-count="10">
+            <div style="display:grid; grid-template-columns:22px 1fr auto; align-items:center; gap:10px; height:40px; padding:0 16px; border-top:1px solid #f4f1e9;">
+              <div style="font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:#7a766b; text-align:center;">{{ c.pos }}</div>
+              <div>
+                <div style="font-family:'Saira Condensed',sans-serif; font-weight:600; font-size:15px; color:#16140f; line-height:1; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ c.name }}</div>
+                <div style="height:3px; background:#ece9e1; border-radius:2px; overflow:hidden;"><div style="height:100%; border-radius:2px; width:{{ c.barPct }}; background:{{ c.color }};"></div></div>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; color:#16140f;">{{ c.pts }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:#16140f; border:1px solid #16140f; border-radius:5px; overflow:hidden;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:15px 16px 12px;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.16em; color:#8a8579;">LAST RACE</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#e8232c;">RESULTS →</span>
+          </div>
+          <div style="padding:0 16px 14px;">
+            <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:20px; color:#f7f5ef; text-transform:uppercase; margin-bottom:14px;">R5 · Spanish GP</div>
+            <sc-for list="{{ podium }}" as="p" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid rgba(255,255,255,0.08);">
+                <span style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:22px; color:{{ p.pcolor }}; width:34px;">{{ p.pos }}</span>
+                <span style="width:4px; height:30px; border-radius:2px; background:{{ p.color }};"></span>
+                <div>
+                  <div style="font-family:'Saira',sans-serif; font-weight:600; font-size:15px; color:#f0eee7; line-height:1.1;">{{ p.name }}</div>
+                  <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; color:#8a8579; margin-top:2px;">{{ p.team }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- season stats -->
+    <div style="margin-top:26px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b; margin-bottom:14px;">SEASON STATS</div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px;">
+        <sc-for list="{{ statPanels }}" as="sp" hint-placeholder-count="3">
+          <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden;">
+            <div style="padding:14px 16px 12px; border-bottom:1px solid #ece9e1; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.16em; color:#7a766b;">{{ sp.title }}</div>
+            <sc-for list="{{ sp.rows }}" as="row" hint-placeholder-count="5">
+              <div style="display:grid; grid-template-columns:1fr 120px 32px; align-items:center; gap:12px; height:44px; padding:0 16px; border-top:1px solid #f4f1e9;">
+                <div style="display:flex; align-items:center; gap:9px; min-width:0;">
+                  <span style="width:4px; height:18px; border-radius:2px; background:{{ row.color }}; flex:none;"></span>
+                  <span style="font-family:'Saira',sans-serif; font-weight:600; font-size:14px; color:#16140f; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ row.name }}</span>
+                </div>
+                <div style="height:6px; background:#f0ede5; border-radius:3px; overflow:hidden;"><div style="height:100%; border-radius:3px; width:{{ row.barPct }}; background:{{ sp.bar }};"></div></div>
+                <div style="font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; color:#16140f; text-align:right;">{{ row.val }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { season: 7, display: 'position', chartMode: 'drivers', chartFilter: 'all' };
+
+  drivers = [
+    { code: 'CR', name: 'C. Reynolds', team: 'Visa Cash App RB', color: '#3a64d8', line: '#e8232c', human: true, r: [1, 1, 'DNF', 1, 3], pole: [1], fl: [] },
+    { code: 'CL', name: 'C. Leclerc', team: 'Ferrari', color: '#e8232c', line: '#e8232c', r: [9, 7, 1, 3, 1], pole: [], fl: [] },
+    { code: 'MV', name: 'M. Verstappen', team: 'Red Bull', color: '#2b4bce', line: '#2b4bce', r: [4, 2, 2, 5, 12], pole: [4], fl: [] },
+    { code: 'LH', name: 'L. Hamilton', team: 'Ferrari', color: '#e8232c', line: '#e8232c', r: [2, 6, 7, 8, 5], pole: [], fl: [0] },
+    { code: 'KA', name: 'K. Antonelli', team: 'Mercedes', color: '#16c4a6', line: '#16c4a6', r: [3, 4, 8, 4, 'DNF'], pole: [0], fl: [] },
+    { code: 'YT', name: 'Y. Tsunoda', team: 'Red Bull', color: '#2b4bce', line: '#2b4bce', r: [8, 9, 3, 6, 7], pole: [2], fl: [2] },
+    { code: 'FA', name: 'F. Alonso', team: 'Aston Martin', color: '#1f9e74', line: '#1f9e74', r: [5, 8, 9, 16, 2], pole: [], fl: [4] },
+    { code: 'GT', name: 'G. Temple', team: 'Aston Martin', color: '#1f9e74', line: '#2b4bce', human: true, r: [12, 3, 17, 2, 'DNF'], pole: [3], fl: [3] },
+    { code: 'LN', name: 'L. Norris', team: 'McLaren', color: '#ff8000', line: '#ff8000', r: [11, 10, 6, 12, 4], pole: [], fl: [] },
+    { code: 'EO', name: 'E. Ocon', team: 'Haas', color: '#9aa0a8', line: '#9aa0a8', r: [16, 13, 4, 7, 13], pole: [], fl: [] },
+    { code: 'OP', name: 'O. Piastri', team: 'McLaren', color: '#ff8000', line: '#ff8000', r: [13, 5, 15, 9, 8], pole: [], fl: [] },
+    { code: 'AA', name: 'A. Albon', team: 'Williams', color: '#1f6fe0', line: '#1f6fe0', r: [6, 'DNF', 13, 10, 9], pole: [], fl: [] },
+    { code: 'NH', name: 'N. Hulkenberg', team: 'Sauber Kick', color: '#3ad36a', line: '#3ad36a', r: [17, 14, 5, 11, 14], pole: [], fl: [] },
+    { code: 'CS', name: 'C. Sainz', team: 'Williams', color: '#1f6fe0', line: '#1f6fe0', r: [10, 15, 'DNF', 18, 6], pole: [], fl: [] },
+    { code: 'PG', name: 'P. Gasly', team: 'Alpine', color: '#1aa0d8', line: '#1aa0d8', r: [7, 11, 16, 17, 11], pole: [], fl: [] },
+    { code: 'GB', name: 'G. Bortoleto', team: 'Sauber Kick', color: '#3ad36a', line: '#3ad36a', r: [14, 12, 10, 13, 10], pole: [], fl: [] },
+    { code: 'IH', name: 'I. Hadjar', team: 'Visa Cash App RB', color: '#3a64d8', line: '#3a64d8', r: [18, 18, 11, 14, 15], pole: [], fl: [] },
+    { code: 'OB', name: 'O. Bearman', team: 'Haas', color: '#9aa0a8', line: '#9aa0a8', r: [15, 17, 14, 15, 17], pole: [], fl: [] },
+    { code: 'JD', name: 'J. Doohan', team: 'Alpine', color: '#1aa0d8', line: '#1aa0d8', r: [19, 16, 12, 'DNF', 16], pole: [], fl: [] },
+    { code: 'RR', name: 'R. Reynolds', team: 'Visa Cash App RB', color: '#8a8579', line: '#1f9e74', human: true, r: [20, 'DNF', 18, 'DNF', 'DNF'], pole: [], fl: [1] },
+  ];
+
+  teams = [
+    { name: 'Ferrari', color: '#e8232c' }, { name: 'Red Bull', color: '#2b4bce' },
+    { name: 'Visa Cash App RB', color: '#3a64d8' }, { name: 'Aston Martin', color: '#1f9e74' },
+    { name: 'Mercedes', color: '#16c4a6' }, { name: 'McLaren', color: '#ff8000' },
+    { name: 'Williams', color: '#1f6fe0' }, { name: 'Haas', color: '#9aa0a8' },
+    { name: 'Sauber Kick', color: '#3ad36a' }, { name: 'Alpine', color: '#1aa0d8' },
+  ];
+  teamPts = { Ferrari: 120, 'Red Bull': 94, 'Visa Cash App RB': 90, 'Aston Martin': 69, Mercedes: 43, McLaren: 37, Williams: 20, Haas: 18, 'Sauber Kick': 12, Alpine: 6 };
+
+  cal = ['BHR', 'SAU', 'AUS', 'MON', 'ESP', 'CHN', 'EMI', 'MIA', 'AZE', 'NED', 'AUT', 'GBR', 'JPN', 'USA', 'MEX', 'HUN', 'BEL', 'CAN', 'SGP', 'AUS', 'BRA', 'ABU'];
+
+  PM = { 1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1 };
+  R = 5;
+
+  // geometry
+  xFor(i) { return 10 + (i / 22) * 980; }
+  yFor(v) { return 248 - (v / 100) * 234; }
+
+  posPts(p, isFl) {
+    if (typeof p !== 'number') return 0;
+    let pts = this.PM[p] || 0;
+    if (isFl && p <= 10) pts += 1;
+    return pts;
+  }
+  cum(d) {
+    const out = [0]; let run = 0;
+    for (let i = 0; i < this.R; i++) { run += this.posPts(d.r[i], d.fl.includes(i)); out.push(run); }
+    return out;
+  }
+  avg(d) {
+    let sum = 0; for (let i = 0; i < this.R; i++) sum += (typeof d.r[i] === 'number' ? d.r[i] : 20);
+    return (sum / this.R).toFixed(1);
+  }
+  heat(p) {
+    if (p === 'DNF') return { bg: '#211d18', color: '#6b6357' };
+    if (p === 1) return { bg: '#f5b21a', color: '#241a00' };
+    if (p <= 3) return { bg: '#ef8f2c', color: '#241a00' };
+    if (p <= 6) return { bg: '#e15a37', color: '#fff' };
+    if (p <= 10) return { bg: '#bd3a30', color: '#fff' };
+    return { bg: '#3a322a', color: '#a89e92' };
+  }
+  cells(d) {
+    const disp = this.state.display;
+    const out = [];
+    for (let i = 0; i < 22; i++) {
+      if (i >= this.R) { out.push({ t: '', bg: '#faf9f4', border: '1px solid #f1eee6', color: '#cfccc2', weight: '400' }); continue; }
+      const p = d.r[i]; const isDNF = p === 'DNF'; const pole = d.pole.includes(i); const fl = d.fl.includes(i);
+      let t, bg, border, color, weight;
+      if (disp === 'heat') {
+        const h = this.heat(p); bg = h.bg; color = h.color; border = '1px solid rgba(0,0,0,0.05)';
+        t = isDNF ? 'DNF' : String(p); weight = p === 1 ? '700' : '500';
+      } else if (disp === 'points') {
+        const pts = this.posPts(p, fl);
+        bg = pts > 0 ? '#fbf7ee' : '#fff'; border = '1px solid #efece4';
+        color = pts > 0 ? '#16140f' : '#c2bfb4'; t = isDNF ? '—' : String(pts); weight = pts >= 15 ? '700' : '500';
+      } else {
+        bg = '#fff'; border = pole ? '2px solid #2bbf6a' : '1px solid #efece4';
+        color = fl ? '#a23ce8' : (isDNF ? '#b7b3a8' : '#16140f');
+        t = isDNF ? 'DNF' : String(p); weight = (p === 1 || fl) ? '700' : '500';
+      }
+      out.push({ t, bg, border, color, weight });
+    }
+    return out;
+  }
+
+  pill(active) { return active ? { bg: '#16140f', fg: '#fff' } : { bg: 'transparent', fg: '#7a766b' }; }
+
+  set(k, v) { this.setState({ [k]: v }); }
+
+  renderVals() {
+    const st = this.state;
+
+    // season selector
+    const seasons = [1, 2, 3, 4, 5, 6, 7].map(n => {
+      const a = n === st.season;
+      return { label: 'S' + n, bg: a ? '#e8232c' : 'transparent', fg: a ? '#fff' : '#b3afa4', bd: a ? '#e8232c' : 'rgba(255,255,255,0.16)', onClick: () => this.set('season', n) };
+    });
+
+    // grid rows
+    const gridRows = this.drivers.map(d => ({ code: d.code, name: d.name, color: d.color, human: !!d.human, avg: this.avg(d), cells: this.cells(d) }));
+
+    // rounds header
+    const rounds = this.cal.map((c, i) => ({ r: 'R' + (i + 1), code: c, codeColor: i < this.R ? '#16140f' : '#c2bfb4' }));
+
+    // chart
+    let chartSeries = [], legend = [];
+    if (st.chartMode === 'constructors') {
+      this.teams.forEach(t => {
+        const out = [0]; let run = 0;
+        for (let i = 0; i < this.R; i++) {
+          let rp = 0;
+          this.drivers.forEach(d => { if (d.team === t.name) rp += this.posPts(d.r[i], d.fl.includes(i)); });
+          run += rp; out.push(run);
+        }
+        const pts = out.map((v, i) => this.xFor(i).toFixed(1) + ',' + this.yFor(v).toFixed(1)).join(' ');
+        chartSeries.push({ points: pts, color: t.color, width: 2.5, dash: '', opacity: 0.95, _total: this.teamPts[t.name] });
+        legend.push({ name: t.name, total: this.teamPts[t.name], color: t.color, lineStyle: 'solid' });
+      });
+    } else {
+      let list = this.drivers.slice();
+      const totals = {}; this.drivers.forEach(d => totals[d.code] = this.cum(d).slice(-1)[0]);
+      if (st.chartFilter === 'human') list = list.filter(d => d.human);
+      else if (st.chartFilter === 'mixed') {
+        const ai = list.filter(d => !d.human).sort((a, b) => totals[b.code] - totals[a.code]).slice(0, 5);
+        list = list.filter(d => d.human).concat(ai);
+      }
+      list.forEach(d => {
+        const c = this.cum(d);
+        const pts = c.map((v, i) => this.xFor(i).toFixed(1) + ',' + this.yFor(v).toFixed(1)).join(' ');
+        chartSeries.push({ points: pts, color: d.line, width: d.human ? 3 : 1.6, dash: d.human ? '' : '5 4', opacity: d.human ? 1 : (st.chartFilter === 'all' ? 0.42 : 0.7), _total: totals[d.code] });
+      });
+      const lg = list.filter(d => d.human || st.chartFilter !== 'all');
+      legend = lg.map(d => ({ name: d.name, total: totals[d.code], color: d.line, lineStyle: d.human ? 'solid' : 'dashed' }));
+    }
+
+    const xLabels = this.cal.map((c, i) => ({ label: 'R' + (i + 1), color: i < this.R ? '#7a766b' : '#cbc7bb' }));
+
+    // constructors rail
+    const cmax = 120;
+    const constructors = this.teams.map((t, i) => ({ pos: i + 1, name: t.name, color: t.color, pts: this.teamPts[t.name], barPct: (this.teamPts[t.name] / cmax * 100).toFixed(0) + '%' }));
+
+    const podium = [
+      { pos: 'P1', pcolor: '#f5b21a', name: 'Charles Leclerc', team: 'FERRARI', color: '#e8232c' },
+      { pos: 'P2', pcolor: '#c9c4b8', name: 'Fernando Alonso', team: 'ASTON MARTIN', color: '#1f9e74' },
+      { pos: 'P3', pcolor: '#cd7f32', name: 'Cole Reynolds', team: 'VISA CASH APP RB', color: '#3a64d8' },
+    ];
+
+    const mk = (rows, max) => rows.map(r => ({ ...r, barPct: (r.val / max * 100).toFixed(0) + '%' }));
+    const statPanels = [
+      { title: 'PODIUMS', bar: '#e8232c', rows: mk([
+        { name: 'Cole Reynolds', val: 4, color: '#3a64d8' }, { name: 'Charles Leclerc', val: 3, color: '#e8232c' },
+        { name: 'Max Verstappen', val: 2, color: '#2b4bce' }, { name: 'Giordano Temple', val: 2, color: '#1f9e74' },
+        { name: 'Lewis Hamilton', val: 1, color: '#e8232c' },
+      ], 4) },
+      { title: 'FASTEST LAPS', bar: '#a23ce8', rows: mk([
+        { name: 'Lewis Hamilton', val: 1, color: '#e8232c' }, { name: 'Yuki Tsunoda', val: 1, color: '#2b4bce' },
+        { name: 'Fernando Alonso', val: 1, color: '#1f9e74' }, { name: 'Giordano Temple', val: 1, color: '#1f9e74' },
+        { name: 'Ryan Reynolds', val: 1, color: '#8a8579' },
+      ], 1) },
+      { title: 'DRIVER OF THE DAY', bar: '#1f6fe0', rows: mk([
+        { name: 'Cole Reynolds', val: 2, color: '#3a64d8' }, { name: 'Charles Leclerc', val: 1, color: '#e8232c' },
+        { name: 'Max Verstappen', val: 1, color: '#2b4bce' }, { name: 'Fernando Alonso', val: 1, color: '#1f9e74' },
+        { name: 'Giordano Temple', val: 1, color: '#1f9e74' },
+      ], 2) },
+    ];
+
+    const dP = this.pill(st.display === 'position'), dPt = this.pill(st.display === 'points'), dH = this.pill(st.display === 'heat');
+    const mD = this.pill(st.chartMode === 'drivers'), mC = this.pill(st.chartMode === 'constructors');
+    const fH = this.pill(st.chartFilter === 'human' && st.chartMode === 'drivers'), fM = this.pill(st.chartFilter === 'mixed' && st.chartMode === 'drivers'), fA = this.pill(st.chartFilter === 'all' || st.chartMode === 'constructors');
+
+    return {
+      seasons, gridRows, rounds, chartSeries, legend, xLabels, constructors, podium, statPanels,
+      onDispPosition: () => this.set('display', 'position'), onDispPoints: () => this.set('display', 'points'), onDispHeat: () => this.set('display', 'heat'),
+      dPosBg: dP.bg, dPosFg: dP.fg, dPtsBg: dPt.bg, dPtsFg: dPt.fg, dHeatBg: dH.bg, dHeatFg: dH.fg,
+      onModeDrivers: () => this.set('chartMode', 'drivers'), onModeConstructors: () => this.set('chartMode', 'constructors'),
+      modeDrvBg: mD.bg, modeDrvFg: mD.fg, modeConBg: mC.bg, modeConFg: mC.fg,
+      onFilterHuman: () => this.set('chartFilter', 'human'), onFilterMixed: () => this.set('chartFilter', 'mixed'), onFilterAll: () => this.set('chartFilter', 'all'),
+      fHumanBg: fH.bg, fHumanFg: fH.fg, fMixedBg: fM.bg, fMixedFg: fM.fg, fAllBg: fA.bg, fAllFg: fA.fg,
+    };
+  }
+}
+</script>
+</body>
+</html>

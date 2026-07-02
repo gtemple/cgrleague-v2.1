@@ -18,6 +18,7 @@ export type TrackLite = {
   city?: string;
   country?: string;
   image?: string | null;
+  distance?: number | null;
 };
 
 export type EventLite = {
@@ -42,6 +43,8 @@ export type UpcomingRaceBlock = {
     id: number;
     round: number;
     is_sprint: boolean;
+    laps: number | null;
+    started_at: string | null;
   };
   track: TrackLite;
 };
@@ -74,6 +77,8 @@ export type NextRaceTeaserResponse = {
   upcoming_race: UpcomingRaceBlock | null;
   recent_winners: RecentWinnerItem[];
   following_two: NextTwoItem[]; // always present (possibly empty)
+  total_rounds: number;
+  completed_rounds: number;
 };
 export function useNextRaceTeaser(opts?: { includeSprints?: boolean; enabled?: boolean }) {
   const includeSprints = opts?.includeSprints ?? false;

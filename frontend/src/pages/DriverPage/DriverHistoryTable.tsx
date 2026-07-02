@@ -5,9 +5,9 @@ import { useDriverHistory } from "../../hooks/useDriverHistory";
 
 function InfoTooltip({ text }: { text: string }) {
   return (
-    <span className="info-tooltip">
-      <span className="info-tooltip-icon">?</span>
-      <span className="info-tooltip-text">{text}</span>
+    <span className="dp-info-tooltip">
+      <span className="dp-info-tooltip-icon">?</span>
+      <span className="dp-info-tooltip-text">{text}</span>
     </span>
   );
 }
@@ -19,8 +19,8 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
 
   if (isLoading) {
     return (
-      <section className="history-section">
-        <h2 className="section-title">Career by Season</h2>
+      <section className="dp-history-section">
+        <h2 className="dp-section-title">Career by Season</h2>
         <Loader label="Loading history…" full />
       </section>
     );
@@ -28,9 +28,9 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
 
   if (error) {
     return (
-      <section className="history-section">
-        <h2 className="section-title">Career by Season</h2>
-        <div className="state state-error">Failed to load history.</div>
+      <section className="dp-history-section">
+        <h2 className="dp-section-title">Career by Season</h2>
+        <div className="dp-state dp-state-error">Failed to load history.</div>
       </section>
     );
   }
@@ -38,24 +38,24 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
   const rows = data?.history ?? [];
   if (!rows.length) {
     return (
-      <section className="history-section">
-        <h2 className="section-title">Career by Season</h2>
-        <div className="state">No history yet.</div>
+      <section className="dp-history-section">
+        <h2 className="dp-section-title">Career by Season</h2>
+        <div className="dp-state">No history yet.</div>
       </section>
     );
   }
 
   return (
-    <section className="history-section">
-      <h2 className="section-title">Career by Season</h2>
+    <section className="dp-history-section">
+      <h2 className="dp-section-title">Career by Season</h2>
 
-      <div className="table-wrap">
-        <div className="table-hint">Drag sideways to see more →</div>
-        <table className="history-table">
+      <div className="dp-table-wrap">
+        <div className="dp-table-hint">Drag sideways to see more →</div>
+        <table className="dp-history-table">
           <thead>
             <tr>
-              <th className="col-season">Season</th>
-              <th className="col-team">Team</th>
+              <th className="dp-col-season">Season</th>
+              <th className="dp-col-team">Team</th>
               <th>Pts</th>
               <th>
                 PPR
@@ -130,14 +130,14 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
               const apg = r.avg_positions_gained;
               return (
                 <tr key={r.season.id}>
-                  <td className="col-season">
-                    <div className="season-cell">
-                      <span className="season-pill">{seasonLabel}</span>
+                  <td className="dp-col-season">
+                    <div className="dp-season-cell">
+                      <span className="dp-season-pill">{seasonLabel}</span>
                     </div>
                   </td>
 
-                  <td className="col-team">
-                    <div className="team-cell">
+                  <td className="dp-col-team">
+                    <div className="dp-team-cell">
                       {r.team.logo_image ? (
                         <div className="dht-team-logo">
                           <img loading="lazy" src={displayImage(r.team.logo_image, "team")} alt={r.team.display_name} />
@@ -149,7 +149,7 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
                     </div>
                   </td>
 
-                  <td className="pts-cell" title={`Base ${r.points_breakdown.base} + FL ${r.points_breakdown.fastest_lap_bonus}`}>
+                  <td className="dp-pts-cell" title={`Base ${r.points_breakdown.base} + FL ${r.points_breakdown.fastest_lap_bonus}`}>
                     {r.points}
                   </td>
                   <td>{r.ppr != null ? r.ppr.toFixed(1) : "—"}</td>
@@ -166,7 +166,7 @@ export function DriverHistoryTable({ driverId }: { driverId?: string }) {
                   <td>{r.dnfs}</td>
                   <td>{r.avg_finish != null ? r.avg_finish.toFixed(1) : "—"}</td>
                   <td>{r.best_finish ?? "—"}</td>
-                  <td className={apg != null ? (apg >= 0 ? "stat-positive" : "stat-negative") : ""}>
+                  <td className={apg != null ? (apg >= 0 ? "dp-stat-positive" : "dp-stat-negative") : ""}>
                     {apg != null ? (apg >= 0 ? "+" : "") + apg.toFixed(1) : "—"}
                   </td>
                   <td>{r.team_points}</td>

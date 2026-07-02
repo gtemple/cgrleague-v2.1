@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Saira', sans-serif; background: #ecebe5; }
+  a { color: inherit; text-decoration: none; }
+</style>
+</helmet>
+
+<div style="background:#ecebe5; min-height:100vh; color:#16140f;">
+
+  <!-- nav -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; row-gap:6px; min-height:62px; padding:8px 26px; background:#16140f; border-bottom:3px solid #e8232c; position:sticky; top:0; z-index:20;">
+    <a href="CGR%20Home.dc.html" style="display:flex; align-items:center; gap:11px; cursor:pointer;">
+      <div style="width:32px; height:32px; border-radius:4px; background:#e8232c; display:flex; align-items:center; justify-content:center; font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:15px; color:#fff;">CGR</div>
+      <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; color:#f7f5ef; letter-spacing:0.01em;">CGR LEAGUE</div>
+    </a>
+    <div style="display:flex; align-items:center; gap:14px 26px; flex-wrap:wrap; font-family:'Saira',sans-serif; font-weight:500; font-size:14px; color:#b3afa4;">
+      <a href="CGR%20Seasons.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Seasons</a>
+      <a href="CGR%20Drivers.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Drivers</a><a href="CGR%20Teams.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Teams</a><a href="CGR%20Tracks.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Tracks</a><a href="CGR%20Hall%20of%20Fame.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Hall of Fame</a><a href="CGR%20Articles.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Articles</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8579; border:1px solid rgba(255,255,255,0.18); border-radius:5px; padding:7px 11px;">⌕ SEARCH <span style="color:#5a564c;">⌘K</span></div>
+  </div>
+
+  <!-- status ticker -->
+  <div style="display:flex; align-items:center; height:38px; padding:0 26px; background:#e3e1d8; border-bottom:1px solid #d3d0c5; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em; overflow:hidden; white-space:nowrap;">
+    <span style="color:#e8232c; font-weight:700;">● SEASON 7</span>
+    <span style="width:1px; height:14px; background:#cbc7bb; margin:0 16px;"></span>
+    <span style="color:#7a766b;">ROUND <span style="color:#16140f;">06 / 22</span></span>
+    <span style="width:1px; height:14px; background:#cbc7bb; margin:0 16px;"></span>
+    <span style="color:#7a766b;">LEADER <span style="color:#16140f;">C. REYNOLDS</span> <span style="color:#e8232c;">90</span></span>
+    <span style="width:1px; height:14px; background:#cbc7bb; margin:0 16px;"></span>
+    <span style="color:#7a766b;">MARGIN <span style="color:#16140f;">+17</span></span>
+    <span style="margin-left:auto; color:#7a766b;">NEXT <span style="color:#16140f;">SHANGHAI INTL</span></span>
+  </div>
+
+  <div style="max-width:1440px; margin:0 auto; padding:22px 26px 60px;">
+
+    <!-- hero -->
+    <div style="display:flex; flex-wrap:wrap; gap:16px; margin-bottom:18px;">
+      <div style="flex:3 1 480px; min-width:0; position:relative; height:392px; background:#16140f; border-radius:5px; overflow:hidden;">
+        <div style="position:absolute; inset:0; background:repeating-linear-gradient(118deg,#211e16 0 2px,#16140f 2px 11px);"></div>
+        <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(22,20,15,0.25), rgba(22,20,15,0.9));"></div>
+        <div style="position:absolute; right:14px; bottom:12px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#564f40;">[ CIRCUIT VISUAL — SHANGHAI INTL ]</div>
+        <div style="position:absolute; inset:0; padding:34px; display:flex; flex-direction:column; justify-content:flex-end;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:0.16em; color:#fff; background:#e8232c; padding:4px 9px; border-radius:3px;">NEXT RACE</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.16em; color:#b3afa4;">ROUND 06 · CHINESE GRAND PRIX</span>
+          </div>
+          <div style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:clamp(46px,7vw,80px); line-height:0.88; color:#f7f5ef; letter-spacing:-0.01em; text-transform:uppercase;">Chinese<br>Grand Prix</div>
+          <div style="display:flex; align-items:center; gap:14px; margin-top:18px; font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.08em; color:#c9c4b8;">
+            <span style="border:1px solid rgba(255,255,255,0.25); border-radius:3px; padding:3px 7px; color:#f7f5ef;">CHN</span>
+            <span>SHANGHAI, CHINA</span><span style="color:#6a6457;">·</span><span>5.451 KM · 56 LAPS</span>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1 1 300px; background:#fff; border:1px solid #d9d6cd; border-radius:5px; padding:24px; display:flex; flex-direction:column;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.2em; color:#9b988d; margin-bottom:14px;">LIGHTS OUT IN</div>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:24px;">
+          <div style="background:#f4f3ee; border:1px solid #e2dfd6; border-radius:4px; padding:12px 0; text-align:center;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:30px; color:#e8232c; font-variant-numeric:tabular-nums;">{{ cdD }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#9b988d; margin-top:4px;">DAYS</div></div>
+          <div style="background:#f4f3ee; border:1px solid #e2dfd6; border-radius:4px; padding:12px 0; text-align:center;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:30px; color:#16140f; font-variant-numeric:tabular-nums;">{{ cdH }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#9b988d; margin-top:4px;">HRS</div></div>
+          <div style="background:#f4f3ee; border:1px solid #e2dfd6; border-radius:4px; padding:12px 0; text-align:center;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:30px; color:#16140f; font-variant-numeric:tabular-nums;">{{ cdM }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#9b988d; margin-top:4px;">MIN</div></div>
+          <div style="background:#f4f3ee; border:1px solid #e2dfd6; border-radius:4px; padding:12px 0; text-align:center;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:30px; color:#16140f; font-variant-numeric:tabular-nums;">{{ cdS }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.14em; color:#9b988d; margin-top:4px;">SEC</div></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.2em; color:#9b988d; margin-bottom:10px;">SESSION SCHEDULE</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid #ece9e1;"><span style="font-family:'Saira',sans-serif; font-size:13px; color:#3a382f;">Practice</span><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#7a766b;">FRI · 04:30</span></div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid #ece9e1;"><span style="font-family:'Saira',sans-serif; font-size:13px; color:#3a382f;">Qualifying</span><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#7a766b;">SAT · 07:00</span></div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid #ece9e1; border-bottom:1px solid #ece9e1;"><span style="font-family:'Saira',sans-serif; font-size:13px; color:#16140f; font-weight:600;">Race</span><span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#e8232c;">SUN · 07:00</span></div>
+        <a href="CGR%20Seasons.dc.html" style="margin-top:auto; padding-top:18px; display:block;"><div style="text-align:center; font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:15px; letter-spacing:0.04em; color:#fff; background:#e8232c; border-radius:4px; padding:11px 0; text-transform:uppercase; cursor:pointer;">Race Centre →</div></a>
+      </div>
+    </div>
+
+    <!-- the humans -->
+    <div style="margin-bottom:18px;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:13px;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b;">THE HUMANS</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#9b988d;">· SEASON 7 · THREE DRIVERS vs THE AI GRID</span>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px;">
+        <sc-for list="{{ humans }}" as="h" hint-placeholder-count="3">
+          <a href="CGR%20Driver.dc.html" style-hover="border-color:#a8a496; transform:translateY(-2px); box-shadow:0 10px 22px rgba(22,20,15,0.09);" style="transition:border-color 0.15s, transform 0.15s, box-shadow 0.15s; background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden; display:block;">
+            <div style="height:4px; background:{{ h.color }};"></div>
+            <div style="padding:16px 18px;">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+                <div style="display:flex; align-items:center; gap:11px; min-width:0;">
+                  <span style="width:42px; height:42px; border-radius:50%; background:{{ h.color }}; display:flex; align-items:center; justify-content:center; font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:13px; color:#fff; flex:none;">{{ h.init }}</span>
+                  <div style="min-width:0;">
+                    <div style="display:flex; align-items:center; gap:7px;">
+                      <span style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; color:#16140f; white-space:nowrap;">{{ h.name }}</span>
+                      <span style="width:6px; height:6px; border-radius:50%; background:#e8232c;"></span>
+                    </div>
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:#9b988d; margin-top:2px;">{{ h.team }}</div>
+                  </div>
+                </div>
+                <span style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:20px; color:{{ h.color }}; flex:none;">{{ h.pos }}</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#ece9e1; border:1px solid #ece9e1; border-radius:5px; overflow:hidden; margin-top:14px;">
+                <div style="background:#fff; padding:10px 13px;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; color:#16140f;">{{ h.pts }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.12em; color:#9b988d; margin-top:3px;">POINTS</div></div>
+                <div style="background:#fff; padding:10px 13px;"><div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; color:#16140f;">{{ h.last }}</div><div style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.12em; color:#9b988d; margin-top:3px;">LAST · {{ h.lastGP }}</div></div>
+              </div>
+              <div style="display:flex; align-items:center; gap:5px; margin-top:13px;">
+                <span style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.1em; color:#b0ada2; margin-right:3px;">FORM</span>
+                <sc-for list="{{ h.dots }}" as="p" hint-placeholder-count="5">
+                  <span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:{{ p.fg }}; background:{{ p.bg }}; border-radius:3px; padding:3px 5px; min-width:28px; text-align:center;">{{ p.t }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </a>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- standings -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:16px; margin-bottom:18px;">
+      <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px 12px; border-bottom:1px solid #ece9e1;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b;">DRIVER STANDINGS</span>
+          <a href="CGR%20Seasons.dc.html" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#e8232c;">FULL TABLE →</a>
+        </div>
+        <sc-for list="{{ drivers }}" as="d" hint-placeholder-count="8">
+          <div style="display:grid; grid-template-columns:30px 4px 1fr auto; align-items:center; gap:13px; height:54px; padding:0 18px; border-top:1px solid #f0ede5;">
+            <div style="display:flex; flex-direction:column; align-items:center; line-height:1;">
+              <span style="font-family:'JetBrains Mono',monospace; font-size:17px; font-weight:700; color:#16140f;">{{ d.pos }}</span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:{{ d.trendColor }}; margin-top:3px;">{{ d.trend }}</span>
+            </div>
+            <div style="width:4px; height:30px; border-radius:2px; background:{{ d.color }};"></div>
+            <div style="min-width:0;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; color:#16140f;">{{ d.name }}</span>
+                <sc-if value="{{ d.human }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.1em; color:#fff; background:#16140f; padding:2px 5px; border-radius:3px; font-weight:700;">HUMAN</span></sc-if>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#9b988d; margin-top:1px;">{{ d.team }}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:20px; font-weight:700; color:#16140f;">{{ d.pts }}</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#b0ada2;">{{ d.gap }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px 12px; border-bottom:1px solid #ece9e1;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b;">CONSTRUCTOR STANDINGS</span>
+          <a href="CGR%20Seasons.dc.html" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#e8232c;">FULL TABLE →</a>
+        </div>
+        <sc-for list="{{ constructors }}" as="c" hint-placeholder-count="10">
+          <div style="display:grid; grid-template-columns:26px 34px 1fr auto; align-items:center; gap:12px; height:43px; padding:0 18px; border-top:1px solid #f0ede5;">
+            <div style="display:flex; flex-direction:column; align-items:center; line-height:1;">
+              <span style="font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:#7a766b;">{{ c.pos }}</span>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:8px; font-weight:700; color:{{ c.trendColor }}; margin-top:2px;">{{ c.trend }}</span>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:#fff; text-align:center; padding:4px 0; border-radius:3px; background:{{ c.color }};">{{ c.code }}</div>
+            <div>
+              <div style="font-family:'Saira Condensed',sans-serif; font-weight:600; font-size:16px; color:#16140f; line-height:1; margin-bottom:5px;">{{ c.name }}</div>
+              <div style="height:3px; background:#ece9e1; border-radius:2px; overflow:hidden;"><div style="height:100%; border-radius:2px; width:{{ c.barPct }}; background:{{ c.color }};"></div></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:17px; font-weight:700; color:#16140f; text-align:right;">{{ c.pts }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- track flashback -->
+    <div style="background:#16140f; border-radius:5px; overflow:hidden; margin-bottom:18px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 22px; border-bottom:1px solid #2a261d;">
+        <div style="display:flex; align-items:center; gap:13px;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:0.16em; color:#f5b21a;">⟲ FLASHBACK</span>
+          <span style="font-family:'Saira',sans-serif; font-size:14px; font-weight:600; color:#f0eee7;">Season {{ flash.s }} · Chinese Grand Prix</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#6a6457;">— THIS WEEKEND’S CIRCUIT, A SEASON AGO</span>
+        </div>
+        <a href="CGR%20Track.dc.html" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#b3afa4;">ROUND {{ flash.r }} · VIEW RACE →</a>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1px; background:#2a261d;">
+        <sc-for list="{{ flash.podium }}" as="p" hint-placeholder-count="3">
+          <div style="background:#16140f; padding:15px 18px; display:flex; align-items:center; gap:11px;">
+            <span style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:20px; color:{{ p.pColor }}; width:30px; flex:none;">{{ p.p }}</span>
+            <span style="width:3px; height:26px; border-radius:2px; background:{{ p.color }}; flex:none;"></span>
+            <span style="font-family:'Saira',sans-serif; font-weight:600; font-size:15px; color:#f0eee7; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ p.name }}</span>
+            <sc-if value="{{ p.pole }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace; font-size:8px; font-weight:700; color:#0a0a0c; background:#46e0a0; border-radius:3px; padding:2px 5px;">POLE</span></sc-if>
+            <sc-if value="{{ p.fl }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono',monospace; font-size:8px; font-weight:700; color:#fff; background:#a23ce8; border-radius:3px; padding:2px 5px;">FL</span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- roll of honour -->
+    <div style="background:#16140f; border-radius:5px; padding:16px 22px; display:flex; align-items:center; gap:24px; margin-bottom:18px;">
+      <span style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.2em; color:#8a8579; white-space:nowrap;">ROLL OF<br>HONOUR</span>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px 24px; flex:1;">
+        <sc-for list="{{ winners }}" as="w" hint-placeholder-count="4">
+          <div style="display:flex; align-items:center; gap:11px;">
+            <span style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:18px; color:#e8232c;">{{ w.s }}</span>
+            <span style="width:3px; height:24px; border-radius:2px; background:{{ w.color }};"></span>
+            <span style="font-family:'Saira',sans-serif; font-weight:600; font-size:14px; color:#f0eee7;">{{ w.name }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- coverage -->
+    <div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#7a766b;">LATEST COVERAGE</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#e8232c;">ALL ARTICLES →</span>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px;">
+        <sc-for list="{{ coverage }}" as="a" hint-placeholder-count="3">
+          <div style="border:1px solid #d9d6cd; border-radius:5px; overflow:hidden; background:#fff;">
+            <div style="position:relative; height:130px; background:repeating-linear-gradient(118deg,#dedbd1 0 2px,#e9e6dd 2px 11px);">
+              <span style="position:absolute; top:10px; left:10px; font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.12em; color:#fff; background:#e8232c; padding:3px 7px; border-radius:3px;">{{ a.tag }}</span>
+            </div>
+            <div style="padding:16px;">
+              <div style="font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#9b988d; margin-bottom:8px;">{{ a.round }}</div>
+              <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; line-height:1.06; color:#16140f; min-height:62px;">{{ a.title }}</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#b0ada2; margin-top:10px;">{{ a.date }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  target = Date.now() + (4 * 24 * 3600 + 6 * 3600 + 12 * 60) * 1000;
+  drivers = [
+    { pos: 1, name: 'Cole Reynolds', team: 'Visa Cash App RB', color: '#3a64d8', pts: 90, human: true },
+    { pos: 2, name: 'Charles Leclerc', team: 'Ferrari', color: '#e8232c', pts: 73 },
+    { pos: 3, name: 'Max Verstappen', team: 'Red Bull', color: '#2b4bce', pts: 58 },
+    { pos: 4, name: 'Lewis Hamilton', team: 'Ferrari', color: '#e8232c', pts: 47 },
+    { pos: 5, name: 'Kimi Antonelli', team: 'Mercedes', color: '#16c4a6', pts: 43 },
+    { pos: 6, name: 'Yuki Tsunoda', team: 'Red Bull', color: '#2b4bce', pts: 36 },
+    { pos: 7, name: 'Fernando Alonso', team: 'Aston Martin', color: '#1f9e74', pts: 35 },
+    { pos: 8, name: 'Giordano Temple', team: 'Aston Martin', color: '#1f9e74', pts: 34, human: true },
+  ];
+  constructors = [
+    { pos: 1, name: 'Ferrari', code: 'FER', color: '#e8232c', pts: 120 },
+    { pos: 2, name: 'Red Bull', code: 'RBR', color: '#2b4bce', pts: 94 },
+    { pos: 3, name: 'Visa Cash App RB', code: 'VCA', color: '#3a64d8', pts: 90 },
+    { pos: 4, name: 'Aston Martin', code: 'AMR', color: '#1f9e74', pts: 69 },
+    { pos: 5, name: 'Mercedes', code: 'MER', color: '#16c4a6', pts: 43 },
+    { pos: 6, name: 'McLaren', code: 'MCL', color: '#ff8000', pts: 37 },
+    { pos: 7, name: 'Williams', code: 'WIL', color: '#1f6fe0', pts: 20 },
+    { pos: 8, name: 'Haas', code: 'HAS', color: '#9aa0a8', pts: 18 },
+    { pos: 9, name: 'Sauber Kick', code: 'SAU', color: '#3ad36a', pts: 12 },
+    { pos: 10, name: 'Alpine', code: 'ALP', color: '#1aa0d8', pts: 6 },
+  ];
+  winners = [
+    { s: 'S5', name: 'M. Verstappen', color: '#2b4bce' },
+    { s: 'S3', name: 'M. Verstappen', color: '#2b4bce' },
+    { s: 'S2', name: 'S. Perez', color: '#2b4bce' },
+    { s: 'S1', name: 'G. Temple', color: '#1f9e74' },
+  ];
+  coverage = [
+    { tag: 'RACE RECAP', round: 'R5 · SPANISH GP', title: 'Leclerc Conquers Barcelona as Verstappen Crashes from Pole', date: '11 MAR 2026' },
+    { tag: 'RACE PREVIEW', round: 'R6 · CHINESE GP', title: 'Shanghai Showdown: Reynolds Looks to Extend His Lead', date: '11 MAR 2026' },
+    { tag: 'POWER RANKINGS', round: 'AFTER R5', title: 'Power Rankings — Spanish GP Shakes Up the Order', date: '11 MAR 2026' },
+  ];
+  humansRaw = [
+    { name: 'Cole Reynolds', init: 'CR', team: 'Visa Cash App RB', color: '#3a64d8', pos: 'P1', pts: 90, last: 'P3', lastGP: 'SPANISH GP', form: [1, 1, 'DNF', 1, 3] },
+    { name: 'Giordano Temple', init: 'GT', team: 'Aston Martin', color: '#1f9e74', pos: 'P8', pts: 34, last: 'P17', lastGP: 'SPANISH GP', form: [12, 3, 17, 2, 'DNF'] },
+    { name: 'Ryan Reynolds', init: 'RR', team: 'Mercedes', color: '#16c4a6', pos: 'P20', pts: 0, last: 'DNF', lastGP: 'SPANISH GP', form: [20, 'DNF', 18, 'DNF', 'DNF'] },
+  ];
+  driverTrends = { 'Cole Reynolds': 0, 'Charles Leclerc': 1, 'Max Verstappen': -1, 'Lewis Hamilton': 0, 'Kimi Antonelli': 1, 'Yuki Tsunoda': -1, 'Fernando Alonso': 1, 'Giordano Temple': -2 };
+  ctorTrends = { 'Ferrari': 0, 'Red Bull': 0, 'Visa Cash App RB': 1, 'Aston Martin': -1, 'Mercedes': 0, 'McLaren': 1, 'Williams': -1, 'Haas': 0, 'Sauber Kick': 0, 'Alpine': 0 };
+  chineseFlashbacks = [
+    { s: '5', r: '5', podium: [{ p: 'P1', name: 'M. Verstappen', color: '#2b4bce', pole: true, fl: false }, { p: 'P2', name: 'C. Reynolds', color: '#3a64d8', pole: false, fl: true }, { p: 'P3', name: 'C. Leclerc', color: '#e8232c', pole: false, fl: false }] },
+    { s: '3', r: '5', podium: [{ p: 'P1', name: 'C. Reynolds', color: '#3a64d8', pole: true, fl: true }, { p: 'P2', name: 'R. Reynolds', color: '#16c4a6', pole: false, fl: false }, { p: 'P3', name: 'M. Verstappen', color: '#2b4bce', pole: false, fl: false }] },
+    { s: '2', r: '5', podium: [{ p: 'P1', name: 'S. Perez', color: '#2b4bce', pole: false, fl: false }, { p: 'P2', name: 'G. Temple', color: '#1f9e74', pole: false, fl: true }, { p: 'P3', name: 'L. Hamilton', color: '#16c4a6', pole: true, fl: false }] },
+    { s: '1', r: '5', podium: [{ p: 'P1', name: 'G. Temple', color: '#e8232c', pole: true, fl: false }, { p: 'P2', name: 'C. Reynolds', color: '#3a64d8', pole: false, fl: false }, { p: 'P3', name: 'L. Norris', color: '#ff8000', pole: false, fl: true }] },
+  ];
+  flash = this.chineseFlashbacks[Math.floor(Math.random() * this.chineseFlashbacks.length)];
+  componentDidMount() { this._t = setInterval(() => this.forceUpdate(), 1000); }
+  componentWillUnmount() { clearInterval(this._t); }
+  cd() {
+    let ms = Math.max(0, this.target - Date.now());
+    let s = Math.floor(ms / 1000);
+    const d = Math.floor(s / 86400); s -= d * 86400;
+    const h = Math.floor(s / 3600); s -= h * 3600;
+    const m = Math.floor(s / 60); s -= m * 60;
+    const p = n => String(n).padStart(2, '0');
+    return { d: p(d), h: p(h), m: p(m), s: p(s) };
+  }
+  formDot(p) {
+    if (p === 'DNF') return { t: 'DNF', bg: '#211d18', fg: '#9b938a' };
+    if (p === 1) return { t: 'P1', bg: '#f5b21a', fg: '#241a00' };
+    if (p <= 3) return { t: 'P' + p, bg: '#ef8f2c', fg: '#241a00' };
+    if (p <= 10) return { t: 'P' + p, bg: '#c0392b', fg: '#fff' };
+    return { t: 'P' + p, bg: '#efece4', fg: '#7a766b' };
+  }
+  trendDisp(tr) {
+    if (tr > 0) return { t: '\u25B2' + tr, c: '#1f9e74' };
+    if (tr < 0) return { t: '\u25BC' + (-tr), c: '#c0392b' };
+    return { t: '\u2014', c: '#c2bfb4' };
+  }
+  renderVals() {
+    const lead = this.drivers[0].pts;
+    const drivers = this.drivers.map(d => { const t = this.trendDisp(this.driverTrends[d.name] ?? 0); return { ...d, gap: d.pos === 1 ? 'LEADER' : '+' + (lead - d.pts), trend: t.t, trendColor: t.c }; });
+    const cmax = this.constructors[0].pts;
+    const constructors = this.constructors.map(c => { const t = this.trendDisp(this.ctorTrends[c.name] ?? 0); return { ...c, barPct: (c.pts / cmax * 100).toFixed(0) + '%', trend: t.t, trendColor: t.c }; });
+    const humans = this.humansRaw.map(h => ({ ...h, dots: h.form.map(p => this.formDot(p)) }));
+    const pc = ['#f5b21a', '#c9c4b8', '#cd7f32'];
+    const flash = { s: this.flash.s, r: this.flash.r, podium: this.flash.podium.map((p, i) => ({ ...p, pColor: pc[i] })) };
+    const c = this.cd();
+    return { drivers, constructors, winners: this.winners, coverage: this.coverage, humans, flash, cdD: c.d, cdH: c.h, cdM: c.m, cdS: c.s };
+  }
+}
+</script>
+</body>
+</html>

@@ -5,8 +5,9 @@ import { useMemo } from "react";
 export type StandingRow = {
   driver_season_id: number;
   points: number;
-  driver: { id: number; first_name: string; last_name: string; display_name: string };
-  team: { id: number; name: string };
+  trend: number;
+  driver: { id: number; first_name: string; last_name: string; display_name: string; is_human: boolean };
+  team: { id: number; name: string; color: string | null };
 };
 
 export function useSeasonStandings(seasonId: number) {

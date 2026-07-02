@@ -37,8 +37,8 @@ const Podium = ({ drivers, metric, label }: PodiumProps) => {
   const displayOrder = [sorted[1], sorted[0], sorted[2]].filter(Boolean);
 
   return (
-    <div className="stats-card hof-hero-card">
-      <div className="stats-card-header">{label}</div>
+    <div className="hof-card hof-hero-card">
+      <div className="hof-card-header">{label}</div>
       <div className="hof-podium-stage">
         {displayOrder.map((driver) => {
           const rank = sorted.findIndex(d => d.id === driver.id) + 1;
@@ -78,8 +78,8 @@ const LeaderboardCard = ({
     .slice(0, 3);
 
   return (
-    <div className="stats-card hof-lb-card">
-      <div className="stats-card-header">{title}</div>
+    <div className="hof-card hof-lb-card">
+      <div className="hof-card-header">{title}</div>
       <div className="hof-lb-rows">
         {sorted.map((driver, i) => (
           <div key={driver.id} className={`hof-lb-row hof-lb-rank-${i + 1}`}>
@@ -107,8 +107,8 @@ const AwardCard = ({
   driver: HallOfFameDriver;
   accent: string;
 }) => (
-  <div className="stats-card hof-award-card">
-    <div className="stats-card-header">{title}</div>
+  <div className="hof-card hof-award-card">
+    <div className="hof-card-header">{title}</div>
     <div className="hof-award-body">
       <DriverAvatar driver={driver} size="md" />
       <div className="hof-award-info">
@@ -135,8 +135,8 @@ const SeasonBestCard = ({
   if (!entry) return null;
   const { driver, season_id, value } = entry;
   return (
-    <div className="stats-card hof-best-card">
-      <div className="stats-card-header">{title}</div>
+    <div className="hof-card hof-best-card">
+      <div className="hof-card-header">{title}</div>
       <div className="hof-best-body">
         <DriverAvatar driver={driver} size="md" />
         <div className="hof-best-info">
@@ -180,93 +180,97 @@ export function HallOfFamePage() {
   return (
     <div className="hof-page">
 
-      {/* Header */}
-      <header className="hof-header">
-        <div className="hof-header-left">
-          <div className="hof-eyebrow">CGR League</div>
-          <h1 className="hof-title">Hall of Fame</h1>
-        </div>
-        <div className="hof-filter-tabs">
-          <button
-            className={`hof-tab${includeAI ? ' hof-tab-active' : ''}`}
-            onClick={() => setIncludeAI(true)}
-          >
-            All Drivers
-          </button>
-          <button
-            className={`hof-tab${!includeAI ? ' hof-tab-active' : ''}`}
-            onClick={() => setIncludeAI(false)}
-          >
-            Humans Only
-          </button>
-        </div>
-      </header>
-
-      {isLoading && <Loader full />}
-
-      {!isLoading && stats && data && (
-        <>
-          {/* Hero: Career Points podium */}
-          <section className="hof-hero-section">
-            <Podium label="Career Points" drivers={stats.points} metric="total_points" />
-          </section>
-
-          {/* Four leaderboard cards */}
-          <div className="hof-grid hof-grid-4">
-            <LeaderboardCard title="Championships" drivers={stats.championships} metric="total_championships" />
-            <LeaderboardCard title="Race Wins"     drivers={stats.wins}          metric="total_wins" />
-            <LeaderboardCard title="Podiums"       drivers={stats.podiums}        metric="total_podiums" />
-            <LeaderboardCard title="Pole Positions" drivers={stats.poles}         metric="total_poles" />
+      {/* Header band */}
+      <div className="hof-header-band">
+        <div className="hof-header-inner">
+          <div>
+            <div className="hof-eyebrow">CGR LEAGUE · ALL-TIME GREATS</div>
+            <h1 className="hof-title">Hall of Fame</h1>
           </div>
+          <div className="hof-filter-tabs">
+            <button
+              className={`hof-tab${includeAI ? ' hof-tab-active' : ''}`}
+              onClick={() => setIncludeAI(true)}
+            >
+              All Drivers
+            </button>
+            <button
+              className={`hof-tab${!includeAI ? ' hof-tab-active' : ''}`}
+              onClick={() => setIncludeAI(false)}
+            >
+              Humans Only
+            </button>
+          </div>
+        </div>
+      </div>
 
-          {/* Single-season records */}
-          <section className="hof-awards-section">
-            <div className="hof-awards-label">Single-Season Records</div>
-            <div className="hof-bests-grid">
-              <SeasonBestCard
-                title="Most Wins in a Season"
-                entry={(data as HallOfFameData).season_bests?.most_wins ?? null}
-                accent="var(--accent)"
-              />
-              <SeasonBestCard
-                title="Most Points in a Season"
-                entry={(data as HallOfFameData).season_bests?.most_points ?? null}
-                accent="rgb(99, 179, 237)"
-              />
-              <SeasonBestCard
-                title="Most Poles in a Season"
-                entry={(data as HallOfFameData).season_bests?.most_poles ?? null}
-                accent="rgb(72, 199, 142)"
-              />
+      <div className="hof-body">
+        {isLoading && <Loader full />}
+
+        {!isLoading && stats && data && (
+          <>
+            {/* Hero: Career Points podium */}
+            <section className="hof-hero-section">
+              <Podium label="CAREER POINTS" drivers={stats.points} metric="total_points" />
+            </section>
+
+            {/* Four leaderboard cards */}
+            <div className="hof-grid hof-grid-4">
+              <LeaderboardCard title="CHAMPIONSHIPS" drivers={stats.championships} metric="total_championships" />
+              <LeaderboardCard title="RACE WINS"     drivers={stats.wins}          metric="total_wins" />
+              <LeaderboardCard title="PODIUMS"       drivers={stats.podiums}        metric="total_podiums" />
+              <LeaderboardCard title="POLE POSITIONS" drivers={stats.poles}         metric="total_poles" />
             </div>
-          </section>
 
-          {/* Head-to-head matrix (human drivers only) */}
-          <section className="hof-awards-section">
-            <div className="hof-awards-label">Head-to-Head (Human Drivers)</div>
-            <H2HMatrix />
-          </section>
+            {/* Single-season records */}
+            <section className="hof-awards-section">
+              <div className="hof-awards-label">SINGLE-SEASON RECORDS</div>
+              <div className="hof-bests-grid">
+                <SeasonBestCard
+                  title="MOST WINS IN A SEASON"
+                  entry={(data as HallOfFameData).season_bests?.most_wins ?? null}
+                  accent="var(--cgr-gold)"
+                />
+                <SeasonBestCard
+                  title="MOST POINTS IN A SEASON"
+                  entry={(data as HallOfFameData).season_bests?.most_points ?? null}
+                  accent="var(--cgr-blue)"
+                />
+                <SeasonBestCard
+                  title="MOST POLES IN A SEASON"
+                  entry={(data as HallOfFameData).season_bests?.most_poles ?? null}
+                  accent="#1f9e74"
+                />
+              </div>
+            </section>
 
-          {/* Award cards */}
-          <section className="hof-awards-section">
-            <div className="hof-awards-label">Career Awards</div>
-            <div className="hof-awards-grid">
-              {stats.fastestLaps && (
-                <AwardCard title="Fastest Laps"      value={stats.fastestLaps.total_fastest_laps} driver={stats.fastestLaps} accent="rgb(231, 109, 255)" />
-              )}
-              {stats.dotd && (
-                <AwardCard title="Driver of the Day" value={stats.dotd.total_dotd}               driver={stats.dotd}        accent="rgb(99, 179, 237)" />
-              )}
-              {stats.cleanDriver && (
-                <AwardCard title="Cleanest Driver"   value={stats.cleanDriver.total_clean_driver} driver={stats.cleanDriver} accent="rgb(72, 199, 142)" />
-              )}
-              {stats.overtakes && (
-                <AwardCard title="Most Overtakes"    value={stats.overtakes.total_overtakes}      driver={stats.overtakes}   accent="var(--accent)" />
-              )}
-            </div>
-          </section>
-        </>
-      )}
+            {/* Head-to-head matrix (human drivers only) */}
+            <section className="hof-awards-section">
+              <div className="hof-awards-label">HEAD-TO-HEAD · HUMAN DRIVERS</div>
+              <H2HMatrix />
+            </section>
+
+            {/* Award cards */}
+            <section className="hof-awards-section">
+              <div className="hof-awards-label">CAREER AWARDS</div>
+              <div className="hof-awards-grid">
+                {stats.fastestLaps && (
+                  <AwardCard title="FASTEST LAPS"      value={stats.fastestLaps.total_fastest_laps} driver={stats.fastestLaps} accent="#a23ce8" />
+                )}
+                {stats.dotd && (
+                  <AwardCard title="DRIVER OF THE DAY" value={stats.dotd.total_dotd}               driver={stats.dotd}        accent="var(--cgr-blue)" />
+                )}
+                {stats.cleanDriver && (
+                  <AwardCard title="CLEANEST DRIVER"   value={stats.cleanDriver.total_clean_driver} driver={stats.cleanDriver} accent="#1f9e74" />
+                )}
+                {stats.overtakes && (
+                  <AwardCard title="MOST OVERTAKES"    value={stats.overtakes.total_overtakes}      driver={stats.overtakes}   accent="var(--cgr-gold)" />
+                )}
+              </div>
+            </section>
+          </>
+        )}
+      </div>
     </div>
   );
 }

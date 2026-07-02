@@ -5,6 +5,7 @@ import { useDriverDetail } from "../../hooks/useDriverDetails";
 import { DriverHistoryTable } from "./DriverHistoryTable";
 import { DriverTrackGrid } from "./DriverTrackGrid";
 import { DriverSpecialization } from "./DriverSpecialization";
+import { DriverDNA } from "./DriverDNA";
 import { useDriverSpecialization } from "../../hooks/useDriverSpecialization";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
@@ -94,22 +95,27 @@ export const DriverPage = () => {
               <div className="dp-hero-name-block">
                 <div className="dp-name-first">{driver.first_name}</div>
                 <div className="dp-name-last">{driver.last_name}</div>
-                {driver.country_of_representation && (
-                  <div className="dp-nationality">
+                <div className="dp-nationality">
+                  {driver.country_of_representation && (
                     <img loading="lazy"
                       className="dp-flag"
                       src={displayImage(driver.country_of_representation, "flags")}
                       alt={driver.country_of_representation}
                     />
-                  </div>
-                )}
+                  )}
+                  <span className="dp-human-dot" />
+                  <span className="dp-human-label">
+                    {driver.is_human ? "HUMAN" : "AI"} · {totals.seasons_played} SEASON{totals.seasons_played === 1 ? "" : "S"}
+                  </span>
+                </div>
                 {specialistLabel && (
                   <div className="dp-specialty-chip">{specialistLabel}</div>
                 )}
+                <DriverDNA driverId={driverId} />
                 <div className="dp-hero-quick-stats">
-                  <span className="dp-quick-chip">{totals.wins} Wins</span>
-                  <span className="dp-quick-chip">{totals.podiums} Podiums</span>
-                  <span className="dp-quick-chip">{totals.poles} Poles</span>
+                  <span className="dp-quick-chip"><b>{totals.wins}</b> Wins</span>
+                  <span className="dp-quick-chip"><b>{totals.podiums}</b> Podiums</span>
+                  <span className="dp-quick-chip"><b>{totals.poles}</b> Poles</span>
                 </div>
               </div>
             </div>
@@ -150,14 +156,16 @@ export const DriverPage = () => {
 
           </header>
 
-          {/* ══════════════════════ HISTORY ══════════════════════ */}
-          <DriverHistoryTable driverId={driverId} />
+          <div className="dp-body">
+            {/* ══════════════════════ HISTORY ══════════════════════ */}
+            <DriverHistoryTable driverId={driverId} />
 
-          {/* ══════════════════════ SPECIALIZATION ══════════════════════ */}
-          <DriverSpecialization query={specQuery} />
+            {/* ══════════════════════ SPECIALIZATION ══════════════════════ */}
+            <DriverSpecialization query={specQuery} />
 
-          {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
-          <DriverTrackGrid driverId={driverId} />
+            {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
+            <DriverTrackGrid driverId={driverId} />
+          </div>
         </>
       )}
     </div>

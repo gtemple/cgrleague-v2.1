@@ -246,11 +246,11 @@ export function ChampionshipTimeline({ seasonId }: Props) {
 
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={activeChartData} margin={{ top: 8, right: 16, left: -10, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#efece4" />
           <XAxis
             dataKey="label"
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
+            axisLine={{ stroke: "#e2dfd6" }}
             interval="preserveStartEnd"
             tick={(props) => {
               const { x, y, payload } = props;
@@ -261,7 +261,7 @@ export function ChampionshipTimeline({ seasonId }: Props) {
                   x={x} y={Number(y) + 10}
                   textAnchor="middle"
                   fontSize={11}
-                  fill={dim ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.35)"}
+                  fill={dim ? "#cbc7bb" : "#7a766b"}
                 >
                   {payload.value}
                 </text>
@@ -269,21 +269,21 @@ export function ChampionshipTimeline({ seasonId }: Props) {
             }}
           />
           <YAxis
-            tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+            tick={{ fill: "#7a766b", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
             width={36}
           />
           <Tooltip
             content={<CustomTooltip humanNames={humanNames} />}
-            cursor={{ stroke: "rgba(255,255,255,0.1)", strokeWidth: 1 }}
+            cursor={{ stroke: "#d3d0c5", strokeWidth: 1 }}
           />
 
           {sprintRounds.map((r) => (
             <ReferenceLine
               key={r.i}
               x={r.label}
-              stroke="rgba(255,199,14,0.15)"
+              stroke="rgba(245,178,26,0.35)"
               strokeDasharray="4 3"
             />
           ))}
@@ -291,7 +291,7 @@ export function ChampionshipTimeline({ seasonId }: Props) {
           {lastCompletedLabel && (
             <ReferenceLine
               x={lastCompletedLabel}
-              stroke="rgba(255,255,255,0.15)"
+              stroke="#d3d0c5"
               strokeDasharray="3 3"
             />
           )}

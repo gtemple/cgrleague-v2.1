@@ -1,0 +1,65 @@
+.status-ticker {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 26px;
+  background: var(--cgr-chip);
+  border-bottom: 1px solid var(--cgr-border-ticker);
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-divider {
+  width: 1px;
+  height: 14px;
+  background: #cbc7bb;
+  margin: 0 16px;
+  flex: none;
+}
+
+.ticker-season {
+  color: var(--cgr-red);
+  font-weight: 700;
+}
+
+.ticker-item {
+  color: var(--cgr-text-muted);
+}
+
+.ticker-value {
+  color: var(--cgr-text-primary);
+}
+
+.ticker-leader-points {
+  color: var(--cgr-red);
+}
+
+.ticker-right {
+  margin-left: auto;
+  color: var(--cgr-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ticker-right a {
+  color: inherit;
+  transition: color 0.15s;
+}
+.ticker-right a:hover {
+  color: var(--cgr-red);
+}
+
+.ticker-right b {
+  color: var(--cgr-text-primary);
+  font-weight: 400;
+}
+
+@media (max-width: 768px) {
+  .status-ticker {
+    padding: 0 16px;
+    overflow-x: auto;
+  }
+}

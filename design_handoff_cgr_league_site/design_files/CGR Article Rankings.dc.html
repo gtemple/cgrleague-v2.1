@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Saira', sans-serif; background: #ecebe5; }
+  a { color: inherit; text-decoration: none; }
+</style>
+</helmet>
+
+<div style="background:#ecebe5; min-height:100vh; color:#16140f;">
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; row-gap:6px; min-height:62px; padding:8px 26px; background:#16140f; border-bottom:3px solid #e8232c; position:sticky; top:0; z-index:20;">
+    <a href="CGR%20Home.dc.html" style="display:flex; align-items:center; gap:11px;">
+      <div style="width:32px; height:32px; border-radius:4px; background:#e8232c; display:flex; align-items:center; justify-content:center; font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:15px; color:#fff;">CGR</div>
+      <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; color:#f7f5ef;">CGR LEAGUE</div>
+    </a>
+    <div style="display:flex; align-items:center; gap:14px 26px; flex-wrap:wrap; font-family:'Saira',sans-serif; font-weight:500; font-size:14px; color:#b3afa4;">
+      <a href="CGR%20Seasons.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Seasons</a><a href="CGR%20Drivers.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Drivers</a><a href="CGR%20Teams.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Teams</a><a href="CGR%20Tracks.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Tracks</a><a href="CGR%20Hall%20of%20Fame.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Hall of Fame</a>
+      <a href="CGR%20Articles.dc.html" style="color:#fff; border-bottom:2px solid #e8232c; padding-bottom:3px;">Articles</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8579; border:1px solid rgba(255,255,255,0.18); border-radius:5px; padding:7px 11px;">⌕ SEARCH <span style="color:#5a564c;">⌘K</span></div>
+  </div>
+
+  <div style="max-width:1180px; margin:0 auto; padding:24px 26px 70px;">
+    <a href="CGR%20Articles.dc.html" style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em; color:#7a766b;">← ARTICLES</a>
+
+    <div style="margin-top:18px; height:240px; border-radius:6px; background:repeating-linear-gradient(118deg,#dedbd1 0 2px,#e9e6dd 2px 12px); display:flex; align-items:flex-end; justify-content:flex-end; padding:10px; font-family:'JetBrains Mono',monospace; font-size:9px; color:#b0ada2;">[ RACE PHOTO — CIRCUIT DE BARCELONA ]</div>
+
+    <div style="display:flex; align-items:center; gap:12px; margin-top:18px;">
+      <span style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:0.1em; color:#241a00; background:#f5b21a; padding:4px 9px; border-radius:3px;">POWER RANKINGS</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#7a766b;">Season 7 · Round 5</span>
+      <a href="CGR%20Seasons.dc.html" style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#16140f; border:1px solid #d9d6cd; border-radius:4px; padding:5px 10px;">View season →</a>
+    </div>
+    <h1 style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:44px; line-height:1.02; color:#16140f; margin-top:10px;">Power Rankings — After Round 5: Spanish Grand Prix</h1>
+    <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#b0ada2; margin-top:12px;">11 MARCH 2026 · 1 MIN READ</div>
+
+    <!-- rankings history chart -->
+    <div style="background:#fff; border:1px solid #d9d6cd; border-radius:6px; padding:18px 20px; margin-top:24px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.16em; color:#7a766b;">RANKINGS HISTORY</span>
+        <div style="display:flex; background:#f1efe8; border:1px solid #e2dfd6; border-radius:5px; padding:2px;">
+          <div onClick="{{ onAll }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 13px; border-radius:4px; background:{{ allBg }}; color:{{ allFg }};">All</div>
+          <div onClick="{{ onHuman }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 13px; border-radius:4px; background:{{ humanBg }}; color:{{ humanFg }};">Humans only</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div style="display:flex; flex-direction:column; justify-content:space-between; padding:14px 0 28px; font-family:'JetBrains Mono',monospace; font-size:9px; color:#b0ada2;">
+          <span>P1</span><span>P5</span><span>P10</span><span>P15</span><span>P20</span>
+        </div>
+        <div style="flex:1;">
+          <svg viewBox="0 0 1000 300" preserveAspectRatio="none" style="width:100%; height:280px; display:block;">
+            <line x1="10" y1="14" x2="990" y2="14" stroke="#efece4" stroke-width="1"/>
+            <line x1="10" y1="78" x2="990" y2="78" stroke="#f3f0e8" stroke-width="1"/>
+            <line x1="10" y1="142" x2="990" y2="142" stroke="#f3f0e8" stroke-width="1"/>
+            <line x1="10" y1="206" x2="990" y2="206" stroke="#f3f0e8" stroke-width="1"/>
+            <line x1="10" y1="270" x2="990" y2="270" stroke="#e6e2d8" stroke-width="1"/>
+            <sc-for list="{{ series }}" as="s" hint-placeholder-count="3">
+              <polyline points="{{ s.points }}" fill="none" stroke="{{ s.color }}" stroke-width="{{ s.width }}" stroke-dasharray="{{ s.dash }}" stroke-linejoin="round" stroke-linecap="round" opacity="{{ s.opacity }}"/>
+            </sc-for>
+          </svg>
+          <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:9px; color:#9b988d; padding:0 4px;">
+            <span>R1</span><span>R2</span><span>R3</span><span>R4</span><span>R5</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:7px; margin-top:14px; padding-top:14px; border-top:1px solid #efece4;">
+        <sc-for list="{{ legend }}" as="l" hint-placeholder-count="3">
+          <div style="display:flex; align-items:center; gap:7px; background:#f6f4ee; border:1px solid #ebe7dd; border-radius:5px; padding:5px 10px;">
+            <span style="width:15px; height:0; border-top:3px {{ l.lineStyle }} {{ l.color }}; display:inline-block;"></span>
+            <span style="font-family:'Saira',sans-serif; font-weight:600; font-size:12px; color:#16140f;">{{ l.name }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ranked cards -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:16px; margin-top:24px;">
+      <sc-for list="{{ cards }}" as="d" hint-placeholder-count="20">
+        <div style="background:#fff; border:1px solid #d9d6cd; border-radius:6px; padding:16px 18px; display:flex; gap:16px;">
+          <div style="display:flex; flex-direction:column; align-items:center; width:34px; flex:none;">
+            <span style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:28px; color:#16140f; line-height:1;">{{ d.rank }}</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:{{ d.deltaColor }}; margin-top:3px;">{{ d.delta }}</span>
+          </div>
+          <div style="min-width:0; flex:1;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+              <div style="display:flex; align-items:center; gap:9px; min-width:0;">
+                <span style="width:28px; height:28px; border-radius:50%; background:{{ d.color }}; display:flex; align-items:center; justify-content:center; font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:10px; color:#fff; flex:none;">{{ d.init }}</span>
+                <div style="min-width:0;">
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:17px; color:#16140f; white-space:nowrap;">{{ d.name }}</span>
+                    <sc-if value="{{ d.human }}" hint-placeholder-val="{{ false }}"><span style="width:6px; height:6px; border-radius:50%; background:#e8232c;"></span></sc-if>
+                  </div>
+                  <div style="font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.06em; color:#9b988d; text-transform:uppercase;">{{ d.team }}</div>
+                </div>
+              </div>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#b0ada2; white-space:nowrap;">{{ d.stdg }} in standings</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:5px; margin-top:11px;">
+              <span style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.1em; color:#b0ada2; margin-right:3px;">RECENT</span>
+              <sc-for list="{{ d.pills }}" as="p" hint-placeholder-count="5">
+                <span style="font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:{{ p.fg }}; background:{{ p.bg }}; border-radius:3px; padding:3px 6px; min-width:30px; text-align:center;">{{ p.t }}</span>
+              </sc-for>
+            </div>
+            <p style="font-family:'Saira',sans-serif; font-size:13px; line-height:1.5; color:#6a685f; margin-top:11px;">{{ d.blurb }}</p>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { mode: 'all' };
+
+  // name, team, init, color, human, lineColor, stdg, recent[5], rankHist[5], blurb
+  raw = [
+    ['Charles Leclerc', 'Ferrari', 'CL', '#e8232c', false, '#e8232c', 'P2', [9, 7, 1, 3, 1], [12, 9, 4, 2, 1], 'Back-to-back wins in Rounds 3 and 5 have turned the Monegasque into the most in-form driver on the grid.'],
+    ['Cole Reynolds', 'Visa Cash App RB', 'CR', '#3a64d8', true, '#e8232c', 'P1', [1, 1, 'DNF', 1, 3], [1, 1, 3, 6, 2], 'Three wins in five races is a statement, and his championship lead is well-deserved despite that catastrophic P20 at Round 3.'],
+    ['Lewis Hamilton', 'Ferrari', 'LH', '#e8232c', false, '#e8232c', 'P4', [2, 6, 7, 8, 5], [5, 7, 6, 5, 3], 'The model of quiet consistency with five straight points finishes, but a worrying downward drift through the midfield.'],
+    ['Yuki Tsunoda', 'Red Bull', 'YT', '#2b4bce', false, '#2b4bce', 'P6', [8, 9, 3, 6, 7], [9, 10, 7, 8, 4], 'Steady as she goes — hasn\u2019t finished outside the top nine and grabbed a podium in Round 3.'],
+    ['Max Verstappen', 'Red Bull', 'MV', '#2b4bce', false, '#2b4bce', 'P3', [4, 2, 2, 5, 12], [3, 2, 1, 1, 5], 'Three consecutive top-five finishes looked vintage before a shocking P12 in Spain set alarm bells ringing.'],
+    ['Fernando Alonso', 'Aston Martin', 'FA', '#1f9e74', false, '#1f9e74', 'P7', [5, 8, 9, 16, 2], [8, 8, 10, 11, 6], 'The old master roared back to life with a stunning P2 in Spain after a miserable P16 the round before.'],
+    ['Lando Norris', 'McLaren', 'LN', '#ff8000', false, '#ff8000', 'P9', [11, 10, 6, 12, 4], [11, 11, 9, 9, 7], 'Four consecutive improvements from P11 to P4 tell you everything about Norris\u2019 trajectory.'],
+    ['Esteban Ocon', 'Haas', 'EO', '#9aa0a8', false, '#9aa0a8', 'P10', [16, 13, 4, 7, 13], [16, 14, 8, 7, 8], 'Brilliant when the Haas clicks but invisible when it doesn\u2019t — the flashes of pace are tantalizing.'],
+    ['Giordano Temple', 'Aston Martin', 'GT', '#1f9e74', true, '#2b4bce', 'P8', [12, 3, 17, 2, 'DNF'], [6, 5, 12, 7, 9], 'A season of dizzying highs and crushing lows; the race-winning speed is there, but the disasters undo his good work.'],
+    ['Kimi Antonelli', 'Mercedes', 'KA', '#16c4a6', false, '#16c4a6', 'P5', [3, 4, 8, 4, 'DNF'], [4, 3, 5, 3, 10], 'Four top-four finishes had the rookie looking like the real deal, but a brutal Round 5 DNF is a reality check.'],
+    ['Oscar Piastri', 'McLaren', 'OP', '#ff8000', false, '#ff8000', 'P11', [13, 5, 15, 9, 8], [13, 6, 13, 12, 11], 'Cracked the top five just once all season and sits a disappointing P11 — Norris is proving the quicker McLaren.'],
+    ['Gabriel Bortoleto', 'Sauber Kick', 'GB', '#3ad36a', false, '#3ad36a', 'P16', [14, 12, 10, 13, 10], [14, 13, 14, 13, 12], 'Finishing P10 in Spain was one of the Sauber rookie\u2019s better results — small signs of progress worth monitoring.'],
+    ['Nico Hulkenberg', 'Sauber Kick', 'NH', '#3ad36a', false, '#3ad36a', 'P13', [17, 14, 5, 11, 14], [17, 15, 11, 10, 13], 'A brilliant P5 in Round 3 showed his ceiling, but he\u2019s been largely anonymous either side of that result.'],
+    ['Alexander Albon', 'Williams', 'AA', '#1f6fe0', false, '#1f6fe0', 'P12', [6, 'DNF', 13, 10, 9], [7, 16, 15, 20, 14], 'A genuine rollercoaster — a P6 opener and a P9 in Spain bookend results that include a catastrophic P20.'],
+    ['Pierre Gasly', 'Alpine', 'PG', '#1aa0d8', false, '#1aa0d8', 'P15', [7, 11, 16, 17, 11], [10, 12, 16, 15, 15], 'Opened the season respectably but has since plummeted, failing to crack the top ten in three straight races.'],
+    ['Carlos Sainz', 'Williams', 'CS', '#1f6fe0', false, '#1f6fe0', 'P14', [10, 15, 'DNF', 18, 6], [15, 17, 18, 18, 16], 'A welcome P6 in Spain after three consecutive finishes outside the top fourteen in his Williams.'],
+    ['Isack Hadjar', 'Visa Cash App RB', 'IH', '#3a64d8', false, '#3a64d8', 'P19', [18, 18, 11, 14, 15], [18, 18, 17, 16, 17], 'His VCARB teammate leads the championship while Hadjar sits pointless — a breakthrough is overdue.'],
+    ['Oliver Bearman', 'Haas', 'OB', '#9aa0a8', false, '#9aa0a8', 'P17', [15, 17, 14, 15, 17], [19, 19, 19, 17, 18], 'Yet to score a point, with five finishes between P14 and P17 painting a grim picture of his rookie campaign.'],
+    ['Jack Doohan', 'Alpine', 'JD', '#1aa0d8', false, '#1aa0d8', 'P18', [19, 16, 12, 'DNF', 16], [20, 20, 20, 19, 19], 'Rock bottom in terms of form, hasn\u2019t finished higher than P12 all season — the Alpine is clearly struggling.'],
+    ['Ryan Reynolds', 'Mercedes', 'RR', '#16c4a6', true, '#1f9e74', 'P20', [20, 'DNF', 18, 'DNF', 'DNF'], [2, 4, 2, 14, 20], 'Five rounds, five finishes of P18 or worse — the Mercedes adventure has been nothing short of brutal so far.'],
+  ];
+
+  xFor(i) { return 10 + (i / 4) * 980; }
+  yFor(r) { return 14 + (r - 1) / 19 * 256; }
+
+  pill(p) {
+    if (p === 'DNF') return { t: 'DNF', bg: '#211d18', fg: '#9b938a' };
+    if (p === 1) return { t: 'P1', bg: '#f5b21a', fg: '#241a00' };
+    if (p <= 3) return { t: 'P' + p, bg: '#ef8f2c', fg: '#241a00' };
+    if (p <= 10) return { t: 'P' + p, bg: '#c0392b', fg: '#fff' };
+    return { t: 'P' + p, bg: '#efece4', fg: '#7a766b' };
+  }
+
+  renderVals() {
+    const m = this.state.mode;
+    const objs = this.raw.map(r => ({
+      name: r[0], team: r[1], init: r[2], color: r[3], human: r[4], line: r[5], stdg: r[6], recent: r[7], hist: r[8], blurb: r[9],
+    }));
+
+    let series = objs.slice();
+    if (m === 'human') series = series.filter(d => d.human);
+    const chartSeries = series.map(d => ({
+      points: d.hist.map((r, i) => this.xFor(i).toFixed(1) + ',' + this.yFor(r).toFixed(1)).join(' '),
+      color: d.line, width: d.human ? 3 : 1.5, dash: d.human ? '' : '5 4', opacity: d.human ? 1 : (m === 'all' ? 0.4 : 0.7),
+    }));
+    const legend = (m === 'human' ? objs.filter(d => d.human) : objs.filter(d => d.human)).map(d => ({ name: d.name, color: d.line, lineStyle: 'solid' }));
+
+    const cards = objs.map(d => {
+      const delta = d.hist[3] - d.hist[4];
+      return {
+        rank: d.hist[4], name: d.name, team: d.team, init: d.init, color: d.color, human: d.human, stdg: d.stdg, blurb: d.blurb,
+        delta: delta > 0 ? '\u25B2' + delta : delta < 0 ? '\u25BC' + (-delta) : '\u2014',
+        deltaColor: delta > 0 ? '#1f9e74' : delta < 0 ? '#c0392b' : '#b0ada2',
+        pills: d.recent.map(p => this.pill(p)),
+      };
+    }).sort((a, b) => a.rank - b.rank);
+
+    const all = m === 'all', hum = m === 'human';
+    return {
+      series: chartSeries, legend, cards,
+      allBg: all ? '#16140f' : 'transparent', allFg: all ? '#fff' : '#7a766b',
+      humanBg: hum ? '#16140f' : 'transparent', humanFg: hum ? '#fff' : '#7a766b',
+      onAll: () => this.setState({ mode: 'all' }), onHuman: () => this.setState({ mode: 'human' }),
+    };
+  }
+}
+</script>
+</body>
+</html>

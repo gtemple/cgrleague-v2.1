@@ -314,6 +314,8 @@ class NextRaceTeaserView(APIView):
                     "id": upcoming.id,
                     "round": upcoming.round,
                     "is_sprint": upcoming.is_sprint,
+                    "laps": upcoming.laps,
+                    "started_at": upcoming.started_at,
                 },
                 "track": serialize_track(t),
             }
@@ -364,11 +366,17 @@ class NextRaceTeaserView(APIView):
                     "last_winner": _last_winner_for_track(ev.track_id),
                 })
 
+        main_races = Race.objects.filter(season=latest_season, is_sprint=False)
+        total_rounds = main_races.count()
+        completed_rounds = main_races.filter(results__isnull=False).distinct().count()
+
         data = {
             "season_id": latest_season.id if latest_season else None,
             "upcoming_race": upcoming_payload,
             "recent_winners": recent_winners,
             "following_two": following_two,
+            "total_rounds": total_rounds,
+            "completed_rounds": completed_rounds,
         }
         cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data)

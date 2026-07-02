@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Saira', sans-serif; background: #ecebe5; }
+  a { color: inherit; text-decoration: none; }
+  ::-webkit-scrollbar { height: 9px; } ::-webkit-scrollbar-thumb { background: #cbc7bb; border-radius: 5px; } ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</helmet>
+
+<div style="background:#ecebe5; min-height:100vh; color:#16140f;">
+
+  <!-- nav -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; row-gap:6px; min-height:62px; padding:8px 26px; background:#16140f; border-bottom:3px solid #e8232c; position:sticky; top:0; z-index:20;">
+    <a href="CGR%20Home.dc.html" style="display:flex; align-items:center; gap:11px;">
+      <div style="width:32px; height:32px; border-radius:4px; background:#e8232c; display:flex; align-items:center; justify-content:center; font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:15px; color:#fff;">CGR</div>
+      <div style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:19px; color:#f7f5ef;">CGR LEAGUE</div>
+    </a>
+    <div style="display:flex; align-items:center; gap:14px 26px; flex-wrap:wrap; font-family:'Saira',sans-serif; font-weight:500; font-size:14px; color:#b3afa4;">
+      <a href="CGR%20Seasons.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Seasons</a>
+      <a href="CGR%20Drivers.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Drivers</a>
+      <a href="CGR%20Teams.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Teams</a>
+      <a href="CGR%20Tracks.dc.html" style="color:#fff; border-bottom:2px solid #e8232c; padding-bottom:3px;">Tracks</a>
+      <a href="CGR%20Hall%20of%20Fame.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Hall of Fame</a><a href="CGR%20Articles.dc.html" style="transition:color 0.15s;" style-hover="color:#f7f5ef;">Articles</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#8a8579; border:1px solid rgba(255,255,255,0.18); border-radius:5px; padding:7px 11px;">⌕ SEARCH <span style="color:#5a564c;">⌘K</span></div>
+  </div>
+
+  <!-- hero (dark) -->
+  <div style="background:#16140f; padding:18px 26px 28px;">
+    <div style="max-width:1440px; margin:0 auto;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; color:#8a8579;">CGR LEAGUE · TRACK</span>
+        <a href="CGR%20Tracks.dc.html" style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em; color:#b3afa4;">← ALL TRACKS</a>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:24px;">
+        <div style="width:160px; height:104px; border-radius:6px; background:repeating-linear-gradient(118deg,#26221a 0 2px,#1b1810 2px 10px); border:1px solid #332e25; flex:none; display:flex; align-items:flex-end; justify-content:flex-end; padding:8px; font-family:'JetBrains Mono',monospace; font-size:8px; color:#5a5343;">CIRCUIT MAP</div>
+        <div>
+          <div style="font-family:'Saira Condensed',sans-serif; font-weight:800; font-size:56px; color:#f7f5ef; line-height:0.9; text-transform:uppercase; letter-spacing:-0.01em;">Austrian Grand Prix</div>
+          <div style="display:flex; align-items:center; gap:10px; margin-top:12px;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#f0eee7; border:1px solid #3a352b; border-radius:3px; padding:3px 7px;">AUT</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.08em; color:#b3afa4;">SPIELBERG, AUSTRIA · 4.318 KM</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- stat row -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); margin-top:24px; border:1px solid #2a261d; border-radius:6px; overflow:hidden; background:#1b1810;">
+        <sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+          <div style="padding:16px 14px; border-right:1px solid #2a261d;">
+            <div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:24px; color:{{ s.color }}; line-height:1;">{{ s.v }}</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.1em; color:#6a6457; margin-top:7px;">{{ s.l }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <p style="max-width:1180px; margin-top:20px; font-family:'Saira',sans-serif; font-size:14px; line-height:1.65; color:#c9c4b8; text-wrap:pretty;">Nestled in the Styrian hills, Spielberg's 4.318 km circuit has become one of CGR League's most unpredictable battlegrounds across seven seasons. Max Verstappen is the only driver to win here twice — in Seasons 2 and 4 — yet even he couldn't string together true dominance. Ryan Reynolds delivered one of the circuit's signature moments with his Season 3 triumph, while brother Cole Reynolds went one better in Season 6 and leads all human drivers with 61 points at the track. Perhaps the most quietly impressive Spielberg performer is Giordano Temple, who despite never winning has racked up three podiums and boasts the best average finish of any human competitor at P7.8 — the model of relentless consistency. From Hamilton's opening-season victory to Perez's Season 5 upset, the Austrian Grand Prix has refused to crown a repeat champion in back-to-back years, making it the venue where form guides go to die.</p>
+    </div>
+  </div>
+
+  <div style="max-width:1440px; margin:0 auto; padding:22px 26px 60px;">
+
+    <!-- sort controls -->
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#7a766b; margin-right:2px;">SORT BY</span>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; background:#f1efe8; border:1px solid #e2dfd6; border-radius:6px; padding:3px;">
+        <sc-for list="{{ sorts }}" as="b" hint-placeholder-count="8">
+          <div onClick="{{ b.onClick }}" style="cursor:pointer; font-family:'Saira',sans-serif; font-weight:600; font-size:12px; padding:6px 12px; border-radius:4px; background:{{ b.bg }}; color:{{ b.fg }};">{{ b.label }}</div>
+        </sc-for>
+      </div>
+      <div onClick="{{ onToggleDir }}" style="cursor:pointer; margin-left:auto; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; padding:7px 13px; border-radius:5px; background:#16140f; color:#fff;">{{ dirLabel }}</div>
+    </div>
+
+    <!-- leaderboard -->
+    <div style="background:#fff; border:1px solid #d9d6cd; border-radius:5px; overflow:hidden;">
+      <div style="overflow-x:auto;">
+        <div style="min-width:1080px;">
+          <div style="display:grid; grid-template-columns:44px 1fr repeat(9,1fr); align-items:center; padding:11px 16px; background:#faf9f4; border-bottom:1px solid #ece9e1; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.06em; color:#9b988d;">
+            <div>#</div><div>DRIVER</div>
+            <div style="text-align:right;">PTS</div><div style="text-align:right;">WINS</div><div style="text-align:right;">PODS</div><div style="text-align:right;">FL</div><div style="text-align:right;">DOTD</div><div style="text-align:right;">DNFS</div><div style="text-align:right;">AVG FIN</div><div style="text-align:right;">LAPS</div><div style="text-align:right;">RCS</div>
+          </div>
+          <sc-for list="{{ rows }}" as="d" hint-placeholder-count="24">
+            <div style="display:grid; grid-template-columns:44px 1fr repeat(9,1fr); align-items:center; padding:0 16px; height:46px; border-bottom:1px solid #f4f1e9; background:{{ d.rowBg }};">
+              <div style="font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:{{ d.rankColor }}; text-align:center;">{{ d.rank }}</div>
+              <div style="display:flex; align-items:center; gap:11px; min-width:0;">
+                <span style="width:4px; height:22px; border-radius:2px; background:{{ d.color }}; flex:none;"></span>
+                <span style="font-family:'Saira Condensed',sans-serif; font-weight:700; font-size:17px; color:#16140f; white-space:nowrap;">{{ d.name }}</span>
+                <sc-if value="{{ d.human }}" hint-placeholder-val="{{ false }}"><span style="width:6px; height:6px; border-radius:50%; background:#e8232c; flex:none;"></span></sc-if>
+              </div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-size:15px; font-weight:700; color:#16140f;">{{ d.pts }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:{{ d.winColor }}; font-weight:600;">{{ d.wins }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#5a564c;">{{ d.pods }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#5a564c;">{{ d.fl }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#5a564c;">{{ d.dotd }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:{{ d.dnfColor }};">{{ d.dnfs }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#16140f; font-weight:600;">{{ d.avg }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#7a766b;">{{ d.laps }}</div>
+              <div style="text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; color:#7a766b;">{{ d.races }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { sort: 'pts', desc: true };
+
+  stats = [
+    { v: '6', l: 'RACES HELD', color: '#f7f5ef' },
+    { v: '24', l: 'DRIVERS RACED', color: '#f7f5ef' },
+    { v: '2,022', l: 'LAPS DRIVEN', color: '#f7f5ef' },
+    { v: '5', l: 'DISTINCT WINNERS', color: '#f7f5ef' },
+    { v: 'M. VERSTAPPEN', l: 'MOST WINS · 2', color: '#f5b21a' },
+  ];
+
+  // [name, color, human, pts, wins, pods, fl, dotd, dnfs, avg, laps, races]
+  raw = [
+    ['Max Verstappen', '#2b4bce', false, 109, 2, 4, 3, 1, 0, 2.7, 108, 6],
+    ['Sergio Perez', '#2b4bce', false, 87, 1, 4, 1, 0, 0, 2.6, 90, 5],
+    ['Cole Reynolds', '#3a64d8', true, 61, 1, 2, 1, 2, 0, 8.5, 108, 6],
+    ['Giordano Temple', '#1f9e74', true, 51, 0, 3, 1, 1, 0, 7.8, 108, 6],
+    ['Ryan Reynolds', '#16c4a6', true, 51, 1, 1, 0, 0, 1, 9.2, 108, 6],
+    ['Lando Norris', '#ff8000', false, 50, 0, 1, 0, 0, 0, 6.3, 108, 6],
+    ['Lewis Hamilton', '#e8232c', false, 48, 1, 2, 0, 0, 0, 6.8, 90, 5],
+    ['Carlos Sainz', '#1f6fe0', false, 32, 0, 0, 0, 0, 0, 6.0, 72, 4],
+    ['Fernando Alonso', '#1f9e74', false, 31, 0, 0, 0, 0, 0, 9.2, 108, 6],
+    ['Valtteri Bottas', '#3ad36a', false, 20, 0, 1, 0, 0, 0, 10.8, 90, 5],
+    ['Pierre Gasly', '#1aa0d8', false, 18, 0, 0, 0, 0, 0, 8.3, 72, 4],
+    ['Esteban Ocon', '#9aa0a8', false, 15, 0, 0, 0, 0, 0, 9.6, 90, 5],
+    ['Daniel Ricciardo', '#3a64d8', false, 10, 0, 0, 0, 0, 0, 8.0, 36, 2],
+    ['Charles Leclerc', '#e8232c', false, 10, 0, 0, 0, 0, 0, 11.6, 90, 5],
+    ['Yuki Tsunoda', '#2b4bce', false, 8, 0, 0, 0, 0, 0, 13.0, 90, 5],
+    ['Sebastian Vettel', '#1f9e74', false, 7, 0, 0, 0, 1, 0, 11.5, 108, 6],
+    ['Kevin Magnussen', '#9aa0a8', false, 2, 0, 0, 0, 0, 0, 11.5, 36, 2],
+    ['Lance Stroll', '#1f9e74', false, 1, 0, 0, 0, 0, 0, 12.8, 90, 5],
+    ['Kimi Raikkonen', '#3ad36a', false, 0, 0, 0, 0, 0, 0, 14.0, 72, 4],
+    ['George Russell', '#16c4a6', false, 0, 0, 0, 0, 0, 0, 13.2, 90, 5],
+    ['Nicholas Latifi', '#1f6fe0', false, 0, 0, 0, 0, 0, 0, 16.2, 108, 6],
+    ['Mick Schumacher', '#16c4a6', false, 0, 0, 0, 0, 0, 1, 17.4, 108, 6],
+    ['Antonio Giovinazzi', '#3ad36a', false, 0, 0, 0, 0, 0, 0, 15.7, 54, 3],
+    ['Nikita Mazepin', '#9aa0a8', false, 0, 0, 0, 0, 0, 0, 17.3, 54, 3],
+  ];
+
+  sortDefs = [
+    { key: 'pts', label: 'Points' }, { key: 'wins', label: 'Wins' }, { key: 'pods', label: 'Podiums' },
+    { key: 'fl', label: 'Fastest Laps' }, { key: 'avg', label: 'Avg Finish' }, { key: 'laps', label: 'Laps' },
+    { key: 'dnfs', label: 'DNFs' }, { key: 'dotd', label: 'DOTDs' }, { key: 'name', label: 'Driver' },
+  ];
+
+  dash(n) { return n > 0 ? String(n) : '—'; }
+
+  renderVals() {
+    const st = this.state;
+    const objs = this.raw.map(r => ({
+      name: r[0], color: r[1], human: r[2], pts: r[3], wins: r[4], pods: r[5], fl: r[6], dotd: r[7], dnfs: r[8], avg: r[9], laps: r[10], races: r[11],
+    }));
+    const key = st.sort, dir = st.desc ? -1 : 1;
+    objs.sort((a, b) => {
+      if (key === 'name') return dir * a.name.localeCompare(b.name);
+      const d = a[key] - b[key];
+      return d !== 0 ? dir * d : a.pts < b.pts ? 1 : -1;
+    });
+    const rows = objs.map((d, i) => ({
+      ...d, rank: i + 1,
+      rankColor: i === 0 ? '#e8232c' : '#b0ada2',
+      rowBg: i === 0 ? '#fdfaf2' : '#fff',
+      wins: this.dash(d.wins), pods: this.dash(d.pods), fl: this.dash(d.fl), dotd: this.dash(d.dotd), dnfs: this.dash(d.dnfs),
+      avg: d.avg.toFixed(1),
+      winColor: d.wins > 0 ? '#16140f' : '#c2bfb4',
+      dnfColor: d.dnfs > 0 ? '#c0392b' : '#c2bfb4',
+    }));
+    const sorts = this.sortDefs.map(s => {
+      const a = st.sort === s.key;
+      return { label: s.label, bg: a ? '#16140f' : 'transparent', fg: a ? '#fff' : '#7a766b', onClick: () => this.setState({ sort: s.key, desc: s.key !== 'avg' && s.key !== 'name' }) };
+    });
+    return { stats: this.stats, rows, sorts, dirLabel: st.desc ? '↓ DESC' : '↑ ASC', onToggleDir: () => this.setState({ desc: !st.desc }) };
+  }
+}
+</script>
+</body>
+</html>

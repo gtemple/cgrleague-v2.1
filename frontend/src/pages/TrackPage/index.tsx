@@ -44,10 +44,12 @@ export const TrackPage = () => {
     const totalRaces = Math.max(...drivers.map((d) => d.races_count));
     const topWinner = [...drivers].sort((a, b) => b.wins - a.wins)[0];
     const totalLaps = drivers.reduce((s, d) => s + d.total_laps, 0);
-    return { totalRaces, topWinner, totalLaps, driverCount: drivers.length };
+    const distinctWinners = new Set(drivers.filter((d) => d.wins > 0).map((d) => d.driver.id)).size;
+    return { totalRaces, topWinner, totalLaps, driverCount: drivers.length, distinctWinners };
   }, [data]);
 
   const trackImg = track?.image ? displayImage(track.image, "trackImage") : null;
+  const km = track?.distance ? (track.distance / 1000).toFixed(3) : null;
 
   return (
     <div className="tp-page">
@@ -79,7 +81,7 @@ export const TrackPage = () => {
                       alt={track.country}
                     />
                   )}
-                  {subtitle}
+                  {subtitle.toUpperCase()}{km && ` · ${km} KM`}
                 </div>
               )}
             </div>
@@ -105,6 +107,10 @@ export const TrackPage = () => {
                 <div className="tp-stat-value">{summary.totalLaps.toLocaleString()}</div>
                 <div className="tp-stat-label">Total Laps</div>
               </div>
+              <div className="tp-stat">
+                <div className="tp-stat-value">{summary.distinctWinners}</div>
+                <div className="tp-stat-label">Distinct Winners</div>
+              </div>
               {summary.topWinner.wins > 0 && (
                 <div className="tp-stat tp-stat-winner">
                   <div className="tp-stat-value tp-winner-name">
@@ -124,10 +130,12 @@ export const TrackPage = () => {
         )}
       </header>
 
+      <div className="tp-body">
+
       {/* ── Controls ── */}
       <div className="tp-controls">
         <div className="tp-controls-left">
-          <span className="tp-control-label">Sort by</span>
+          <span className="tp-control-label">SORT BY</span>
           <div className="tp-sort-pills">
             {ORDER_OPTIONS.map((opt) => (
               <button
@@ -149,11 +157,11 @@ export const TrackPage = () => {
             {includeSprints ? "✓ " : ""}Sprints
           </button>
           <button
-            className="tp-pill tp-pill-icon"
+            className="tp-pill tp-pill-icon tp-pill-dark"
             onClick={() => setDirection((d) => (d === "asc" ? "desc" : "asc"))}
             title="Toggle sort direction"
           >
-            {direction === "asc" ? "↑ Asc" : "↓ Desc"}
+            {direction === "asc" ? "↑ ASC" : "↓ DESC"}
           </button>
         </div>
       </div>
@@ -234,6 +242,8 @@ export const TrackPage = () => {
           </div>
         </div>
       )}
+
+      </div>
     </div>
   );
 };

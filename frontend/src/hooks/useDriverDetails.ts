@@ -10,8 +10,10 @@ export type DriverDetail = {
     profile_image: string | null;
     country_of_representation: string | null;
     bio: string | null;
+    is_human: boolean;
   };
   totals: {
+    seasons_played: number;
     points: number;
     points_breakdown: { base: number; fastest_lap_bonus: number };
     laps: number;

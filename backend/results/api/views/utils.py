@@ -79,6 +79,7 @@ def serialize_track(t) -> Dict[str, Any]:
         "city": getattr(t, "city", "") if t else "",
         "country": getattr(t, "country", "") if t else "",
         "image": getattr(t, "img", None) if t else None,
+        "distance": getattr(t, "distance", None) if t else None,
     }
 
 def serialize_race_basic(r) -> Dict[str, Any]:

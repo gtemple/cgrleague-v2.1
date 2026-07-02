@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { displayImage } from "../../utils/displayImage";
 import { SearchModal } from "../SearchModal";
 import { useLatestSeasonId } from "../../hooks/useLatestSeasonId";
 import "./style.css";
@@ -45,12 +44,10 @@ export function NavBar() {
     <>
       <header className="navbar">
         <div className="nav-inner">
-          <div className="nav-brand">
-            <div className="nav-logo-container">
-              <img loading="eager" src={displayImage("cgr-icon", "siteImage")} alt="CGR Logo" />
-            </div>
-            <NavLink to="/" className="brand">CGR League</NavLink>
-          </div>
+          <NavLink to="/" className="nav-brand">
+            <div className="nav-logo-container">CGR</div>
+            <span className="brand">CGR LEAGUE</span>
+          </NavLink>
 
           <button
             className={"nav-burger" + (navOpen ? " nav-burger--open" : "")}

@@ -27,6 +27,12 @@ export type SeasonBestEntry = {
   value: number;
 } | null;
 
+export type SeasonChampion = {
+  season_id: number;
+  driver: { id: number; first_name: string; last_name: string; profile_image: string | null };
+  team: { id: number | null; name: string | null; color: string | null };
+};
+
 export type HallOfFameData = {
   drivers: HallOfFameDriver[];
   season_bests: {
@@ -34,6 +40,7 @@ export type HallOfFameData = {
     most_points: SeasonBestEntry;
     most_poles: SeasonBestEntry;
   };
+  season_champions: SeasonChampion[];
 };
 
 function normalize(raw: unknown): HallOfFameData {
@@ -42,6 +49,7 @@ function normalize(raw: unknown): HallOfFameData {
     return {
       drivers: raw as HallOfFameDriver[],
       season_bests: { most_wins: null, most_points: null, most_poles: null },
+      season_champions: [],
     };
   }
   return raw as HallOfFameData;
