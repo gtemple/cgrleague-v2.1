@@ -1,6 +1,17 @@
 // src/hooks/useDriverDetail.ts
 import { useApiQuery } from "./useApiQuery";
 
+export type DriverDNATrait = {
+  key: string;
+  label: string;
+  value: number; // 0-100 percentile vs the grid
+};
+
+export type DriverDNA = {
+  traits: DriverDNATrait[];
+  archetype: string;
+};
+
 export type DriverDetail = {
   driver: {
     id: number;
@@ -31,6 +42,7 @@ export type DriverDetail = {
     ppr: number | null;
     avg_positions_gained: number | null;
   };
+  dna: DriverDNA | null;
 };
 
 export function useDriverDetail(driverId?: string) {

@@ -60,6 +60,11 @@ def key_h2h():
 def key_driver_specialization(driver_id):
     return f"driver:{driver_id}:specialization"
 
+def key_driver_dna():
+    # Population-wide percentile map; a single result shifts everyone, so this
+    # is one key invalidated wholesale on any RaceResult change.
+    return "driver:dna_map"
+
 def key_history_teaser():
     return "teaser:history"
 
@@ -97,6 +102,7 @@ def invalidate_for_result(instance):
         key_driver_history(driver_id),
         key_driver_tracks(driver_id),
         key_driver_specialization(driver_id),
+        key_driver_dna(),
         key_track_stats(track_id, False),
         key_track_stats(track_id, True),
         key_team_detail(team_id),

@@ -18,6 +18,7 @@ from drivers.models import Driver
 # Reuse your existing points helpers (same ones used in standings)
 from results.api.views.utils import points_case, fl_bonus_case, serialize_driver, serialize_team
 from results.cache import CACHE_TTL, key_driver_detail, key_driver_history, key_driver_tracks, key_driver_specialization
+from drivers.dna import get_dna_map
 from tracks.models import Track
 
 
@@ -95,7 +96,9 @@ class DriverDetailView(APIView):
         ck = key_driver_detail(driver_id)
         cached = cache.get(ck)
         if cached is not None:
-            return Response(cached)
+            # DNA is percentile-ranked against the whole grid, so it lives in a
+            # separate map (fresh even when this driver's core blob is cached).
+            return Response({**cached, "dna": get_dna_map().get(driver_id)})
 
         driver = get_object_or_404(Driver, pk=driver_id)
 
@@ -187,7 +190,7 @@ class DriverDetailView(APIView):
             },
         }
         cache.set(ck, payload, timeout=CACHE_TTL)
-        return Response(payload)
+        return Response({**payload, "dna": get_dna_map().get(driver_id)})
 
 
 class DriverHistoryView(APIView):

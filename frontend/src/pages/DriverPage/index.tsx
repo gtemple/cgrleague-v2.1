@@ -111,7 +111,7 @@ export const DriverPage = () => {
                 {specialistLabel && (
                   <div className="dp-specialty-chip">{specialistLabel}</div>
                 )}
-                <DriverDNA driverId={driverId} />
+                <DriverDNA dna={data.dna} />
                 <div className="dp-hero-quick-stats">
                   <span className="dp-quick-chip"><b>{totals.wins}</b> Wins</span>
                   <span className="dp-quick-chip"><b>{totals.podiums}</b> Podiums</span>

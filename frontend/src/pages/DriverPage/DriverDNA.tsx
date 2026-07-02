@@ -1,12 +1,7 @@
-import { useDriverHistory } from "../../hooks/useDriverHistory";
-import { computeDriverDNA } from "../../utils/driverDNA";
+import type { DriverDNA as DriverDNAData } from "../../hooks/useDriverDetails";
 
-export function DriverDNA({ driverId }: { driverId?: string }) {
-  const { data } = useDriverHistory(driverId);
-  const rows = data?.history ?? [];
-  const dna = rows.length > 0 ? computeDriverDNA(rows) : null;
-
-  if (!dna) return null;
+export function DriverDNA({ dna }: { dna: DriverDNAData | null }) {
+  if (!dna || dna.traits.length === 0) return null;
 
   const max = Math.max(...dna.traits.map((t) => t.value));
 
@@ -34,7 +29,7 @@ export function DriverDNA({ driverId }: { driverId?: string }) {
         })}
       </div>
       <div className="dp-dna-footnote">
-        COMPUTED FROM CAREER DATA · 0–100 VS LEAGUE REFERENCE · ARCHETYPE AUTO-DERIVED FROM PROFILE SPREAD
+        PERCENTILE VS THE GRID · COMPUTED FROM CAREER DATA · ARCHETYPE = STANDOUT TRAIT
       </div>
     </div>
   );

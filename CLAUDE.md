@@ -49,6 +49,20 @@ Points are **computed, not stored**: `RaceResult.points` is a property delegatin
 
 `results/api/views/` is a package, one module per heavy read endpoint: `standings.py`, `matrices.py`, `h2h.py`, `hall_of_fame.py`, `races.py`, plus `admin.py`.
 
+### Data caveats (stat tracking is uneven across seasons)
+
+`RaceResult` has many optional flags, but they were **not all tracked from the start** — verify coverage before building any career-spanning metric on them:
+
+- **Poles** (`pole_position`): only from **Season 3** onwards (S1–S2 have none). Rate metrics must use pole-tracked seasons as the denominator, not all races. Derive the tracked-season set from the data (seasons with ≥1 pole) rather than hardcoding.
+- **Cleanest driver** (`cleanest_driver`) and **Most overtakes** (`most_overtakes`): only recorded in **Season 7**. Effectively unusable for career/all-time stats.
+- **Grid position** (`grid_position`): only recorded in **Season 7**, so anything derived from it (`avg_positions_gained` = grid − finish, pole-to-win) is S7-only despite reading like a career stat.
+- **DNFs are near-zero league-wide** (median 0%, max ~5%): DNF = crash, not mechanical failure. A raw "reliability = non-DNF rate" metric does **not** differentiate drivers — everyone scores ~95–100.
+- Reliably tracked every season: finish position, points, wins, podiums, fastest laps (`fastest_lap`), DOTD (`dotd`), status/DNF. `dotd` is "most exciting drive," so it *anti*-correlates with dominance (comeback artists score high, drivers who win from pole score low).
+- Most `Race` rows have **no `started_at`** (only ~3 of 125), so a real countdown is usually impossible — UIs must handle a null date.
+- `entries.TeamSeason.color` is populated for all teams via the `set_team_colors` management command (real-world livery hex); it is not part of the seed data.
+
+**Driver DNA** (`drivers/dna.py`, shown on the driver page) is a computed 5-trait profile built only from the reliably-tracked stats above, each trait **percentile-ranked against the established grid** (drivers with ≥10 races) so it spreads 0–100 and is robust to the gaps. It's a population-wide computation cached under one key (`key_driver_dna`, invalidated on any result change) and attached to the driver-detail response *outside* the per-driver cached blob so it stays fresh. See the module docstring for trait definitions.
+
 ### Caching (important)
 
 Expensive read endpoints cache their full response in Django's `LocMemCache` (24h TTL). Cache keys and the invalidation list live in `results/cache.py`. `invalidate_for_result()` deletes every dependent key and is fired by `post_save`/`post_delete` signals on `RaceResult` (wired in `results/apps.py`). When you add a cached endpoint, add its key builder AND add the key to `invalidate_for_result`, or it will serve stale data. Note LocMemCache is per-process — multiple workers each hold their own cache.
