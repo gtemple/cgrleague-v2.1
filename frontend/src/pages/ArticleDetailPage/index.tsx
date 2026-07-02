@@ -73,19 +73,24 @@ function DriverCard({ entry }: { entry: RankingsEntry }) {
         )}
       </div>
 
-      <div className="pr-avatar">
-        {avatarUrl
-          ? <img loading="lazy" src={avatarUrl} alt={entry.name} />
-          : <div className="pr-avatar-placeholder" style={{ background: borderColor }} />
-        }
-      </div>
-
+      <div className="pr-body-wrap">
       <div className="pr-header">
         <div className="pr-name-team">
-          <span className="pr-name">{entry.name}</span>
-          <span className="pr-team" style={entry.team_color ? { color: entry.team_color } : undefined}>
-            {entry.team}
-          </span>
+          <div className="pr-avatar">
+            {avatarUrl
+              ? <img loading="lazy" src={avatarUrl} alt={entry.name} />
+              : <div className="pr-avatar-placeholder" style={{ background: borderColor }} />
+            }
+          </div>
+          <div>
+            <div className="pr-name-row">
+              <span className="pr-name">{entry.name}</span>
+              {entry.is_human && <span className="pr-human-dot" />}
+            </div>
+            <span className="pr-team" style={entry.team_color ? { color: entry.team_color } : undefined}>
+              {entry.team}
+            </span>
+          </div>
         </div>
         {entry.championship_pos != null && (
           <span className="pr-champ-pos">P{entry.championship_pos} in standings</span>
@@ -103,6 +108,7 @@ function DriverCard({ entry }: { entry: RankingsEntry }) {
         </div>
 
         {entry.blurb && <p className="pr-blurb">{entry.blurb}</p>}
+      </div>
       </div>
     </div>
   );
@@ -158,6 +164,7 @@ export function ArticleDetailPage() {
 
   if (isLoading) {
     return (
+      <div className="adp-page">
       <div className="article-detail-page">
         <div className="article-detail-skeleton">
           <div className="skeleton-line skeleton-line--short" />
@@ -169,14 +176,17 @@ export function ArticleDetailPage() {
           <div className="skeleton-line skeleton-line--short" />
         </div>
       </div>
+      </div>
     );
   }
 
   if (error || !article) {
     return (
+      <div className="adp-page">
       <div className="article-detail-page">
         <Link to="/articles" className="article-back">← Articles</Link>
         <p className="article-detail-empty">Article not found.</p>
+      </div>
       </div>
     );
   }
@@ -189,8 +199,11 @@ export function ArticleDetailPage() {
   const isRankings = article.type === "POWER_RANKINGS";
   const hasSidebar = article.type === "PREVIEW" && article.preview_sidebar != null;
 
+  const isNarrow = !isRankings && !hasSidebar;
+
   return (
-    <div className="article-detail-page">
+    <div className="adp-page">
+    <div className={`article-detail-page${isNarrow ? " article-detail-page--narrow" : ""}`}>
       <Link to="/articles" className="article-back">← Articles</Link>
 
       {trackImg && (
@@ -214,10 +227,16 @@ export function ArticleDetailPage() {
                 {article.race.is_sprint && <span className="article-sprint-tag">Sprint</span>}
               </span>
               <Link
-                to={`/seasons/${article.race.season_id}/races/${article.race.round}`}
+                to={
+                  article.type === "PREVIEW"
+                    ? `/tracks/${article.race.track.id}`
+                    : article.type === "POWER_RANKINGS"
+                    ? `/seasons/${article.race.season_id}`
+                    : `/seasons/${article.race.season_id}/races/${article.race.round}`
+                }
                 className="article-race-link"
               >
-                View race results →
+                {article.type === "PREVIEW" ? "View track →" : article.type === "POWER_RANKINGS" ? "View season →" : "View race results →"}
               </Link>
             </>
           )}
@@ -255,7 +274,7 @@ export function ArticleDetailPage() {
         </>
       ) : (
         <div className={`article-detail-body${hasSidebar ? " article-detail-body--with-sidebar" : ""}`}>
-          <div className="article-detail-content">
+          <div className={`article-detail-content${isSeason ? " article-detail-content--dropcap" : ""}`}>
             {article.content.split("\n\n").map((para, i) => (
               <p key={i}>{highlightDrivers(para, article.human_driver_names, "driver-highlight")}</p>
             ))}
@@ -264,6 +283,7 @@ export function ArticleDetailPage() {
           {hasSidebar && <PreviewSidebarPanel sidebar={article.preview_sidebar!} />}
         </div>
       )}
+    </div>
     </div>
   );
 }

@@ -122,19 +122,19 @@ export function PowerRankingsHistory({ history, seasonId }: Props) {
 
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={chartData} margin={{ top: 8, right: 16, left: -10, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#efece4" />
           <XAxis
             dataKey="label"
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,255,255,0.08)" }}
-            tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+            axisLine={{ stroke: "#e2dfd6" }}
+            tick={{ fill: "#7a766b", fontSize: 11 }}
           />
           <YAxis
             domain={[1, maxRank]}
             reversed
             tickCount={maxRank}
             allowDecimals={false}
-            tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
+            tick={{ fill: "#7a766b", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
             width={28}
@@ -142,18 +142,18 @@ export function PowerRankingsHistory({ history, seasonId }: Props) {
           />
           <Tooltip
             content={<CustomTooltip />}
-            cursor={{ stroke: "rgba(255,255,255,0.1)", strokeWidth: 1 }}
+            cursor={{ stroke: "#d3d0c5", strokeWidth: 1 }}
           />
 
           {currentLabel && (
             <ReferenceLine
               x={`R${currentLabel.round}`}
-              stroke="rgba(255,199,14,0.3)"
+              stroke="rgba(245,178,26,0.45)"
               strokeDasharray="4 3"
               label={{
                 value: "Now",
                 position: "top",
-                fill: "rgba(255,199,14,0.5)",
+                fill: "#b8860b",
                 fontSize: 10,
               }}
             />

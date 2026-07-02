@@ -2,178 +2,97 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useArticleList } from "../../hooks/useArticles";
 import type { ArticleSummary } from "../../hooks/useArticles";
+import { useNextRaceTeaser } from "../../hooks/useNextRaceTeaser";
+import { useSeasonStandings } from "../../hooks/useSeasonStandings";
 import { formatArticleDate, articleTypeLabel } from "../../utils/articleUtils";
 import { readingTime } from "../../utils/readingTime";
 import { displayImage } from "../../utils/displayImage";
+import { StatusTicker } from "../../components/StatusTicker";
 import "./style.css";
 
 type Filter = "ALL" | "RACE" | "SEASON" | "RANKINGS";
 
-function initialLast(fullName: string) {
-  const parts = fullName.trim().split(" ");
-  return parts.length > 1 ? `${parts[0][0]}. ${parts[parts.length - 1]}` : fullName;
+const RECENT_SEASON_COUNT = 2;
+
+function articleCategory(type: ArticleSummary["type"]): Filter {
+  if (type === "RECAP" || type === "PREVIEW") return "RACE";
+  if (type === "SEASON_RECAP" || type === "SEASON_PREVIEW") return "SEASON";
+  return "RANKINGS";
 }
 
-// ─── card components ──────────────────────────────────────────────────────────
+function tagClass(type: ArticleSummary["type"]) {
+  switch (type) {
+    case "RECAP": return "atag-red";
+    case "PREVIEW": return "atag-blue";
+    case "POWER_RANKINGS": return "atag-gold";
+    case "SEASON_PREVIEW":
+    case "SEASON_RECAP": return "atag-purple";
+  }
+}
 
-function ArticleFeaturedCard({ article }: { article: ArticleSummary }) {
-  const trackImg = article.race?.track.img
-    ? displayImage(article.race.track.img, "trackImage")
-    : null;
-  const flagImg = article.race?.track.country
-    ? displayImage(article.race.track.country, "flags")
-    : null;
-  const isSeason = article.type === "SEASON_RECAP" || article.type === "SEASON_PREVIEW";
-  const badgeClass = `article-badge article-badge--${article.type.toLowerCase().replace("_", "-")}`;
+function articleMeta(article: ArticleSummary): string {
+  if (article.type === "POWER_RANKINGS" && article.race) {
+    return `AFTER ROUND ${article.race.round}`;
+  }
+  if (article.race) {
+    return `R${article.race.round} · ${article.race.track.name.toUpperCase()}`;
+  }
+  return `SEASON ${article.season_id}`;
+}
+
+// ─── card ─────────────────────────────────────────────────────────────────────
+
+function ArticleCard({ article }: { article: ArticleSummary }) {
+  const img = article.race?.track.img ? displayImage(article.race.track.img, "trackImage") : null;
 
   return (
-    <Link to={`/articles/${article.id}`} className={`article-card article-card--featured${isSeason ? ` article-card--featured-season article-card--featured-season-${article.type === "SEASON_RECAP" ? "recap" : "preview"}` : ""}`}>
-      {trackImg && <img loading="lazy" className="article-card-featured-bg" src={trackImg} alt="" aria-hidden="true" />}
-      <div className="article-card-featured-overlay" />
-      <div className="article-card-featured-content">
-        <div className="article-card-top">
-          <span className={badgeClass}>{articleTypeLabel(article.type)}</span>
-          {isSeason ? (
-            <span className="article-race-meta">Season {article.season_id}</span>
-          ) : article.race && (
-            <span className="article-race-meta">
-              S{article.race.season_id} · R{article.race.round}
-              {article.race.is_sprint && <span className="article-sprint-tag">Sprint</span>}
-            </span>
-          )}
-        </div>
-        {article.race && (
-          <div className="article-track-name article-track-name--light">
-            {flagImg && <img loading="lazy" className="article-flag" src={flagImg} alt={article.race.track.country ?? ""} />}
-            {article.race.track.name}
-          </div>
-        )}
-        <h3 className="article-title article-title--featured">{article.title}</h3>
-        <p className="article-teaser article-teaser--featured">{article.teaser}</p>
-        <div className="article-card-footer">
-          <span className="article-date">{formatArticleDate(article.generated_at)}</span>
-          <span className="article-reading-time">{readingTime(article.reading_time_minutes)}</span>
-          <span className="article-read-more">Read article →</span>
+    <Link to={`/articles/${article.id}`} className="acard">
+      <div className="acard-thumb">
+        {img && <img loading="lazy" src={img} alt="" />}
+        <span className={`acard-tag ${tagClass(article.type)}`}>{articleTypeLabel(article.type).toUpperCase()}</span>
+      </div>
+      <div className="acard-body">
+        <div className="acard-meta">{articleMeta(article)}</div>
+        <div className="acard-title">{article.title}</div>
+        <p className="acard-excerpt">{article.teaser}</p>
+        <div className="acard-footer">
+          <span className="acard-date">{formatArticleDate(article.generated_at)} · {readingTime(article.reading_time_minutes)}</span>
+          <span className="acard-cta">READ →</span>
         </div>
       </div>
     </Link>
   );
 }
 
-function ArticleSeasonCard({ article }: { article: ArticleSummary }) {
-  const badgeClass = `article-badge article-badge--${article.type.toLowerCase().replace("_", "-")}`;
-  const variant = article.type === "SEASON_RECAP" ? "recap" : "preview";
+// ─── archive row ────────────────────────────────────────────────────────────
+
+function ArchiveRow({ article }: { article: ArticleSummary }) {
   return (
-    <Link to={`/articles/${article.id}`} className={`article-card article-card--season-pinned article-card--season-pinned-${variant}`}>
-      <div className="season-pinned-banner">
-        <span className="season-pinned-num">S{article.season_id}</span>
-      </div>
-      <div className="article-card-body">
-        <div className="article-card-top">
-          <span className={badgeClass}>{articleTypeLabel(article.type)}</span>
-          <span className="article-race-meta">Season {article.season_id}</span>
-        </div>
-        <h3 className="article-title">{article.title}</h3>
-        <p className="article-teaser">{article.teaser}</p>
-        <div className="article-card-footer">
-          <span className="article-date">{formatArticleDate(article.generated_at)}</span>
-          <span className="article-reading-time">{readingTime(article.reading_time_minutes)}</span>
-          <span className="article-read-more">Read →</span>
-        </div>
-      </div>
+    <Link to={`/articles/${article.id}`} className="aarchive-row">
+      <span className="aarchive-season">S{article.season_id}</span>
+      <span className={`aarchive-tag ${tagClass(article.type)}`}>{articleTypeLabel(article.type).toUpperCase()}</span>
+      <span className="aarchive-title">{article.title}</span>
+      <span className="aarchive-date">{formatArticleDate(article.generated_at)} · {readingTime(article.reading_time_minutes)}</span>
+      <span className="aarchive-cta">READ →</span>
     </Link>
   );
 }
 
+// ─── grouping ─────────────────────────────────────────────────────────────────
 
-function PowerRankingsCard({ article }: { article: ArticleSummary }) {
-  const movers = article.biggest_movers ?? [];
-  return (
-    <Link to={`/articles/${article.id}`} className="article-card article-card--rankings">
-      <div className="article-card-body">
-        <div className="article-card-top">
-          <span className="article-badge article-badge--power-rankings">
-            {articleTypeLabel(article.type)}
-          </span>
-          {article.race && (
-            <span className="article-race-meta">
-              S{article.race.season_id} · R{article.race.round}
-              {article.race.is_sprint && <span className="article-sprint-tag">Sprint</span>}
-            </span>
-          )}
-        </div>
-        <h3 className="article-title">{article.title}</h3>
-        {movers.length > 0 && (
-          <div className="rankings-movers">
-            <span className="rankings-movers-label">Biggest movers</span>
-            {movers.map((m) => (
-              <span
-                key={m.name}
-                className={`rankings-mover-chip rankings-mover-chip--${m.delta > 0 ? "up" : "down"}`}
-              >
-                {m.delta > 0 ? "▲" : "▼"}{Math.abs(m.delta)} {initialLast(m.name)}
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="article-card-footer">
-          <span className="article-date">{formatArticleDate(article.generated_at)}</span>
-          <span className="article-read-more">View rankings →</span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-// ─── grouping logic ───────────────────────────────────────────────────────────
-
-interface RoundGroup {
-  round: number;
-  raceArticles: ArticleSummary[];
-  rankingsArticle: ArticleSummary | null;
-}
-
-interface SeasonGroup {
-  seasonId: number;
-  game: string | null;
-  seasonArticles: ArticleSummary[];
-  rounds: RoundGroup[];
-  totalCount: number;
-}
-
-function groupBySeasonDesc(articles: ArticleSummary[]): SeasonGroup[] {
-  const seasonMap = new Map<number, ArticleSummary[]>();
+function groupBySeasonDesc(articles: ArticleSummary[]): { seasonId: number; items: ArticleSummary[] }[] {
+  const map = new Map<number, ArticleSummary[]>();
   for (const a of articles) {
     const sid = a.season_id ?? 0;
-    if (!seasonMap.has(sid)) seasonMap.set(sid, []);
-    seasonMap.get(sid)!.push(a);
+    if (!map.has(sid)) map.set(sid, []);
+    map.get(sid)!.push(a);
   }
-  return [...seasonMap.entries()]
+  return [...map.entries()]
     .sort(([a], [b]) => b - a)
-    .map(([seasonId, items]) => {
-      const seasonArticles = items.filter(
-        (a) => a.type === "SEASON_RECAP" || a.type === "SEASON_PREVIEW"
-      );
-      const roundMap = new Map<number, { raceArticles: ArticleSummary[]; rankingsArticle: ArticleSummary | null }>();
-      for (const a of items) {
-        if (a.type === "SEASON_RECAP" || a.type === "SEASON_PREVIEW") continue;
-        const round = a.race?.round ?? 0;
-        if (!roundMap.has(round)) roundMap.set(round, { raceArticles: [], rankingsArticle: null });
-        const g = roundMap.get(round)!;
-        if (a.type === "POWER_RANKINGS") g.rankingsArticle = a;
-        else g.raceArticles.push(a);
-      }
-      const rounds = [...roundMap.entries()]
-        .sort(([a], [b]) => b - a)
-        .map(([round, g]) => ({ round, ...g }));
-      return {
-        seasonId,
-        game: items.find((a) => a.season_game)?.season_game ?? null,
-        seasonArticles,
-        rounds,
-        totalCount: items.length,
-      };
-    });
+    .map(([seasonId, items]) => ({
+      seasonId,
+      items: [...items].sort((a, b) => +new Date(b.generated_at) - +new Date(a.generated_at)),
+    }));
 }
 
 // ─── page ─────────────────────────────────────────────────────────────────────
@@ -182,99 +101,112 @@ export function ArticlesPage() {
   const { data: articles, isLoading } = useArticleList();
   const [filter, setFilter] = useState<Filter>("ALL");
 
+  const { data: teaser } = useNextRaceTeaser({ includeSprints: true });
+  const seasonId = teaser?.season_id ?? null;
+  const { data: driverStandings } = useSeasonStandings(seasonId ?? 0);
+
+  const latestRecap = useMemo(() => {
+    const recaps = (articles ?? []).filter((a) => a.type === "RECAP");
+    if (recaps.length === 0) return null;
+    return [...recaps].sort((a, b) => +new Date(b.generated_at) - +new Date(a.generated_at))[0];
+  }, [articles]);
+
   const visible = useMemo(() =>
-    articles?.filter((a) => {
-      if (filter === "ALL") return true;
-      if (filter === "RACE") return a.type === "RECAP" || a.type === "PREVIEW";
-      if (filter === "SEASON") return a.type === "SEASON_RECAP" || a.type === "SEASON_PREVIEW";
-      if (filter === "RANKINGS") return a.type === "POWER_RANKINGS";
-      return true;
-    }) ?? []
+    (articles ?? []).filter((a) => filter === "ALL" || articleCategory(a.type) === filter)
   , [articles, filter]);
 
   const groups = useMemo(() => groupBySeasonDesc(visible), [visible]);
+  const recentGroups = groups.slice(0, RECENT_SEASON_COUNT);
+  const archiveGroups = groups.slice(RECENT_SEASON_COUNT);
+  const archiveArticles = archiveGroups.flatMap((g) => g.items);
+
+  const leader = driverStandings?.[0];
+  const runnerUp = driverStandings?.[1];
 
   return (
     <div className="articles-page">
-      <div className="articles-page-header">
-        <h2 className="articles-heading">Articles</h2>
-        <div className="articles-filters">
-          {(["ALL", "RACE", "SEASON", "RANKINGS"] as Filter[]).map((f) => (
-            <button
-              key={f}
-              className={`articles-filter-btn${filter === f ? " articles-filter-btn--active" : ""}`}
-              onClick={() => setFilter(f)}
-            >
-              {f === "ALL" ? "All" : f === "RACE" ? "Race" : f === "SEASON" ? "Season" : "Rankings"}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {isLoading ? (
-        <div className="articles-skeleton">
-          <div className="skeleton-season-header" />
-          <div className="articles-grid">
-            <div className="article-card article-card--skeleton article-card--skeleton-featured" />
-            {[0, 1].map((i) => (
-              <div key={i} className="article-card article-card--skeleton">
-                <div className="skeleton-img" />
-                <div className="article-card-body" style={{ gap: 10 }}>
-                  <div className="skeleton-line skeleton-line--short" />
-                  <div className="skeleton-line skeleton-line--title" />
-                  <div className="skeleton-line" />
-                </div>
-              </div>
+      {/* ── Header band ── */}
+      <div className="art-header-band">
+        <div className="art-header-inner">
+          <div>
+            <div className="art-eyebrow">CGR LEAGUE · COVERAGE</div>
+            <h1 className="art-title">Articles</h1>
+          </div>
+          <div className="art-filter-tabs">
+            {(["ALL", "RACE", "SEASON", "RANKINGS"] as Filter[]).map((f) => (
+              <button
+                key={f}
+                className={`art-tab${filter === f ? " art-tab-active" : ""}`}
+                onClick={() => setFilter(f)}
+              >
+                {f === "ALL" ? "All" : f === "RACE" ? "Race" : f === "SEASON" ? "Season" : "Rankings"}
+              </button>
             ))}
           </div>
         </div>
-      ) : visible.length === 0 ? (
-        <p className="articles-empty">
-          {articles?.length === 0
-            ? "No articles yet. Check back after the next race."
-            : "No articles match this filter."}
-        </p>
-      ) : (
-        <div className="articles-seasons">
-          {groups.map((group) => (
-            <div key={group.seasonId} className="articles-season-group">
-              <div className="articles-season-header">
-                <div className="articles-season-header-left">
-                  <span className="articles-season-number">Season {group.seasonId}</span>
-                  {group.game && <span className="articles-season-game">{group.game}</span>}
-                </div>
-                <span className="articles-season-count">
-                  {group.totalCount} article{group.totalCount !== 1 ? "s" : ""}
-                </span>
-              </div>
+      </div>
 
-              {/* Season-level articles pinned at the top */}
-              {group.seasonArticles.length > 0 && (
-                <div className="articles-grid articles-grid--season-pinned">
-                  {group.seasonArticles.map((a) => (
-                    <ArticleSeasonCard key={a.id} article={a} />
-                  ))}
-                </div>
-              )}
-
-              {/* Per-round groups: race articles + rankings side by side */}
-              {group.rounds.map((roundGroup) => (
-                roundGroup.raceArticles.length > 0 && (
-                  <div key={roundGroup.round} className="articles-race-row">
-                    {roundGroup.raceArticles.map((a) => (
-                      <ArticleFeaturedCard key={a.id} article={a} />
-                    ))}
-                    {roundGroup.rankingsArticle
-                      ? <PowerRankingsCard article={roundGroup.rankingsArticle} />
-                      : <div className="articles-rankings-placeholder" />
-                    }
-                  </div>
-                )
-              ))}
-            </div>
-          ))}
-        </div>
+      {/* ── Status ticker ── */}
+      {seasonId && leader && (
+        <StatusTicker
+          seasonLabel={`SEASON ${seasonId}`}
+          roundCurrent={teaser?.completed_rounds ?? 0}
+          roundTotal={teaser?.total_rounds ?? 0}
+          leaderName={leader.driver.display_name}
+          leaderPoints={leader.points}
+          margin={leader.points - (runnerUp?.points ?? 0)}
+          right={latestRecap ? (
+            <Link to={`/articles/${latestRecap.id}`}>
+              LAST RACE <b>{articleMeta(latestRecap)}</b> · <span className="ticker-recap-cta">READ RECAP →</span>
+            </Link>
+          ) : null}
+        />
       )}
+
+      <div className="art-body">
+        {isLoading ? (
+          <div className="art-skeleton-grid">
+            {[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="acard acard--skeleton" />)}
+          </div>
+        ) : visible.length === 0 ? (
+          <p className="art-empty">
+            {(articles?.length ?? 0) === 0
+              ? "No articles yet. Check back after the next race."
+              : "No articles match this filter."}
+          </p>
+        ) : (
+          <>
+            {recentGroups.map((group) => (
+              <div key={group.seasonId} className="art-season-group">
+                <div className="art-season-header">
+                  <span className="art-season-chip">S{group.seasonId}</span>
+                  <span className="art-season-label">Season {group.seasonId}</span>
+                  <span className="art-season-count">{group.items.length} ARTICLES</span>
+                </div>
+                <div className="art-grid">
+                  {group.items.map((a) => <ArticleCard key={a.id} article={a} />)}
+                </div>
+              </div>
+            ))}
+
+            {archiveArticles.length > 0 && (
+              <div className="art-season-group">
+                <div className="art-season-header">
+                  <span className="art-season-chip art-season-chip--archive">
+                    S{archiveGroups[archiveGroups.length - 1].seasonId}–S{archiveGroups[0].seasonId}
+                  </span>
+                  <span className="art-season-label">Archive</span>
+                  <span className="art-season-count">{archiveArticles.length} ARTICLES</span>
+                </div>
+                <div className="aarchive-list">
+                  {archiveArticles.map((a) => <ArchiveRow key={a.id} article={a} />)}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
