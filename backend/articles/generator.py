@@ -45,16 +45,111 @@ LEAGUE_CONTEXT = (
     "were not tracked.\n"
 )
 
+MODEL = "claude-opus-4-8"
+
 SYSTEM_PROMPT = (
     "You are a sports journalist covering CGR League. "
     + LEAGUE_CONTEXT
     + "Write in an engaging, analytical style — punchy sentences, "
     "specific references to names and numbers, no generic filler. "
-    "Always respond with valid JSON in exactly this shape (no markdown fences):\n"
-    '{"title": "<headline, max 100 chars>", '
-    '"teaser": "<one or two sentence hook, max 200 chars>", '
-    '"content": "<full article body, paragraphs separated by \\n\\n>"}'
+    "Titles should be at most ~100 characters and teasers a one or two sentence hook (~200 chars). "
+    "Separate article-body paragraphs with \\n\\n."
 )
+
+# System prompt for the analytical sub-generators (callouts, sidebars, ranking
+# blurbs) — same league rules and voice, without the article-body framing.
+ANALYST_SYSTEM = (
+    "You are a sports journalist covering CGR League. "
+    + LEAGUE_CONTEXT
+    + "Write in an engaging, analytical style with specific references to names and numbers."
+)
+
+# ─── structured-output schemas ────────────────────────────────────────────────
+# Response shape is enforced by output_config, so no JSON parsing fallbacks are
+# needed. All objects require additionalProperties:false + every key in required.
+
+ARTICLE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "teaser": {"type": "string"},
+        "content": {"type": "string"},
+    },
+    "required": ["title", "teaser", "content"],
+    "additionalProperties": False,
+}
+
+BIO_SCHEMA = {
+    "type": "object",
+    "properties": {"bio": {"type": "string"}},
+    "required": ["bio"],
+    "additionalProperties": False,
+}
+
+RIVALRY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "driver_a": {"type": "string"},
+        "driver_b": {"type": "string"},
+        "description": {"type": "string"},
+    },
+    "required": ["driver_a", "driver_b", "description"],
+    "additionalProperties": False,
+}
+
+SIDEBAR_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "head_to_head": {
+            "type": "object",
+            "properties": {
+                "driver_a": {"type": "string"},
+                "driver_b": {"type": "string"},
+                "context": {"type": "string"},
+            },
+            "required": ["driver_a", "driver_b", "context"],
+            "additionalProperties": False,
+        },
+        "drivers_to_watch": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "reason": {"type": "string"},
+                    "stat": {"type": "string"},
+                },
+                "required": ["name", "reason", "stat"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["head_to_head", "drivers_to_watch"],
+    "additionalProperties": False,
+}
+
+# Blurbs keyed by rank (stable, unique within one rankings article) rather than
+# by driver name — avoids dropping a blurb when the model formats a name slightly
+# differently than we store it.
+RANKINGS_BLURBS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "blurbs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "rank": {"type": "integer"},
+                    "blurb": {"type": "string"},
+                },
+                "required": ["rank", "blurb"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["blurbs"],
+    "additionalProperties": False,
+}
 
 
 # ─── helpers ────────────────────────────────────────────────────────────────
@@ -294,27 +389,68 @@ def _fmt_driver_track_history(by_driver):
     return "\n".join(lines)
 
 
+def _get_recent_form(season, up_to_round, last_n=5):
+    """{driver_name: ["P3", "P1", "DNF", ...]} last N GP finishes (oldest→newest)
+    for the human drivers, through up_to_round. Momentum going into the next race."""
+    from django.db.models import F as _F
+    ds_list = (
+        DriverSeason.objects
+        .filter(season=season, driver__human=True)
+        .select_related("driver")
+    )
+    out = {}
+    for ds in ds_list:
+        rows = (
+            RaceResult.objects
+            .filter(driver_season=ds, race__round__lte=up_to_round, race__is_sprint=False)
+            .order_by("-race__round")[:last_n]
+        )
+        form = [
+            (f"P{r.finish_position}" if r.finish_position else (r.status or "DNF"))
+            for r in rows
+        ]
+        out[_name(ds.driver)] = list(reversed(form))
+    return out
+
+
+def _fmt_recent_form(by_driver):
+    lines = [
+        f"  {name}: {', '.join(form) if form else 'no races yet'}"
+        for name, form in sorted(by_driver.items())
+    ]
+    return "\n".join(lines) if lines else "  No recent form available."
+
+
+def _round_count(season):
+    """Number of GP rounds in a season (used for 'Round X of Y' context)."""
+    return Race.objects.filter(season=season, is_sprint=False).count()
+
+
 # ─── Claude call ─────────────────────────────────────────────────────────────
 
-def _call_claude(user_prompt, max_tokens=2000):
+def _call_claude(user_prompt, schema=ARTICLE_SCHEMA, *, system=SYSTEM_PROMPT, max_tokens=4000):
+    """
+    Single entry point for every Claude call in this module. Uses Opus 4.8 with
+    adaptive thinking, and constrains the response to `schema` via structured
+    outputs so the returned dict is always valid — no markdown-fence stripping.
+    """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
 
     client = anthropic.Anthropic(api_key=api_key)
     message = client.messages.create(
-        model="claude-opus-4-6",
+        model=MODEL,
         max_tokens=max_tokens,
-        system=SYSTEM_PROMPT,
+        thinking={"type": "adaptive"},
+        system=system,
         messages=[{"role": "user", "content": user_prompt}],
+        output_config={"format": {"type": "json_schema", "schema": schema}},
     )
-    raw = message.content[0].text.strip()
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        # Strip accidental markdown fences and retry
-        cleaned = raw.strip("`").removeprefix("json").strip()
-        return json.loads(cleaned)
+    # With thinking on, content leads with thinking blocks; the constrained JSON
+    # is in the text block.
+    text = next((b.text for b in message.content if b.type == "text"), "")
+    return json.loads(text)
 
 
 # ─── rivalry callout ─────────────────────────────────────────────────────────
@@ -334,9 +470,9 @@ RACE RESULTS:
 Write exactly 2–3 punchy sentences describing the key battle — the positions at stake, \
 the tension, and the outcome. Use the drivers' real names. Be vivid and specific.
 
-Return JSON only: {{"driver_a": "Full Name", "driver_b": "Full Name", "description": "2-3 sentences"}}"""
+Identify the two drivers and write the description."""
     try:
-        data = _call_claude(prompt)
+        data = _call_claude(prompt, RIVALRY_SCHEMA, system=ANALYST_SYSTEM, max_tokens=2500)
         return data.get("description", "")
     except Exception:
         logger.warning("Rivalry callout generation failed for race %s", race)
@@ -351,7 +487,9 @@ def generate_recap(race):
     track = race.track
     kind = "Sprint" if race.is_sprint else "Grand Prix"
 
+    total_rounds = _round_count(season)
     standings = _get_standings(season, race.round)
+    standings_before = _get_standings(season, race.round - 1) if race.round > 1 else []
     constructor_standings = _get_constructor_standings(season, race.round)
     track_winners = _get_track_winners(track, exclude_race=race, cutoff_race=race)
     human_names = _get_human_driver_names(season)
@@ -359,15 +497,19 @@ def generate_recap(race):
 
     notes_block = f"\nRACE NOTES (from the league admin — treat as factual context):\n{race.race_notes.strip()}\n" if race.race_notes.strip() else ""
     collision_block = f"\n{collision_note}" if collision_note else ""
+    before_block = (
+        f"\nDRIVER STANDINGS BEFORE THIS RACE (use to describe how the title picture shifted):\n{_fmt_standings(standings_before)}\n"
+        if standings_before else ""
+    )
 
     prompt = f"""Write a race recap article for the following CGR League race.
 
-RACE: Season {season.id} — Round {race.round} {kind} at {track.name} ({track.city}, {track.country})
+RACE: Season {season.id} — Round {race.round} of {total_rounds} {kind} at {track.name} ({track.city}, {track.country})
 Track length: {track.distance}m
 {notes_block}
 RACE RESULTS:
 {_fmt_results(race)}
-
+{before_block}
 DRIVER CHAMPIONSHIP STANDINGS AFTER THIS RACE:
 {_fmt_standings(standings)}
 
@@ -384,7 +526,10 @@ IMPORTANT RULES:
 approximate results
 - AI drivers may be mentioned naturally by name when relevant (battles, notable moments, etc.)
 - Discuss championship implications using BOTH the driver and constructor standings above — \
-include at least one sentence on the constructor battle
+include at least one sentence on the constructor battle. Where the before/after standings show \
+a lead growing, shrinking, or a position swap, describe that shift concretely (e.g. the exact \
+points gap and how it moved) rather than in vague terms
+- Frame the stakes against the season length ({total_rounds} rounds total) where it matters
 - Highlight key moments: pole, fastest lap, DOTD, Cleanest Driver, Most Overtakes
 - Any RACE NOTES provided above take priority over anything you might infer from the results — \
 treat them as ground truth from the league admin{collision_block}
@@ -392,10 +537,9 @@ treat them as ground truth from the league admin{collision_block}
 open with the championship stakes, a specific battle, or the drama of the moment
 - Vary your title format — avoid the same "[Driver] [Verb]s at [Track]" template every race; \
 use narrative titles, question titles, or drama-led angles
-- Length: 450–650 words, paragraphs separated by \\n\\n
-- Return valid JSON only, no markdown fences"""
+- Length: 450–650 words, paragraphs separated by \\n\\n"""
 
-    data = _call_claude(prompt)
+    data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=5000)
     article = Article.objects.create(
         race=race,
         type=Article.RECAP,
@@ -419,10 +563,12 @@ def generate_preview(next_race, after_race):
     track = next_race.track
     kind = "Sprint" if next_race.is_sprint else "Grand Prix"
 
+    total_rounds = _round_count(season)
     standings = _get_standings(season, after_race.round)
     constructor_standings = _get_constructor_standings(season, after_race.round)
     track_winners = _get_track_winners(track, exclude_race=next_race, cutoff_race=next_race)
     driver_track_history = _get_driver_track_history(season, track, cutoff_race=next_race)
+    recent_form = _get_recent_form(season, after_race.round)
     human_names = _get_human_driver_names(season)
     collision_note = _get_name_collision_note(season)
 
@@ -431,7 +577,7 @@ def generate_preview(next_race, after_race):
 
     prompt = f"""Write a race preview article for the following upcoming CGR League race.
 
-UPCOMING RACE: Season {season.id} — Round {next_race.round} {kind} at {track.name} \
+UPCOMING RACE: Season {season.id} — Round {next_race.round} of {total_rounds} {kind} at {track.name} \
 ({track.city}, {track.country})
 Track length: {track.distance}m
 {notes_block}
@@ -440,6 +586,9 @@ CURRENT DRIVER CHAMPIONSHIP STANDINGS (after Round {after_race.round}):
 
 CURRENT CONSTRUCTOR CHAMPIONSHIP STANDINGS (after Round {after_race.round}):
 {_fmt_constructor_standings(constructor_standings)}
+
+RECENT FORM — last 5 GP finishes, oldest→newest (human drivers, who's hot going in):
+{_fmt_recent_form(recent_form)}
 
 PREVIOUS RACE WINNERS AT {track.name.upper()}:
 {_fmt_track_winners(track_winners)}
@@ -454,18 +603,17 @@ IMPORTANT RULES:
 or approximate
 - AI drivers may be mentioned naturally by name when relevant
 - Discuss the championship stakes for BOTH drivers and constructors — who needs points, who's \
-leading, which teams are scrapping for position
-- Use track history to suggest who might have an edge
+leading, which teams are scrapping for position, framed against the {total_rounds}-round season
+- Use track history AND recent form to suggest who's carrying momentum or has an edge here
 - Any RACE NOTES provided above take priority over anything you might infer from the data — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not lead with "Round X" or the track name every time; sometimes open \
 with the championship battle, a driver's storyline, or what's at stake
 - Vary your title format — avoid the same "[Driver] eyes glory at [Track]" template; use \
 narrative, tension-led, or question-based titles
-- Length: 450–650 words, paragraphs separated by \\n\\n
-- Return valid JSON only, no markdown fences"""
+- Length: 450–650 words, paragraphs separated by \\n\\n"""
 
-    data = _call_claude(prompt)
+    data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=5000)
     article = Article.objects.create(
         race=next_race,
         type=Article.PREVIEW,
@@ -551,38 +699,10 @@ why this battle matters.
 (1 sentence) and a single key stat (e.g. "P1 here last season", "3 wins in last 4 races", \
 "yet to score at this track").
 
-Return JSON only — no markdown, no extra keys:
-{{
-  "head_to_head": {{
-    "driver_a": "Full Name",
-    "driver_b": "Full Name",
-    "context": "2-3 sentences"
-  }},
-  "drivers_to_watch": [
-    {{"name": "Full Name", "reason": "One sentence", "stat": "Key stat"}},
-    {{"name": "Full Name", "reason": "One sentence", "stat": "Key stat"}},
-    {{"name": "Full Name", "reason": "One sentence", "stat": "Key stat"}}
-  ]
-}}"""
+Use the drivers' real full names."""
 
     try:
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            return None
-        client = anthropic.Anthropic(api_key=api_key)
-        message = client.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=900,
-            system=(
-                "You are a sports journalist covering CGR League. "
-                + LEAGUE_CONTEXT
-                + "Always respond with valid JSON only — no markdown fences, no extra text."
-            ),
-            messages=[{"role": "user", "content": prompt}],
-        )
-        raw = message.content[0].text.strip().strip("`").removeprefix("json").strip()
-        data = json.loads(raw)
-        # Basic validation
+        data = _call_claude(prompt, SIDEBAR_SCHEMA, system=ANALYST_SYSTEM, max_tokens=3000)
         if "head_to_head" in data and "drivers_to_watch" in data:
             return data
         return None
@@ -665,6 +785,7 @@ def _get_season_highlights(season):
 def generate_season_recap(season):
     """Generate and save a SEASON_RECAP Article for a completed season."""
     final_standings = _get_standings(season, up_to_round=9999)
+    final_constructors = _get_constructor_standings(season, up_to_round=9999)
     human_names = _get_human_driver_names(season)
     race_count = Race.objects.filter(season=season).count()
     collision_note = _get_name_collision_note(season)
@@ -679,8 +800,11 @@ SEASON OVERVIEW:
   Game: {season.game}
 {notes_block}
 
-FINAL CHAMPIONSHIP STANDINGS:
+FINAL DRIVER CHAMPIONSHIP STANDINGS:
 {_fmt_standings(final_standings)}
+
+FINAL CONSTRUCTOR CHAMPIONSHIP STANDINGS:
+{_fmt_constructor_standings(final_constructors)}
 
 SEASON HIGHLIGHTS (wins, poles, fastest laps, DOTD):
 {_get_season_highlights(season)}
@@ -694,16 +818,16 @@ IMPORTANT RULES:
 - Reference their EXACT final championship position and points — do not invent or approximate
 - AI drivers may be mentioned naturally by name when relevant
 - Cover the season arc: early leader, title battles, who faded, who improved
+- Cover BOTH titles — reference the constructors' championship outcome, not just the drivers'
 - Highlight standout moments: dominant performances, comeback wins, controversies
 - Any SEASON NOTES provided above take priority over anything you might infer from the data — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not open with "Season X" or the champion's name; lead with a defining \
 moment, a theme, or what made this season unique
 - Vary your title — avoid generic "[Driver] Claims Season X Title" templates
-- Length: 800–1100 words, paragraphs separated by \\n\\n
-- Return valid JSON only, no markdown fences"""
+- Length: 800–1100 words, paragraphs separated by \\n\\n"""
 
-    data = _call_claude(prompt, max_tokens=3200)
+    data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=8000)
     article = Article.objects.create(
         season=season,
         type=Article.SEASON_RECAP,
@@ -736,23 +860,41 @@ def generate_season_preview(season):
     notes_block = f"\nSEASON NOTES (from the league admin — treat as factual context):\n{season.season_notes.strip()}\n" if season.season_notes.strip() else ""
     collision_block = f"\n{collision_note}" if collision_note else ""
 
+    # Previous season's final standings for returning drivers — grounds "defending
+    # champion", "coming off a strong year", team-switch storylines, etc.
+    prev_block = ""
+    try:
+        prev_season = Season.objects.get(pk=season.id - 1)
+        prev_standings = _get_standings(prev_season, up_to_round=9999)
+        roster_names = {r["name"] for r in final_standings}
+        returning = [r for r in prev_standings if r["name"] in roster_names]
+        if returning:
+            prev_block = (
+                f"\nPREVIOUS SEASON (Season {prev_season.id}) FINAL STANDINGS "
+                f"(returning drivers only — use for defending-champion / form / team-switch context):\n"
+                + _fmt_standings(returning) + "\n"
+            )
+    except Season.DoesNotExist:
+        pass
+
     prompt = f"""Write a season preview article for the upcoming CGR League Season {season.id} ({season.game}).
 
 SEASON INFO:
   Total rounds: {race_count}
   Game: {season.game}
 {notes_block}
-
 SEASON CALENDAR:
 {chr(10).join(calendar_lines) if calendar_lines else '  Calendar not yet set.'}
 
 DRIVER ROSTER (pre-season, no in-season results included):
 {_fmt_standings(final_standings)}
-
+{prev_block}
 IMPORTANT RULES:
 - You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
 {', '.join(human_names)}
 - Reference their team from the roster above; do NOT reference any in-season points or results
+- Where a driver returns from the previous season, you may reference their prior-season finish \
+(defending champion, coming off a strong/tough year, a new team) using the standings above
 - AI drivers may be mentioned naturally by name when relevant
 - Build anticipation: rivalries to watch, title contenders, tracks to circle on the calendar
 - Discuss the format (sprint rounds, total rounds) and what it means for strategy
@@ -761,10 +903,9 @@ treat them as ground truth from the league admin{collision_block}
 - Vary your opening — don't open with "Season X is here"; lead with a compelling question, \
 a key rivalry, or the biggest storyline going in
 - Vary your title — avoid generic "Season X Preview: Who Will Win?" templates
-- Length: 750–1000 words, paragraphs separated by \\n\\n
-- Return valid JSON only, no markdown fences"""
+- Length: 750–1000 words, paragraphs separated by \\n\\n"""
 
-    data = _call_claude(prompt, max_tokens=3200)
+    data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=8000)
     article = Article.objects.create(
         season=season,
         type=Article.SEASON_PREVIEW,
@@ -891,8 +1032,9 @@ def _compute_rankings(race, driver_seasons, completed_races):
 
 def _generate_rankings_blurbs(race, ranked_drivers, completed_races):
     """
-    Generate 1-2 sentence blurbs for every driver. Returns {name: blurb}.
-    When it's the first race of the season, includes previous season final standings as context.
+    Generate 1-2 sentence blurbs for every driver. Returns {rank: blurb} keyed by
+    the driver's rank number (stable, unlike names). When it's the first race of
+    the season, includes previous season final standings as context.
     """
     season = race.season
     collision_note = _get_name_collision_note(season)
@@ -952,28 +1094,13 @@ def _generate_rankings_blurbs(race, ranked_drivers, completed_races):
         f"Vary how you open each blurb — do not start every entry with the driver's name, "
         f"and do not use the same sentence structure back to back."
         f"{collision_block}\n\n"
-        f"Return JSON only — one object, driver names as keys, blurb strings as values:\n"
-        f'{{\"Driver Full Name\": \"1-2 sentence blurb.\", ...}}'
+        f"Write one blurb for EVERY driver listed above. Identify each by their rank number "
+        f"(the #N shown at the start of each line)."
     )
 
     try:
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            return {}
-        client = anthropic.Anthropic(api_key=api_key)
-        message = client.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=3000,
-            system=(
-                "You are a sports journalist covering CGR League. "
-                + LEAGUE_CONTEXT
-                + "Always respond with valid JSON only — no markdown fences, no extra text. "
-                "Keys are exact driver names as given."
-            ),
-            messages=[{"role": "user", "content": prompt}],
-        )
-        raw = message.content[0].text.strip().strip("`").removeprefix("json").strip()
-        return json.loads(raw)
+        data = _call_claude(prompt, RANKINGS_BLURBS_SCHEMA, system=ANALYST_SYSTEM, max_tokens=8000)
+        return {b["rank"]: b["blurb"] for b in data.get("blurbs", []) if b.get("blurb")}
     except Exception:
         logger.warning("Rankings blurb generation failed for race %s", race)
         return {}
@@ -1053,7 +1180,7 @@ def generate_power_rankings(race):
             "profile_image": d["profile_image"],
             "is_human": d["is_human"],
             "score": d["score"],
-            "blurb": blurbs.get(d["name"], ""),
+            "blurb": blurbs.get(d["rank"], ""),
             "recent_finishes": d["recent_finishes"],
             "championship_pos": d["championship_pos"],
             "championship_points": d["championship_points"],
@@ -1217,33 +1344,15 @@ Write 2–4 punchy sentences as a profile of this specific driver. Ground the bi
 actually makes them stand out — their wins, their scoring rate, a track they dominate, \
 their trajectory across seasons, or any other genuinely distinctive pattern in the data. \
 Avoid generic labels like "veteran" or "solid points scorer" — every driver bio must feel \
-individual and earned. Do not just list the stats back; interpret them into a character.
+individual and earned. Do not just list the stats back; interpret them into a character."""
 
-Return JSON only: {{"bio": "<the biography text>"}}"""
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
-
-    client = anthropic.Anthropic(api_key=api_key)
-    message = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=400,
-        system=(
-            "You are a sports journalist covering CGR League. "
-            + LEAGUE_CONTEXT
-            + "Write in an engaging, analytical style — punchy sentences, specific references to "
-            "names and numbers. Every driver profile must feel distinct. "
-            "Always respond with valid JSON only (no markdown fences)."
-        ),
-        messages=[{"role": "user", "content": prompt}],
+    bio_system = (
+        "You are a sports journalist covering CGR League. "
+        + LEAGUE_CONTEXT
+        + "Write in an engaging, analytical style — punchy sentences, specific references to "
+        "names and numbers. Every driver profile must feel distinct."
     )
-    raw = message.content[0].text.strip()
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError:
-        cleaned = raw.strip("`").removeprefix("json").strip()
-        data = json.loads(cleaned)
+    data = _call_claude(prompt, BIO_SCHEMA, system=bio_system, max_tokens=1500)
 
     bio_text = data.get("bio", "").strip()
     driver.bio = bio_text
@@ -1359,33 +1468,15 @@ You must reference every human driver listed above by name at least once — wea
 naturally into the narrative rather than listing them mechanically. \
 Focus on patterns of dominance, rivalries, memorable results, and what makes this \
 track distinctive within the league. \
-Do not open with the track name as the very first word.
+Do not open with the track name as the very first word."""
 
-Return JSON only: {{"bio": "<the history text>"}}"""
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
-
-    client = anthropic.Anthropic(api_key=api_key)
-    message = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=600,
-        system=(
-            "You are a sports journalist covering CGR League. "
-            + LEAGUE_CONTEXT
-            + "Write in an engaging, analytical style — punchy sentences, specific references to "
-            "names and results. "
-            "Always respond with valid JSON only (no markdown fences)."
-        ),
-        messages=[{"role": "user", "content": prompt}],
+    track_system = (
+        "You are a sports journalist covering CGR League. "
+        + LEAGUE_CONTEXT
+        + "Write in an engaging, analytical style — punchy sentences, specific references to "
+        "names and results."
     )
-    raw = message.content[0].text.strip()
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError:
-        cleaned = raw.strip("`").removeprefix("json").strip()
-        data = json.loads(cleaned)
+    data = _call_claude(prompt, BIO_SCHEMA, system=track_system, max_tokens=2000)
 
     bio_text = data.get("bio", "").strip()
     track.bio = bio_text
