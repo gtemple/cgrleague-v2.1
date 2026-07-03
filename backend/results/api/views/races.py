@@ -503,6 +503,35 @@ def choose_flashback_race() -> Optional["Race"]:
     return rng.choice(pool)
 
 
+def get_or_create_flashback_blurb(race, results_payload):
+    """
+    Return the stored HistoryTeaserBlurb for `race`, generating and persisting it
+    once on first access. The row is kept forever, so a given race's blurb is
+    generated at most one time no matter how many times the site is viewed
+    (manual re-generation via the admin still overwrites it). Returns None if no
+    ANTHROPIC_API_KEY is configured or generation fails — the teaser then renders
+    without editorial text.
+    """
+    from results.models import HistoryTeaserBlurb
+
+    existing = HistoryTeaserBlurb.objects.filter(race=race).first()
+    if existing is not None:
+        return existing
+
+    result = _generate_history_blurb(
+        race.season_id, race.round, race.track.name,
+        results_payload, race_notes=race.race_notes or "",
+    )
+    if not result or not result.get("blurb"):
+        return None
+
+    obj, _ = HistoryTeaserBlurb.objects.update_or_create(
+        race=race,
+        defaults={"blurb": result["blurb"], "quote": result.get("quote", "")},
+    )
+    return obj
+
+
 class HistoryTeaserView(APIView):
     """
     GET /api/teasers/history/
@@ -549,8 +578,7 @@ class HistoryTeaserView(APIView):
             for rr in top3
         ]
 
-        from results.models import HistoryTeaserBlurb
-        blurb_obj = HistoryTeaserBlurb.objects.filter(race=chosen).first()
+        blurb_obj = get_or_create_flashback_blurb(chosen, results_payload)
         blurb = blurb_obj.blurb if blurb_obj else None
         quote = blurb_obj.quote if blurb_obj else None
 

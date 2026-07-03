@@ -1,0 +1,35 @@
+- generic [ref=f53e2]:
+  - banner [ref=f53e3]:
+    - generic [ref=f53e4]:
+      - link "CGR CGR LEAGUE" [ref=f53e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f53e6]: CGR
+        - generic [ref=f53e7]: CGR LEAGUE
+      - navigation [ref=f53e8]:
+        - link "Seasons" [ref=f53e9] [cursor=pointer]:
+          - /url: /seasons/1
+        - link "Drivers" [ref=f53e10] [cursor=pointer]:
+          - /url: /drivers
+        - link "Teams" [ref=f53e11] [cursor=pointer]:
+          - /url: /teams
+        - link "Tracks" [ref=f53e12] [cursor=pointer]:
+          - /url: /tracks
+        - link "Hall of Fame" [ref=f53e13] [cursor=pointer]:
+          - /url: /hall-of-fame
+        - link "Articles" [ref=f53e14] [cursor=pointer]:
+          - /url: /articles
+      - button "Search" [ref=f53e15] [cursor=pointer]:
+        - generic [ref=f53e16]: ⌕
+        - generic [ref=f53e17]: Search
+        - generic [ref=f53e18]: ⌘K
+  - main [ref=f53e19]:
+    - generic [ref=f53e21]:
+      - generic [ref=f53e26]:
+        - generic [ref=f53e27]: LIGHTS OUT IN
+        - generic [ref=f53e28]: Date TBD
+        - link "Race Centre →" [ref=f53e29] [cursor=pointer]:
+          - /url: /seasons/1
+      - generic [ref=f53e31]:
+        - generic [ref=f53e32]: LATEST COVERAGE
+        - link "ALL ARTICLES →" [ref=f53e33] [cursor=pointer]:
+          - /url: /articles
