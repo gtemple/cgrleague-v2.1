@@ -191,7 +191,9 @@ def _get_standings(season, up_to_round):
 
 
 def _get_track_winners(track, exclude_race, cutoff_race=None):
-    """Up to 5 previous race winners at this track, capped to before cutoff_race if given."""
+    """All previous race winners at this track (most recent first), capped to before
+    cutoff_race if given. Returns every edition so win tallies stay accurate — a hard
+    cap here would silently drop the oldest winners and cause miscounts in prompts."""
     from django.db.models import Q as _Q
     qs = (
         RaceResult.objects
@@ -204,12 +206,13 @@ def _get_track_winners(track, exclude_race, cutoff_race=None):
             _Q(race__season_id__lt=cutoff_race.season_id) |
             _Q(race__season_id=cutoff_race.season_id, race__round__lt=cutoff_race.round)
         )
-    winners = qs.order_by("-race__season_id", "-race__round")[:5]
+    winners = qs.order_by("-race__season_id", "-race__round")
     return [
         {
             "season": r.race.season_id,
             "round": r.race.round,
             "winner": _name(r.driver_season.driver),
+            "is_human": r.driver_season.driver.human,
         }
         for r in winners
     ]
@@ -370,7 +373,9 @@ def _fmt_track_winners(winners):
     if not winners:
         return "  No previous races at this track."
     return "\n".join(
-        f"  Season {w['season']} R{w['round']}: {w['winner']}" for w in winners
+        f"  Season {w['season']} R{w['round']}: {w['winner']}"
+        f" ({'human' if w['is_human'] else 'AI'})"
+        for w in winners
     )
 
 
@@ -424,6 +429,31 @@ def _fmt_recent_form(by_driver):
 def _round_count(season):
     """Number of GP rounds in a season (used for 'Round X of Y' context)."""
     return Race.objects.filter(season=season, is_sprint=False).count()
+
+
+def _get_prior_titles(season, limit=40):
+    """Titles of articles already generated for this season. Fed into each recap/
+    preview prompt so a new headline can be steered away from ones already
+    published — the only cross-article signal the model gets, since each article
+    is an independent API call."""
+    return list(
+        Article.objects
+        .filter(Q(season=season) | Q(race__season=season))
+        .exclude(title="")
+        .order_by("-id")
+        .values_list("title", flat=True)[:limit]
+    )
+
+
+def _fmt_prior_titles(titles):
+    if not titles:
+        return ""
+    lines = "\n".join(f'  - "{t}"' for t in titles)
+    return (
+        "\nHEADLINES ALREADY PUBLISHED THIS SEASON — your title MUST read as clearly "
+        "distinct from every one below. Do not reuse their lead verb, their central "
+        "noun/phrase, or their sentence structure:\n" + lines + "\n"
+    )
 
 
 # ─── Claude call ─────────────────────────────────────────────────────────────
@@ -501,6 +531,7 @@ def generate_recap(race):
         f"\nDRIVER STANDINGS BEFORE THIS RACE (use to describe how the title picture shifted):\n{_fmt_standings(standings_before)}\n"
         if standings_before else ""
     )
+    prior_titles_block = _fmt_prior_titles(_get_prior_titles(season))
 
     prompt = f"""Write a race recap article for the following CGR League race.
 
@@ -518,7 +549,7 @@ CONSTRUCTOR CHAMPIONSHIP STANDINGS AFTER THIS RACE:
 
 PREVIOUS RACE WINNERS AT {track.name.upper()}:
 {_fmt_track_winners(track_winners)}
-
+{prior_titles_block}
 IMPORTANT RULES:
 - You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
 {', '.join(human_names)}
@@ -536,7 +567,10 @@ treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not lead with the winner's name or "Round X" every time; sometimes \
 open with the championship stakes, a specific battle, or the drama of the moment
 - Vary your title format — avoid the same "[Driver] [Verb]s at [Track]" template every race; \
-use narrative titles, question titles, or drama-led angles
+use narrative titles, question titles, or drama-led angles. Steer clear of overused \
+motorsport-headline verbs — do NOT reach for "storms", "dominates", "cruises", "conquers", \
+"roars", "seals", or "masterclass" — and do not echo the wording, verb, or angle of any headline \
+in the HEADLINES ALREADY PUBLISHED list above
 - Length: 450–650 words, paragraphs separated by \\n\\n"""
 
     data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=5000)
@@ -557,23 +591,83 @@ use narrative titles, question titles, or drama-led angles
     return article
 
 
-def generate_preview(next_race, after_race):
-    """Generate and save a PREVIEW Article for an upcoming race."""
+def _opener_state_block(season, roster):
+    """Pre-season 'state of play' for a Round 1 preview: the roster plus returning
+    drivers' prior-season final standings. No current-season results exist yet."""
+    prev_block = ""
+    try:
+        prev_season = Season.objects.get(pk=season.id - 1)
+        prev_standings = _get_standings(prev_season, up_to_round=9999)
+        roster_names = {r["name"] for r in roster}
+        returning = [r for r in prev_standings if r["name"] in roster_names]
+        if returning:
+            prev_block = (
+                f"\nPREVIOUS SEASON (Season {prev_season.id}) FINAL STANDINGS "
+                f"(returning drivers only — pre-season form context):\n"
+                + _fmt_standings(returning) + "\n"
+            )
+    except Season.DoesNotExist:
+        pass
+    return (
+        f"SEASON OPENER — no rounds have been run yet in Season {season.id}; there are no "
+        f"championship standings or current-season form to cite.\n\n"
+        f"DRIVER ROSTER (pre-season, teams locked — no points yet):\n{_fmt_standings(roster)}\n"
+        + prev_block
+    )
+
+
+def generate_preview(next_race, after_race=None):
+    """Generate and save a PREVIEW Article for an upcoming race.
+
+    `after_race` is the most recently completed race, used for standings/form.
+    Pass `after_race=None` for a season opener (Round 1): there are no prior
+    standings, so the preview is built from the roster, prior-season form, and
+    track history instead.
+    """
     season = next_race.season
     track = next_race.track
     kind = "Sprint" if next_race.is_sprint else "Grand Prix"
+    is_opener = after_race is None
 
     total_rounds = _round_count(season)
-    standings = _get_standings(season, after_race.round)
-    constructor_standings = _get_constructor_standings(season, after_race.round)
     track_winners = _get_track_winners(track, exclude_race=next_race, cutoff_race=next_race)
     driver_track_history = _get_driver_track_history(season, track, cutoff_race=next_race)
-    recent_form = _get_recent_form(season, after_race.round)
     human_names = _get_human_driver_names(season)
     collision_note = _get_name_collision_note(season)
 
+    if is_opener:
+        standings = _get_standings(season, up_to_round=0)  # roster, no points yet
+        state_block = _opener_state_block(season, standings)
+        stakes_rules = (
+            "- This is the SEASON OPENER — no standings, points, or current-season form exist yet. "
+            "Do NOT invent or cite championship positions, points, or recent results. Build the preview "
+            "from pre-season expectations, the roster and teams above, prior-season form where provided, "
+            "and this track's history\n"
+            "- Reference each human driver's team from the roster above"
+        )
+    else:
+        standings = _get_standings(season, after_race.round)
+        constructor_standings = _get_constructor_standings(season, after_race.round)
+        recent_form = _get_recent_form(season, after_race.round)
+        state_block = (
+            f"CURRENT DRIVER CHAMPIONSHIP STANDINGS (after Round {after_race.round}):\n"
+            f"{_fmt_standings(standings)}\n\n"
+            f"CURRENT CONSTRUCTOR CHAMPIONSHIP STANDINGS (after Round {after_race.round}):\n"
+            f"{_fmt_constructor_standings(constructor_standings)}\n\n"
+            f"RECENT FORM — last 5 GP finishes, oldest→newest (human drivers, who's hot going in):\n"
+            f"{_fmt_recent_form(recent_form)}"
+        )
+        stakes_rules = (
+            "- Reference their EXACT championship position and points from the standings above — "
+            "do not invent or approximate\n"
+            "- Discuss the championship stakes for BOTH drivers and constructors — who needs points, "
+            f"who's leading, which teams are scrapping for position, framed against the {total_rounds}-round season\n"
+            "- Use track history AND recent form to suggest who's carrying momentum or has an edge here"
+        )
+
     notes_block = f"\nRACE NOTES (from the league admin — treat as factual context):\n{next_race.race_notes.strip()}\n" if next_race.race_notes.strip() else ""
     collision_block = f"\n{collision_note}" if collision_note else ""
+    prior_titles_block = _fmt_prior_titles(_get_prior_titles(season))
 
     prompt = f"""Write a race preview article for the following upcoming CGR League race.
 
@@ -581,36 +675,28 @@ UPCOMING RACE: Season {season.id} — Round {next_race.round} of {total_rounds} 
 ({track.city}, {track.country})
 Track length: {track.distance}m
 {notes_block}
-CURRENT DRIVER CHAMPIONSHIP STANDINGS (after Round {after_race.round}):
-{_fmt_standings(standings)}
-
-CURRENT CONSTRUCTOR CHAMPIONSHIP STANDINGS (after Round {after_race.round}):
-{_fmt_constructor_standings(constructor_standings)}
-
-RECENT FORM — last 5 GP finishes, oldest→newest (human drivers, who's hot going in):
-{_fmt_recent_form(recent_form)}
+{state_block}
 
 PREVIOUS RACE WINNERS AT {track.name.upper()}:
 {_fmt_track_winners(track_winners)}
 
 DRIVER HISTORY AT THIS TRACK (human drivers only):
 {_fmt_driver_track_history(driver_track_history)}
-
+{prior_titles_block}
 IMPORTANT RULES:
 - You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
 {', '.join(human_names)}
-- Reference their EXACT championship position and points from the standings above — do not invent \
-or approximate
+{stakes_rules}
 - AI drivers may be mentioned naturally by name when relevant
-- Discuss the championship stakes for BOTH drivers and constructors — who needs points, who's \
-leading, which teams are scrapping for position, framed against the {total_rounds}-round season
-- Use track history AND recent form to suggest who's carrying momentum or has an edge here
 - Any RACE NOTES provided above take priority over anything you might infer from the data — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not lead with "Round X" or the track name every time; sometimes open \
 with the championship battle, a driver's storyline, or what's at stake
 - Vary your title format — avoid the same "[Driver] eyes glory at [Track]" template; use \
-narrative, tension-led, or question-based titles
+narrative, tension-led, or question-based titles. Steer clear of overused motorsport-headline \
+verbs — do NOT reach for "storms", "dominates", "cruises", "conquers", "roars", "eyes", or \
+"masterclass" — and do not echo the wording, verb, or angle of any headline in the HEADLINES \
+ALREADY PUBLISHED list above
 - Length: 450–650 words, paragraphs separated by \\n\\n"""
 
     data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=5000)

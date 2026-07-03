@@ -569,18 +569,24 @@ class DriversHomepageView(APIView):
                 "avg_finish": round(avg, 1) if avg is not None else None,
             })
 
+        # Iterate over ALL drivers, not just rostered ones — a driver with no
+        # DriverSeason (never assigned to a season) has no row in all_career and
+        # would otherwise be dropped from the grid entirely. Every driver should be
+        # viewable for history, so career stats are merged in by id and drivers with
+        # no results fall back to zeros.
+        career_by_driver = {r["driver"]: r for r in all_career}
+
         all_drivers = sorted(
             [
                 {
-                    "driver": serialize_driver(all_driver_map[r["driver"]]),
-                    "is_human": all_driver_map[r["driver"]].human,
-                    "career_points": r["total_points"] or 0,
-                    "career_wins": r["wins"] or 0,
-                    "career_races": r["races"] or 0,
-                    "specialist_label": specialist_label_from_rows(spec_by_driver.get(r["driver"], [])),
+                    "driver": serialize_driver(d),
+                    "is_human": d.human,
+                    "career_points": (career_by_driver.get(d.id) or {}).get("total_points") or 0,
+                    "career_wins": (career_by_driver.get(d.id) or {}).get("wins") or 0,
+                    "career_races": (career_by_driver.get(d.id) or {}).get("races") or 0,
+                    "specialist_label": specialist_label_from_rows(spec_by_driver.get(d.id, [])),
                 }
-                for r in all_career
-                if r["driver"] in all_driver_map
+                for d in all_driver_map.values()
             ],
             key=lambda x: (-x["career_points"], x["driver"]["last_name"]),
         )
