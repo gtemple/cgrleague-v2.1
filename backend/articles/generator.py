@@ -1748,7 +1748,7 @@ def _fmt_rivalry_totals(a_name, b_name, totals):
     a, b = totals["a"], totals["b"]
     rows = [
         ("Races finished ahead", a["ahead"], b["ahead"]),
-        ("Points (in shared races)", a["points"], b["points"]),
+        ("Points", a["points"], b["points"]),
         ("Wins", a["wins"], b["wins"]),
         ("Podiums", a["podiums"], b["podiums"]),
         ("Fastest laps", a["fastest_laps"], b["fastest_laps"]),
@@ -1774,13 +1774,23 @@ def _season_progress():
     }
 
 
-def _fmt_rivalry_seasons(a_name, b_name, seasons, progress):
+def _fmt_rivalry_seasons(a_name, b_name, seasons, progress, timeline):
+    wins = {}
+    for t in timeline:
+        row = wins.setdefault(t["season_id"], [0, 0])
+        if t["a_finish"] == 1:
+            row[0] += 1
+        if t["b_finish"] == 1:
+            row[1] += 1
+
     lines = []
     for s in seasons:
+        a_wins, b_wins = wins.get(s["season_id"], (0, 0))
         line = (
             f"  S{s['season_id']}: {s['races']} races together, "
             f"{a_name} ahead {s['a_ahead']} - {s['b_ahead']} {b_name}, "
-            f"points {s['a_points']}-{s['b_points']}"
+            f"points {s['a_points']}-{s['b_points']}, "
+            f"race wins {a_wins}-{b_wins}"
         )
         run, scheduled = progress.get(s["season_id"], (0, 0))
         if run < scheduled:
@@ -1883,7 +1893,12 @@ def _fmt_rivalry_landmarks(a_name, b_name, data):
     b_seasons = sum(1 for s in seasons if s["b_ahead"] > s["a_ahead"])
     lines.append(f"  Seasons won: {a_name} {a_seasons} - {b_seasons} {b_name}")
 
-    lines.append(f"  Races settled by a single place: {data['closest_races']}")
+    one_place = [t for t in timeline if t["margin"] == 1]
+    a_close = sum(1 for t in one_place if t["winner"] == "a")
+    lines.append(
+        f"  Races settled by a single place: {len(one_place)} in total, "
+        f"of which {a_name} took {a_close} and {b_name} took {len(one_place) - a_close}"
+    )
 
     if data["biggest_margin"]:
         rid = data["biggest_margin"]["race_id"]
@@ -1927,10 +1942,10 @@ def _fmt_rivalry_landmarks(a_name, b_name, data):
         if t["races"] > 1 and (t["a_ahead"] == 0 or t["b_ahead"] == 0)
     ]
     for t in sorted(shut_out, key=lambda t: -t["races"]):
-        loser = a_name if t["a_ahead"] == 0 else b_name
+        loser, winner = (a_name, b_name) if t["a_ahead"] == 0 else (b_name, a_name)
         lines.append(
-            f"  Bogey track: {t['races']} meetings at {t['name']} "
-            f"without {loser} ever finishing ahead"
+            f"  {loser}'s bogey track is {t['name']}: {t['races']} meetings there, and "
+            f"{loser} has never once finished ahead of {winner} at it"
         )
 
     return "\n".join(lines)
@@ -2037,12 +2052,14 @@ THE TWO DRIVERS:
 
 Throughout the data below, the two columns are always {a_name} first, then {b_name}.
 
-OVERALL RECORD — {data['shared_races']} races both finished, across {span}:
+OVERALL RECORD — every figure below counts ONLY the {data['shared_races']} races both \
+drivers finished, across {span}. A win here means a race won while the other was also \
+classified, not a career win total:
 {_fmt_rivalry_totals(a_name, b_name, data['totals'])}
 
 SEASON BY SEASON — points are this pair's private tally, counted only in races
 they both finished, and are NOT championship standings:
-{_fmt_rivalry_seasons(a_name, b_name, seasons, progress)}
+{_fmt_rivalry_seasons(a_name, b_name, seasons, progress, data['timeline'])}
 
 TEAMMATE HISTORY:
 {_fmt_teammate_spells(a_name, b_name, spells, seasons)}
@@ -2078,6 +2095,20 @@ never compare it against the full {data['shared_races']}-race record
 - EVERY MEETING, IN ORDER is the complete list of results you have. Never state a win, \
 podium, or placing you cannot point to a line for. A sprint is a race like any other in \
 that list — its finishing position is already there, so do not invent sprint results
+- Use the figures exactly as they are written above. Do not add, subtract, average or \
+otherwise work out a number of your own — if a figure you want to state does not appear \
+above, do not state it. Check any number you write against the line it came from
+- Never explain WHY a result or a run happened. You have no data on car performance, \
+reliability, development, upgrades, form or fitness, so no season turned because a car \
+improved or broke, and no run started because anyone found something
+- "Finished ahead" and "won" are different things. A win is first place in a race; \
+finishing ahead of the other driver is not a win. Never write the head-to-head split \
+as race wins, and never call a season's ahead-count a tally of victories
+- You have no speed or pace data of any kind. Never call one driver quicker, faster or \
+better in a car than the other, and never call either cleaner, safer, or more \
+error-prone — say what the finishing positions show instead
+- Do not characterise where in a season a race fell — an opener, a finale, a run-in, \
+"bookended" — unless the round numbers and the season's round count actually support it
 - Every points figure here is a private tally between these two, counted only in the \
 races they both finished. It is not a championship standing, so never call it a title \
 lead, a championship gap, or evidence of where either driver finished a season
