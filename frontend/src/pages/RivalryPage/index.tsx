@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useRivalry, type RivalryTotals } from "../../hooks/useRivalry";
 import { useDriversList } from "../../hooks/useDriverList";
 import { resolveRivalryColors } from "../../utils/rivalryColors";
+import { shortDriverName } from "../../utils/driverName";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import { MomentumChart } from "./MomentumChart";
@@ -101,6 +102,9 @@ function StatTable({
     </table>
   );
 }
+
+const shortName = (d: { first_name: string; last_name: string }) =>
+  shortDriverName(d.first_name, d.last_name);
 
 function seasonList(seasons: number[]) {
   return seasons.map((s) => `S${s}`).join(", ");
@@ -255,7 +259,7 @@ export const RivalryPage = () => {
           ? <>{leader.display_name} leads the head-to-head {Math.max(aheadA, aheadB)}–{Math.min(aheadA, aheadB)}</>
           : <>Dead level at {aheadA}–{aheadB}</>}
         {streaks.current.driver && streaks.current.length > 1 && (
-          <> · {(streaks.current.driver === "a" ? A : B).last_name} has won the last {streaks.current.length}</>
+          <> · {shortName(streaks.current.driver === "a" ? A : B)} has won the last {streaks.current.length}</>
         )}
       </p>
 
@@ -268,8 +272,8 @@ export const RivalryPage = () => {
       <div className="rv-inner">
       <MomentumChart
         timeline={timeline}
-        nameA={A.last_name || A.display_name}
-        nameB={B.last_name || B.display_name}
+        nameA={shortName(A)}
+        nameB={shortName(B)}
         colorA={palette.a}
         colorB={palette.b}
       />
@@ -277,7 +281,7 @@ export const RivalryPage = () => {
       <section className="rv-section">
         <h2 className="rv-h2">IN RACES THEY BOTH FINISHED</h2>
         <div className="rv-panel">
-          <StatTable rows={rows} labelA={A.last_name} labelB={B.last_name} colorA={palette.a} colorB={palette.b} />
+          <StatTable rows={rows} labelA={shortName(A)} labelB={shortName(B)} colorA={palette.a} colorB={palette.b} />
         </div>
       </section>
 
@@ -291,7 +295,7 @@ export const RivalryPage = () => {
               shared{trackedSeasons ? ` (${trackedSeasons})` : ""}. The set widens as more
               seasons are logged.
             </p>
-            <StatTable rows={trackedRows} labelA={A.last_name} labelB={B.last_name} colorA={palette.a} colorB={palette.b} />
+            <StatTable rows={trackedRows} labelA={shortName(A)} labelB={shortName(B)} colorA={palette.a} colorB={palette.b} />
           </div>
         </section>
       )}
@@ -351,7 +355,7 @@ export const RivalryPage = () => {
           {data.biggest_margin && (
             <li>Widest gap: <b>{data.biggest_margin.margin}</b> positions</li>
           )}
-          <li>Longest run: <b>{streaks.best_a}</b> ({A.last_name}) · <b>{streaks.best_b}</b> ({B.last_name})</li>
+          <li>Longest run: <b>{streaks.best_a}</b> ({shortName(A)}) · <b>{streaks.best_b}</b> ({shortName(B)})</li>
           {data.teammate_seasons.length > 0 && (
             <li>
               Teammates in {data.teammate_seasons.map((s) => `S${s}`).join(", ")}
@@ -389,7 +393,7 @@ export const RivalryPage = () => {
                     <td className={"rv-log-num" + (t.winner === "b" ? " is-win" : "")}>P{t.b_finish}</td>
                     <td className="rv-log-by">
                       <span className="rv-dot" style={{ background: t.winner === "a" ? palette.a : palette.b }} />
-                      {w.last_name} <span className="rv-log-margin">+{t.margin}</span>
+                      {shortName(w)} <span className="rv-log-margin">+{t.margin}</span>
                     </td>
                   </tr>
                 );

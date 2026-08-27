@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 import { useH2HMatrix, type H2HDriver } from "../../hooks/useH2HMatrix";
 import { displayImage } from "../../utils/displayImage";
+import { shortDriverName } from "../../utils/driverName";
 import { Loader } from "../Loader";
 import "./style.css";
 
 function shortName(d: H2HDriver) {
-  if (d.first_name && d.last_name) return `${d.first_name[0]}. ${d.last_name}`;
-  return d.first_name || d.last_name || `#${d.id}`;
+  return shortDriverName(d.first_name, d.last_name) || `#${d.id}`;
 }
 
 function initials(d: H2HDriver) {

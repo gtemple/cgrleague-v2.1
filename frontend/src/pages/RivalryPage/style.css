@@ -249,7 +249,7 @@
 .rv-stats td { padding: 8px 0; border-top: 1px solid var(--cgr-border-hairline); }
 
 .rv-stats-val {
-  width: 78px;
+  width: 96px;
   text-align: center;
   font-family: var(--cgr-font-mono);
   font-size: 15px;
