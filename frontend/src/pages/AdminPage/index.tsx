@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { adminApi, type GridDriver, type RaceInfo, type SeatOptions } from "../../api/admin";
+import { adminApi, type GridDriver, type RaceInfo, type SeasonInfo, type SeatOptions } from "../../api/admin";
+import { pointsForRow } from "./scoring";
 import { ApiError } from "../../api/client";
 import "./style.css";
 
-const CURRENT_SEASON = 7;
 
 type Status = "FIN" | "DNF" | "DNS" | "DSQ" | "DNQ";
 
@@ -48,6 +48,9 @@ export function AdminPage() {
   const { token, username, logout } = useAuth();
   const navigate = useNavigate();
 
+  const [seasons, setSeasons] = useState<SeasonInfo[]>([]);
+  const [seasonId, setSeasonId] = useState<number | null>(null);
+
   const [races, setRaces] = useState<RaceInfo[]>([]);
   const [grid, setGrid] = useState<GridDriver[]>([]);
   const [selectedRaceId, setSelectedRaceId] = useState<number | null>(null);
@@ -70,35 +73,50 @@ export function AdminPage() {
   const [subMessage, setSubMessage] = useState<string | null>(null);
   const [subError, setSubError] = useState<string | null>(null);
   const [gridVersion, setGridVersion] = useState(0);
+  // Points this race already contributes, so the standings preview shows the
+  // effect of the edit rather than counting the race twice.
+  const [existingPoints, setExistingPoints] = useState<Record<number, number>>({});
 
   // Drag state (refs to avoid re-renders during drag)
   const dragIndexRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (!token) return;
+    adminApi.getSeasons(token)
+      .then((list) => {
+        setSeasons(list);
+        // Default to the season still being raced, else the newest.
+        const live = list.find((s) => s.races_entered < s.race_count);
+        setSeasonId((live ?? list[0])?.id ?? null);
+      })
+      .catch((err) => setLoadError(describeLoadError(err)));
+  }, [token]);
+
   // Load races for the season
   useEffect(() => {
-    if (!token) {
+    if (!token || seasonId == null) {
       setLoadingRaces(false);
       return;
     }
     setLoadingRaces(true);
-    adminApi.getRaces(token, CURRENT_SEASON)
+    adminApi.getRaces(token, seasonId)
       .then(setRaces)
       .catch((err) => {
         setRaces([]);
         setLoadError(describeLoadError(err));
       })
       .finally(() => setLoadingRaces(false));
-  }, [token]);
+  }, [token, seasonId]);
 
   // Load grid for the season (driver_seasons)
   useEffect(() => {
-    if (!token) {
+    if (!token || seasonId == null) {
       setLoadingGrid(false);
       return;
     }
     setLoadingGrid(true);
-    adminApi.getGrid(token, CURRENT_SEASON)
+    adminApi.getGrid(token, seasonId)
       .then((g) => {
         setGrid(g);
         // Backend returns the grid in championship order.
@@ -112,18 +130,26 @@ export function AdminPage() {
         setLoadError(describeLoadError(err));
       })
       .finally(() => setLoadingGrid(false));
-  }, [token, gridVersion]);
+  }, [token, seasonId, gridVersion]);
 
   // When a race is selected, load existing results to pre-populate
   useEffect(() => {
-    if (!selectedRaceId || grid.length === 0) return;
+    if (!selectedRaceId || grid.length === 0 || seasonId == null) return;
     const race = races.find((r) => r.id === selectedRaceId);
     if (!race) return;
 
     setLoadingExisting(true);
-    adminApi.getRaceDetail(CURRENT_SEASON, race.round, race.is_sprint)
+    adminApi.getRaceDetail(seasonId, race.round, race.is_sprint)
       .then((detail) => {
         const existing = detail.results;
+        setExistingPoints(
+          Object.fromEntries(
+            existing.map((r) => [
+              r.driver_season_id,
+              pointsForRow(r.finish_position, race.is_sprint, r.fastest_lap),
+            ]),
+          ),
+        );
         if (existing.length === 0) {
           // No existing results — reset to default order
           setOrder(grid.map((d) => d.driver_season_id));
@@ -175,6 +201,7 @@ export function AdminPage() {
       })
       .catch(() => {
         // Race has no results yet — keep defaults
+        setExistingPoints({});
         setOrder(grid.map((d) => d.driver_season_id));
         const initial: Record<number, Placement> = {};
         for (const d of grid) initial[d.driver_season_id] = defaultPlacement(!d.is_reserve);
@@ -182,22 +209,22 @@ export function AdminPage() {
       })
       .finally(() => setLoadingExisting(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRaceId]);
+  }, [selectedRaceId, seasonId]);
 
   useEffect(() => {
-    if (!token) return;
-    adminApi.getSeatOptions(token, CURRENT_SEASON)
+    if (!token || seasonId == null) return;
+    adminApi.getSeatOptions(token, seasonId)
       .then(setSeatOptions)
       .catch(() => setSeatOptions(null));
-  }, [token, gridVersion]);
+  }, [token, seasonId, gridVersion]);
 
   async function handleAddSeat() {
-    if (!token || !subDriver || !subTeam) return;
+    if (!token || seasonId == null || !subDriver || !subTeam) return;
     setSubBusy(true);
     setSubError(null);
     setSubMessage(null);
     try {
-      const created = await adminApi.createSeat(token, CURRENT_SEASON, {
+      const created = await adminApi.createSeat(token, seasonId, {
         driver_id: Number(subDriver),
         team_season_id: Number(subTeam),
         car_number: subCar !== "" ? parseInt(subCar, 10) : null,
@@ -228,6 +255,72 @@ export function AdminPage() {
     fastestLap: exclusiveHolder("fastestLap"),
     dotd: exclusiveHolder("dotd"),
   };
+
+  const selectedRaceInfo = races.find((r) => r.id === selectedRaceId);
+  const isSprint = !!selectedRaceInfo?.is_sprint;
+
+  /** Finish position for a seat given the current order, or null if it has none. */
+  function finishPositionOf(dsId: number, idx: number): number | null {
+    const p = placements[dsId];
+    if (!p?.competing || p.status === "DNS" || p.status === "DNQ") return null;
+    return order.slice(0, idx + 1).filter((id) => {
+      const pp = placements[id];
+      return pp?.competing && pp.status !== "DNS" && pp.status !== "DNQ";
+    }).length;
+  }
+
+  // Points this entry would award, per seat and per team.
+  const pointsBySeat: Record<number, number> = {};
+  order.forEach((dsId, idx) => {
+    const p = placements[dsId];
+    if (!p?.competing) return;
+    pointsBySeat[dsId] = pointsForRow(finishPositionOf(dsId, idx), isSprint, p.fastestLap);
+  });
+
+  const competing = order.filter((id) => placements[id]?.competing);
+  const gridSlots = competing
+    .map((id) => placements[id]?.gridPosition)
+    .filter((g) => g !== "" && g != null);
+  const duplicateGrid = gridSlots.length !== new Set(gridSlots).size;
+
+  const checks = [
+    { label: `${competing.length} drivers competing`, ok: competing.length > 1 },
+    { label: "Pole assigned", ok: holders.polePosition !== null, soft: true },
+    { label: "Fastest lap assigned", ok: holders.fastestLap !== null, soft: true },
+    { label: "Driver of the day assigned", ok: holders.dotd !== null, soft: true },
+    { label: "Grid slots unique", ok: !duplicateGrid },
+  ];
+  const blocking = checks.some((c) => !c.ok && !c.soft);
+
+  // Championship before this race, and after it if submitted as it stands.
+  const standingsImpact = (() => {
+    const rows = grid
+      .filter((d) => !d.is_reserve || pointsBySeat[d.driver_season_id] != null)
+      .map((d) => {
+        const gained = pointsBySeat[d.driver_season_id] ?? 0;
+        // season_points already includes this race when it has been entered
+        // before, so subtract what is currently stored for it.
+        const before = d.season_points - (existingPoints[d.driver_season_id] ?? 0);
+        return {
+          id: d.driver_season_id,
+          name: `${d.driver.first_name} ${d.driver.last_name}`.trim(),
+          before,
+          after: before + gained,
+          gained,
+        };
+      });
+    const rank = (key: "before" | "after") =>
+      [...rows].sort((a, b) => b[key] - a[key]).map((r) => r.id);
+    const beforeRank = rank("before");
+    const afterRank = rank("after");
+    return [...rows]
+      .sort((a, b) => b.after - a.after)
+      .map((r) => ({
+        ...r,
+        move: beforeRank.indexOf(r.id) - afterRank.indexOf(r.id),
+        position: afterRank.indexOf(r.id) + 1,
+      }));
+  })();
 
   function updatePlacement(dsId: number, patch: Partial<Placement>) {
     setPlacements((prev) => ({ ...prev, [dsId]: { ...prev[dsId], ...patch } }));
@@ -286,7 +379,7 @@ export function AdminPage() {
 
   // ── Submit ───────────────────────────────────────────────────────────────
   async function handleSubmit() {
-    if (!selectedRaceId || !token) return;
+    if (!selectedRaceId || !token || seasonId == null) return;
     setSubmitState("loading");
     setSubmitError(null);
 
@@ -339,9 +432,25 @@ export function AdminPage() {
         <div className="adm-band-inner">
           <div>
             <span className="adm-eyebrow">CGR League · Admin</span>
-            <h1 className="adm-title">Results — Season {CURRENT_SEASON}</h1>
+            <h1 className="adm-title">Results entry</h1>
           </div>
           <span className="adm-user">
+            <select
+              className="adm-season"
+              value={seasonId ?? ""}
+              onChange={(e) => {
+                setSeasonId(Number(e.target.value));
+                setSelectedRaceId(null);
+                setSubmitState("idle");
+              }}
+              aria-label="Season"
+            >
+              {seasons.map((s) => (
+                <option key={s.id} value={s.id}>
+                  Season {s.id} · {s.game} · {s.races_entered}/{s.race_count} entered
+                </option>
+              ))}
+            </select>
             {username}
             <button className="adm-logout" onClick={() => logout().then(() => navigate("/login"))}>
               Log out
@@ -353,7 +462,7 @@ export function AdminPage() {
       <div className="adm-inner">
         {loadError && (
           <div className="adm-panel adm-alert">
-            Couldn’t load Season {CURRENT_SEASON}: {loadError}
+            Couldn’t load Season {seasonId}: {loadError}
           </div>
         )}
 
@@ -371,14 +480,15 @@ export function AdminPage() {
             <option value="">— choose a race —</option>
             {races.map((r) => (
               <option key={r.id} value={r.id}>
+                {r.result_count ? "\u2713 " : "\u00b7 "}
                 R{r.round}{r.is_sprint ? " Sprint" : ""} — {r.track.name}
-                {r.started_at ? ` (${new Date(r.started_at).toLocaleDateString()})` : ""}
+                {r.result_count ? ` (${r.result_count} entered)` : ""}
               </option>
             ))}
           </select>
           {!loadError && races.length === 0 && (
             <p className="adm-hint" style={{ margin: "10px 0 0" }}>
-              No races found for Season {CURRENT_SEASON}.
+              No races found for Season {seasonId}.
             </p>
           )}
         </div>
@@ -463,6 +573,7 @@ export function AdminPage() {
                       <span className="adm-c-handle" />
                       <span className="adm-c-in">In</span>
                       <span className="adm-c-pos">Pos</span>
+                      <span className="adm-c-pts">Pts</span>
                       <span className="adm-c-driver">Driver</span>
                       <span className="adm-c-grid">Grid</span>
                       <span className="adm-c-status">Status</span>
@@ -479,13 +590,7 @@ export function AdminPage() {
                       const p = placements[dsId] ?? defaultPlacement();
                       const isNoStart = p.status === "DNS" || p.status === "DNQ";
 
-                      // Position counts only competing, started drivers above this one
-                      const finishPos = p.competing && !isNoStart
-                        ? order.slice(0, idx + 1).filter((id) => {
-                            const pp = placements[id];
-                            return pp?.competing && pp.status !== "DNS" && pp.status !== "DNQ";
-                          }).length
-                        : null;
+                      const finishPos = finishPositionOf(dsId, idx);
 
                       const rowClass = [
                         "adm-row",
@@ -521,6 +626,12 @@ export function AdminPage() {
                           <span className="adm-c-pos">
                             <span className={"adm-pos" + (!p.competing || isNoStart ? " is-none" : "")}>
                               {!p.competing || isNoStart ? "—" : `P${finishPos}`}
+                            </span>
+                          </span>
+
+                          <span className="adm-c-pts">
+                            <span className={"adm-pts" + (pointsBySeat[dsId] ? "" : " is-none")}>
+                              {p.competing ? (pointsBySeat[dsId] ?? 0) : "—"}
                             </span>
                           </span>
 
@@ -586,6 +697,40 @@ export function AdminPage() {
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+
+                <div className="adm-rail">
+                  <div className="adm-rail-block">
+                    <h3 className="adm-rail-title">Before you submit</h3>
+                    <ul className="adm-checks">
+                      {checks.map((c) => (
+                        <li key={c.label} className={"adm-check-row" + (c.ok ? " is-ok" : c.soft ? " is-warn" : " is-bad")}>
+                          <span className="adm-check-mark">{c.ok ? "✓" : c.soft ? "!" : "✕"}</span>
+                          {c.label}
+                        </li>
+                      ))}
+                    </ul>
+                    {blocking && (
+                      <p className="adm-hint">Fix the marked items — they will produce bad data.</p>
+                    )}
+                  </div>
+
+                  <div className="adm-rail-block">
+                    <h3 className="adm-rail-title">Championship after this race</h3>
+                    <ol className="adm-impact">
+                      {standingsImpact.slice(0, 12).map((r) => (
+                        <li key={r.id} className="adm-impact-row">
+                          <span className="adm-impact-pos">{r.position}</span>
+                          <span className="adm-impact-name">{r.name}</span>
+                          {r.gained > 0 && <span className="adm-impact-gain">+{r.gained}</span>}
+                          <span className="adm-impact-pts">{r.after}</span>
+                          <span className={"adm-impact-move" + (r.move > 0 ? " is-up" : r.move < 0 ? " is-down" : "")}>
+                            {r.move > 0 ? `▲${r.move}` : r.move < 0 ? `▼${-r.move}` : "–"}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
                 </div>
 

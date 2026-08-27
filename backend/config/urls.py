@@ -5,7 +5,12 @@ from tracks.views import list_tracks
 from seasons.views import list_seasons
 from teams.views import list_teams, TeamDetailView, TeamsHomepageView
 from api.auth_views import login_view, logout_view
-from api.admin_views import SeasonGridView, SeasonRacesAdminView, SeasonSeatsAdminView
+from api.admin_views import (
+    SeasonGridView,
+    SeasonRacesAdminView,
+    SeasonSeatsAdminView,
+    SeasonsAdminView,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -13,6 +18,7 @@ urlpatterns = [
     path("api/auth/login/", login_view, name="auth-login"),
     path("api/auth/logout/", logout_view, name="auth-logout"),
     # Admin helpers (protected)
+    path("api/admin/seasons/", SeasonsAdminView.as_view(), name="admin-seasons"),
     path("api/admin/seasons/<int:season_id>/grid/", SeasonGridView.as_view(), name="admin-season-grid"),
     path("api/admin/seasons/<int:season_id>/races/", SeasonRacesAdminView.as_view(), name="admin-season-races"),
     path("api/admin/seasons/<int:season_id>/seats/", SeasonSeatsAdminView.as_view(), name="admin-season-seats"),

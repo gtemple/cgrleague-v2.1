@@ -142,7 +142,7 @@
 /* ── Result rows ────────────────────────────────────────────── */
 
 .adm-grid-scroll { overflow-x: auto; }
-.adm-grid { min-width: 780px; }
+.adm-grid { min-width: 820px; }
 
 .adm-head,
 .adm-row {
@@ -339,3 +339,124 @@
   .adm-sub { flex-direction: column; align-items: stretch; }
   .adm-sub-field, .adm-sub-car, .adm-sub-add { width: 100%; min-width: 0; }
 }
+
+/* ── Season picker in the band ──────────────────────────────── */
+
+.adm-season {
+  padding: 5px 9px;
+  background: var(--cgr-ink-alt);
+  border: 1px solid var(--cgr-ink-border-2);
+  border-radius: var(--cgr-radius-chip);
+  color-scheme: dark;
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  color: var(--cgr-text-on-dark);
+  cursor: pointer;
+}
+.adm-season option { background: var(--cgr-ink-alt); color: var(--cgr-text-on-dark); }
+.adm-season:focus-visible { outline: 2px solid var(--cgr-red); outline-offset: 2px; }
+
+/* ── Points column ──────────────────────────────────────────── */
+
+.adm-c-pts { width: 40px; flex: 0 0 auto; text-align: center; }
+.adm-pts {
+  font-family: var(--cgr-font-mono);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--cgr-text-primary);
+}
+.adm-pts.is-none { color: var(--cgr-text-faint); font-weight: 400; }
+
+/* ── Right rail: validation + standings impact ──────────────── */
+
+.adm-rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cgr-border-card);
+}
+@media (min-width: 900px) {
+  .adm-rail { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 26px; }
+}
+
+.adm-rail-title {
+  margin: 0 0 10px;
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted);
+}
+
+.adm-checks { list-style: none; margin: 0; padding: 0; }
+.adm-check-row {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 5px 0;
+  font-size: 13px;
+  color: var(--cgr-text-body);
+}
+.adm-check-mark {
+  font-family: var(--cgr-font-mono);
+  font-size: 12px;
+  width: 12px;
+  flex: 0 0 auto;
+}
+.adm-check-row.is-ok   .adm-check-mark { color: #197a4b; }
+.adm-check-row.is-warn .adm-check-mark { color: #9a6b00; }
+.adm-check-row.is-bad  .adm-check-mark { color: #a3201d; }
+.adm-check-row.is-bad { color: #a3201d; }
+
+.adm-impact { list-style: none; margin: 0; padding: 0; }
+.adm-impact-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--cgr-border-hairline);
+  font-size: 13px;
+}
+.adm-impact-row:last-child { border-bottom: none; }
+.adm-impact-pos {
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  color: var(--cgr-text-muted-2);
+  width: 20px;
+  flex: 0 0 auto;
+  text-align: right;
+}
+.adm-impact-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.adm-impact-gain {
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  color: #197a4b;
+  flex: 0 0 auto;
+}
+.adm-impact-pts {
+  font-family: var(--cgr-font-mono);
+  font-weight: 700;
+  font-size: 12.5px;
+  width: 38px;
+  flex: 0 0 auto;
+  text-align: right;
+}
+.adm-impact-move {
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  width: 26px;
+  flex: 0 0 auto;
+  text-align: right;
+  color: var(--cgr-text-faint);
+}
+.adm-impact-move.is-up { color: #197a4b; }
+.adm-impact-move.is-down { color: #a3201d; }

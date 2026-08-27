@@ -1,4 +1,4 @@
-from django.db.models import F, Q, Sum
+from django.db.models import Count, F, Q, Sum
 from django.db.models.functions import Coalesce
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -8,6 +8,7 @@ from drivers.models import Driver
 from entries.models import DriverSeason, TeamSeason
 from results.api.views.utils import fl_bonus_case, points_case
 from results.models import Race, RaceResult
+from seasons.models import Season
 
 
 class SeasonGridView(APIView):
@@ -57,7 +58,8 @@ class SeasonGridView(APIView):
 class SeasonRacesAdminView(APIView):
     """
     GET /api/admin/seasons/<season_id>/races/
-    Returns all races in a season (id, round, is_sprint, track name, started_at).
+    Returns all races in a season, each carrying how many results it already
+    has, so the picker can show what is left to enter.
     Protected: requires token auth.
     """
     permission_classes = [IsAuthenticated]
@@ -67,6 +69,7 @@ class SeasonRacesAdminView(APIView):
             Race.objects
             .filter(season_id=season_id)
             .select_related("track")
+            .annotate(result_count=Count("results"))
             .order_by("round", "is_sprint")
         )
         data = [
@@ -76,6 +79,7 @@ class SeasonRacesAdminView(APIView):
                 "is_sprint": r.is_sprint,
                 "laps": r.laps,
                 "started_at": r.started_at,
+                "result_count": r.result_count,
                 "track": {
                     "id": r.track_id,
                     "name": r.track.name,
@@ -192,3 +196,32 @@ class SeasonSeatsAdminView(APIView):
             )
         seat.delete()
         return Response(status=204)
+
+
+class SeasonsAdminView(APIView):
+    """
+    GET /api/admin/seasons/
+
+    Every season with its game and how many of its races have results, so the
+    results page can edit any season rather than a hardcoded current one.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        seasons = (
+            Season.objects
+            .annotate(
+                race_count=Count("races", distinct=True),
+                entered=Count("races", filter=Q(races__results__isnull=False), distinct=True),
+            )
+            .order_by("-id")
+        )
+        return Response([
+            {
+                "id": s.id,
+                "game": getattr(s, "game", "") or "",
+                "race_count": s.race_count,
+                "races_entered": s.entered,
+            }
+            for s in seasons
+        ])

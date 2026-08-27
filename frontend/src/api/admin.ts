@@ -19,7 +19,15 @@ export type RaceInfo = {
   is_sprint: boolean;
   laps: number | null;
   started_at: string | null;
+  result_count: number;
   track: { id: number; name: string; country: string };
+};
+
+export type SeasonInfo = {
+  id: number;
+  game: string;
+  race_count: number;
+  races_entered: number;
 };
 
 export type ExistingResult = {
@@ -59,6 +67,10 @@ export type SeatOptions = {
 };
 
 export const adminApi = {
+  async getSeasons(token: string): Promise<SeasonInfo[]> {
+    return fetchJson("/api/admin/seasons/", { headers: authedHeaders(token) });
+  },
+
   async getSeatOptions(token: string, seasonId: number): Promise<SeatOptions> {
     return fetchJson(`/api/admin/seasons/${seasonId}/seats/`, {
       headers: authedHeaders(token),
