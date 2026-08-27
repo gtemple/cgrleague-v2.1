@@ -114,3 +114,17 @@ def invalidate_for_result(instance):
         key_h2h(),
     ]
     cache.delete_many(keys)
+
+
+def invalidate_for_race(instance):
+    """
+    Delete cached responses that depend on Race fields (schedule, laps, notes)
+    rather than on results. Called by the Race post_save / post_delete signals.
+    """
+    cache.delete_many([
+        key_next_race_teaser(False),
+        key_next_race_teaser(True),
+        key_race_detail(instance.pk),
+        key_last_race(instance.season_id, False),
+        key_last_race(instance.season_id, True),
+    ])
