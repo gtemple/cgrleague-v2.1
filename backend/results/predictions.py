@@ -19,8 +19,13 @@ from results.models import Race, RaceResult
 from results.api.views.utils import serialize_driver, serialize_team
 
 
-MODEL_VERSION = "cgr-predictor-v1"
+MODEL_VERSION = "cgr-predictor-v2"
 SIMULATIONS = 5000
+# Selected by a rolling 105-race backtest (see backtest_predictions). The v1
+# values, 0.62/0.28, were over-dispersed and produced a 3.10-position MAE;
+# this pair improved both the combined calibration score and favourite hit rate.
+NOISE_BASE = 0.40
+NOISE_UNCERTAINTY = 0.16
 
 WEIGHTS = {
     "ability": 0.35,
@@ -153,7 +158,11 @@ def _shrunk(value: float, samples: int, prior: float, prior_strength: int) -> fl
     return (value * samples + prior * prior_strength) / (samples + prior_strength)
 
 
-def _current_entrants(race: Race, outcomes: list[Outcome]) -> list[DriverSeason]:
+def _current_entrants(
+    race: Race,
+    outcomes: list[Outcome],
+    entrant_driver_ids: set[int] | None = None,
+) -> list[DriverSeason]:
     raced_driver_ids = {
         row.driver_id
         for row in outcomes
@@ -173,7 +182,9 @@ def _current_entrants(race: Race, outcomes: list[Outcome]) -> list[DriverSeason]
         if row.season_id == race.season_id
     }
     for seat in seats:
-        if seat.is_reserve and seat.driver_id not in raced_driver_ids:
+        if entrant_driver_ids is not None and seat.driver_id not in entrant_driver_ids:
+            continue
+        if entrant_driver_ids is None and seat.is_reserve and seat.driver_id not in raced_driver_ids:
             continue
         existing = by_driver.get(seat.driver_id)
         if existing is None or seat.team_season_id == latest_team_by_driver.get(seat.driver_id):
@@ -215,9 +226,16 @@ def _factor_reason(key: str, value: float, evidence: int) -> str:
     return messages[key][direction]
 
 
-def calculate_race_prediction(race: Race, simulations: int = SIMULATIONS) -> dict:
+def calculate_race_prediction(
+    race: Race,
+    simulations: int = SIMULATIONS,
+    *,
+    noise_base: float = NOISE_BASE,
+    noise_uncertainty: float = NOISE_UNCERTAINTY,
+    entrant_driver_ids: set[int] | None = None,
+) -> dict:
     outcomes = _load_outcomes(race)
-    entrants = _current_entrants(race, outcomes)
+    entrants = _current_entrants(race, outcomes, entrant_driver_ids)
     ratings, starts = _ability_ratings(outcomes, race.season_id)
 
     by_driver: dict[int, list[Outcome]] = defaultdict(list)
@@ -358,7 +376,7 @@ def calculate_race_prediction(race: Race, simulations: int = SIMULATIONS) -> dic
             driver_id = row["driver"]["id"]
             # More evidence narrows the performance distribution; it never
             # removes race-to-race variance entirely.
-            noise = 0.62 + (1.0 - row["confidence_score"]) * 0.28
+            noise = noise_base + (1.0 - row["confidence_score"]) * noise_uncertainty
             performance = (row["model_score"] - 0.5) * 5.0 + rng.gauss(0.0, noise)
             target = failed if rng.random() < row["failure_probability"] else running
             target.append((performance, driver_id))
@@ -404,6 +422,10 @@ def calculate_race_prediction(race: Race, simulations: int = SIMULATIONS) -> dic
             "uses_grid": False,
             "method": "pairwise_elo_weighted_features_monte_carlo",
             "probability_scale": "0_to_1",
+            "variance": {
+                "base": noise_base,
+                "uncertainty": noise_uncertainty,
+            },
         },
         "race": {
             "id": race.id,

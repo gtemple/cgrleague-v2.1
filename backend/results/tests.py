@@ -93,7 +93,8 @@ class RacePredictionApiTests(RaceApiFixtureMixin, TestCase):
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["model"]["version"], "cgr-predictor-v1")
+        self.assertEqual(payload["model"]["version"], "cgr-predictor-v2")
+        self.assertEqual(payload["model"]["variance"], {"base": 0.4, "uncertainty": 0.16})
         self.assertEqual(payload["model"]["stage"], "pre_weekend")
         self.assertFalse(payload["model"]["uses_grid"])
         self.assertTrue(payload["as_of"]["future_results_excluded"])

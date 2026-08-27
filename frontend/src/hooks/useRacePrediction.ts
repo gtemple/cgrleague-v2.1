@@ -37,6 +37,7 @@ export type RacePredictionResponse = {
     uses_grid: boolean;
     method: string;
     probability_scale: "0_to_1";
+    variance: { base: number; uncertainty: number };
   };
   race: {
     id: number;

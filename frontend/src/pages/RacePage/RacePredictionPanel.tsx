@@ -101,7 +101,7 @@ export function RacePredictionPanel({ data, isLoading, error }: Props) {
                 <small>WIN</small>
               </span>
               <span className="rp-predict-podium-chance">
-                {percent(row.podium_probability)} podium · Expected P{row.expected_finish.toFixed(1)}
+                {percent(row.podium_probability)} podium · Average finish P{row.expected_finish.toFixed(1)}
               </span>
             </article>
           );
@@ -116,7 +116,7 @@ export function RacePredictionPanel({ data, isLoading, error }: Props) {
               <th>Driver</th>
               <th>Win</th>
               <th>Podium</th>
-              <th>Expected</th>
+              <th>Avg finish</th>
               <th>Confidence</th>
             </tr>
           </thead>
