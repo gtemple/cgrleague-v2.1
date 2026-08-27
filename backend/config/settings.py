@@ -174,7 +174,18 @@ LOGGING = {
 }
 
 # --- Email / newsletter ---
-RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+def _env_clean(name: str, default: str = "") -> str:
+    """Env value with stray wrapping quotes and whitespace removed.
+
+    A value pasted into a host's dashboard often arrives as '"foo"' or with a
+    trailing newline, and an empty var beats a getenv default, so fall back
+    explicitly rather than sending an empty From: and getting a 422.
+    """
+    value = (os.getenv(name) or "").strip().strip('"').strip("'").strip()
+    return value or default
+
+
+RESEND_API_KEY = _env_clean("RESEND_API_KEY")
 
 # Falls back to printing mail to the console, so local dev needs no credentials.
 EMAIL_BACKEND = os.getenv(
@@ -183,11 +194,16 @@ EMAIL_BACKEND = os.getenv(
     if RESEND_API_KEY
     else "django.core.mail.backends.console.EmailBackend",
 )
-DEFAULT_FROM_EMAIL = os.getenv("NEWSLETTER_FROM", "CGR League <news@cgr-league.net>")
-NEWSLETTER_REPLY_TO = os.getenv("NEWSLETTER_REPLY_TO", "")
+_from_email = _env_clean("NEWSLETTER_FROM", "CGR League <news@cgr-league.net>")
+# "<addr>" with no display name is rejected by Resend, which wants either a bare
+# address or "Name <addr>". Unwrap it rather than 422 on every send.
+if _from_email.startswith("<") and _from_email.endswith(">"):
+    _from_email = _from_email[1:-1].strip()
+DEFAULT_FROM_EMAIL = _from_email
+NEWSLETTER_REPLY_TO = _env_clean("NEWSLETTER_REPLY_TO")
 
 # Public site the links in an email point at.
-SITE_URL = os.getenv("SITE_URL", "https://cgr-league.net").rstrip("/")
+SITE_URL = _env_clean("SITE_URL", "https://cgr-league.net").rstrip("/")
 
 CACHES = {
     "default": {
