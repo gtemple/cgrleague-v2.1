@@ -44,11 +44,36 @@ export type TrackHistoryRow = {
   team: TeamLite;
 };
 
+export type PreRaceStanding = {
+  position: number;
+  driver: DriverLite & { is_human: boolean };
+  team: TeamLite;
+  points: number;
+  avg_finish: number | null;
+  form: (number | null | "DNF")[];
+};
+
+export type CircuitSpecialist = {
+  driver: DriverLite & { is_human: boolean };
+  races: number;
+  wins: number;
+  podiums: number;
+  points: number;
+  avg_finish: number | null;
+};
+
+export type PreRaceContext = {
+  completed_races: number;
+  standings: PreRaceStanding[];
+  circuit_specialists: CircuitSpecialist[];
+};
+
 export type RaceDetailResponse = {
   race: RaceDetail;
   results: RaceDetailResult[];
   standings_impact: StandingsImpactRow[];
   track_history: TrackHistoryRow[];
+  pre_race: PreRaceContext | null;
 };
 
 export function useRaceDetail(

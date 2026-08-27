@@ -6,6 +6,7 @@ Invalidation is triggered by post_save / post_delete signals on RaceResult
 (wired up in results/apps.py).
 """
 from django.core.cache import cache
+from django.db import models
 
 CACHE_TTL = 86400  # 24 hours
 
@@ -88,7 +89,6 @@ def invalidate_for_result(instance):
 
     race = Race.objects.only("season_id", "track_id").get(pk=instance.race_id)
     season_id = race.season_id
-    race_id = instance.race_id
     track_id = race.track_id
     driver_id = DriverSeason.objects.only("driver_id").get(pk=instance.driver_season_id).driver_id
     team_id = DriverSeason.objects.select_related("team_season").only("team_season__team_id").get(pk=instance.driver_season_id).team_season.team_id
@@ -101,7 +101,14 @@ def invalidate_for_result(instance):
         key_last_race(season_id, False),
         key_last_race(season_id, True),
         key_timeline(season_id),
-        key_race_detail(race_id),
+        # A result changes this race, the form/standings preview attached to
+        # later races in its season, and circuit history at this track.
+        *[
+            key_race_detail(other_race_id)
+            for other_race_id in Race.objects.filter(
+                models.Q(season_id=season_id) | models.Q(track_id=track_id)
+            ).values_list("id", flat=True)
+        ],
         key_next_race_teaser(False),
         key_next_race_teaser(True),
         key_history_teaser(),
@@ -156,6 +163,8 @@ def invalidate_for_seat(instance):
     puts a driver on the head-to-head grid before they have raced, so those
     would otherwise serve a stale response until the 24h TTL expired.
     """
+    from results.models import Race
+
     season_id = instance.season_id
     cache.delete_many([
         key_season_standings(season_id),
@@ -169,4 +178,8 @@ def invalidate_for_seat(instance):
         key_hof(False, False),
         key_hof(True, False),
         key_driver_detail(instance.driver_id),
+        *[
+            key_race_detail(race_id)
+            for race_id in Race.objects.filter(season_id=season_id).values_list("id", flat=True)
+        ],
     ])

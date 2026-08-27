@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useRaceDetail } from "../../hooks/useRaceDetail";
-import { useRaceArticles } from "../../hooks/useArticles";
+import { useArticleDetail, useRaceArticles } from "../../hooks/useArticles";
 import {
   Awards,
   ChampionshipImpact,
@@ -12,6 +12,7 @@ import {
 import { articleTypeLabel } from "../../utils/articleUtils";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
+import { PreRaceCentre } from "./PreRaceCentre";
 import "./style.css";
 
 function posClass(pos: number | null, status: string) {
@@ -57,6 +58,8 @@ export const RacePage = () => {
 
   const { data, isLoading, error } = useRaceDetail(seasonId, round, isSprint);
   const { data: articles } = useRaceArticles(seasonId, round);
+  const preview = articles?.find((article) => article.type === "PREVIEW") ?? null;
+  const { data: previewDetail } = useArticleDetail(preview?.id, !!preview);
   const race = data?.race;
   const results = data?.results ?? [];
   const is404 = !!error && (error as { status?: number }).status === 404;
@@ -76,7 +79,7 @@ export const RacePage = () => {
         <div className="rp-hero-topbar">
           <Link to={`/seasons/${seasonId}`} className="rp-back">← SEASON {seasonId}</Link>
           <span className="rp-eyebrow">
-            CGR LEAGUE · {race?.is_sprint ? "SPRINT" : "RACE"} RESULT
+            CGR LEAGUE · {race?.is_sprint ? "SPRINT" : "RACE"} {results.length ? "RESULT" : "CENTRE"}
           </span>
         </div>
 
@@ -126,7 +129,7 @@ export const RacePage = () => {
               <button className={isSprint ? "rp-seg-active" : ""} aria-pressed={isSprint} onClick={() => setIsSprint(true)}>Sprint</button>
             </div>
           ) : (
-            <span className="rp-session-tag">{race?.is_sprint ? "Sprint" : "Grand Prix"}</span>
+            <span className="rp-session-tag">{race?.is_sprint ? "SPRINT SESSION" : "GRAND PRIX"}</span>
           )}
           <div className="rp-nav">
             <button
@@ -159,10 +162,15 @@ export const RacePage = () => {
           </div>
         )}
 
-        {!isLoading && !error && data && results.length === 0 && (
-          <div className="rp-empty">
-            This race hasn't run yet — results will appear once it's complete.
-          </div>
+        {!isLoading && !error && data && results.length === 0 && data.pre_race && (
+          <PreRaceCentre
+            race={data.race}
+            seasonId={seasonId!}
+            context={data.pre_race}
+            history={data.track_history}
+            preview={preview}
+            previewDetail={previewDetail}
+          />
         )}
 
         {!isLoading && !error && data && results.length > 0 && (

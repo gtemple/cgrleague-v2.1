@@ -108,8 +108,10 @@ export function useArticleList() {
   return useApiQuery<ArticleSummary[]>("/api/articles/");
 }
 
-export function useArticleDetail(id: number | string) {
-  return useApiQuery<ArticleDetail>(`/api/articles/${id}/`);
+export function useArticleDetail(id: number | string | undefined, enabled = true) {
+  return useApiQuery<ArticleDetail>(id ? `/api/articles/${id}/` : "", {
+    enabled: enabled && !!id,
+  });
 }
 
 export function useLatestArticles() {

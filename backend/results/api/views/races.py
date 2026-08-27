@@ -114,6 +114,126 @@ def _track_history(race, limit=6):
     ]
 
 
+def _pre_race_context(race):
+    """Build the form, standings and circuit context shown before lights out."""
+    prior_in_season = (
+        RaceResult.objects
+        .filter(race__season_id=race.season_id, race__round__lt=race.round)
+        .select_related(
+            "race",
+            "driver_season__driver",
+            "driver_season__team_season__team",
+        )
+        .order_by("-race__round", "-race__is_sprint", "-id")
+    )
+
+    points_by_driver = {}
+    finishes_by_driver = {}
+    form_by_driver = {}
+    latest_seat_by_driver = {}
+    completed_race_ids = set()
+    for result in prior_in_season:
+        driver_id = result.driver_season.driver_id
+        completed_race_ids.add(result.race_id)
+        points_by_driver[driver_id] = points_by_driver.get(driver_id, 0) + points_for_result(result)
+        if result.finish_position is not None:
+            finishes_by_driver.setdefault(driver_id, []).append(result.finish_position)
+        form = form_by_driver.setdefault(driver_id, [])
+        if len(form) < 5:
+            form.append("DNF" if result.status != "FIN" else result.finish_position)
+        latest_seat_by_driver.setdefault(driver_id, result.driver_season)
+
+    seats = list(
+        DriverSeason.objects
+        .filter(season_id=race.season_id)
+        .select_related("driver", "team_season__team")
+        .order_by("driver__last_name", "driver__first_name", "id")
+    )
+    entrants = {}
+    for seat in seats:
+        # An unused reserve is not part of the expected race grid.
+        if seat.is_reserve and seat.driver_id not in points_by_driver:
+            continue
+        entrants.setdefault(seat.driver_id, seat)
+
+    standings = []
+    for driver_id, default_seat in entrants.items():
+        seat = latest_seat_by_driver.get(driver_id, default_seat)
+        finishes = finishes_by_driver.get(driver_id, [])
+        team_season = seat.team_season
+        standings.append({
+            "driver": {
+                **serialize_driver(seat.driver),
+                "is_human": bool(getattr(seat.driver, "human", False)),
+            },
+            "team": {
+                **serialize_team(team_season.team),
+                "color": team_season.color or None,
+            },
+            "points": points_by_driver.get(driver_id, 0),
+            "avg_finish": round(sum(finishes) / len(finishes), 2) if finishes else None,
+            # Results were visited newest-first; the UI reads form left-to-right.
+            "form": list(reversed(form_by_driver.get(driver_id, []))),
+        })
+    standings.sort(key=lambda row: (
+        -row["points"],
+        row["avg_finish"] if row["avg_finish"] is not None else 10**9,
+        row["driver"]["last_name"],
+        row["driver"]["first_name"],
+    ))
+    for position, row in enumerate(standings, start=1):
+        row["position"] = position
+
+    prior_at_track = (
+        RaceResult.objects
+        .filter(race__track_id=race.track_id)
+        .filter(
+            Q(race__season_id__lt=race.season_id)
+            | Q(race__season_id=race.season_id, race__round__lt=race.round)
+        )
+        .select_related("race", "driver_season__driver")
+    )
+    circuit = {}
+    for result in prior_at_track:
+        driver = result.driver_season.driver
+        row = circuit.setdefault(driver.id, {
+            "driver": {
+                **serialize_driver(driver),
+                "is_human": bool(getattr(driver, "human", False)),
+            },
+            "races": 0,
+            "wins": 0,
+            "podiums": 0,
+            "points": 0,
+            "finishes": [],
+        })
+        row["races"] += 1
+        row["wins"] += int(result.finish_position == 1)
+        row["podiums"] += int(result.finish_position is not None and result.finish_position <= 3)
+        row["points"] += points_for_result(result)
+        if result.finish_position is not None:
+            row["finishes"].append(result.finish_position)
+
+    specialists = []
+    for row in circuit.values():
+        finishes = row.pop("finishes")
+        row["avg_finish"] = round(sum(finishes) / len(finishes), 2) if finishes else None
+        specialists.append(row)
+    specialists.sort(key=lambda row: (
+        -row["wins"],
+        -row["podiums"],
+        -row["points"],
+        row["avg_finish"] if row["avg_finish"] is not None else 10**9,
+        row["driver"]["last_name"],
+    ))
+
+    return {
+        "completed_races": len(completed_race_ids),
+        "standings": standings,
+        "circuit_specialists": specialists[:3],
+    }
+
+
 class RaceDetailView(APIView):
     """
     GET /api/seasons/<season_id>/races/<round>/
@@ -207,6 +327,7 @@ class RaceDetailView(APIView):
             ],
             "standings_impact": _standings_impact(race),
             "track_history": _track_history(race),
+            "pre_race": _pre_race_context(race) if not results.exists() else None,
         }
         cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data)

@@ -12,6 +12,8 @@ export type TrackLite = {
   city: string;
   country: string;
   image: string | null;
+  /** Included by detailed race/track endpoints. */
+  distance?: number | null;
 };
 
 export type TeamLite = {
