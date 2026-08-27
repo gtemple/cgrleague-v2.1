@@ -369,38 +369,36 @@ export const RivalryPage = () => {
         </div>
       </div>
 
-      {/* Full-bleed chapter break: three facts at display scale, the rest as
-          an inline run. Sits outside .rv-inner so it spans the viewport. */}
+      <div className="rv-inner">
+      {/* Three facts at display scale, the rest as an inline run — a dark
+          panel among the white cards, not a page-width band. */}
       <section className="rv-record" aria-label="Notable facts">
-        <div className="rv-record-inner">
-          <div className="rv-record-head">
-            <h2 className="rv-record-title">The Record</h2>
-            <span className="rv-record-scope">{data.shared_races} races · {seasonSpan}</span>
-          </div>
+        <div className="rv-record-head">
+          <h2 className="rv-record-title">The Record</h2>
+          <span className="rv-record-scope">{data.shared_races} races · {seasonSpan}</span>
+        </div>
 
-          <div className="rv-record-featured">
-            {facts.slice(0, 3).map((f, i) => (
-              <div className="rv-record-cell" key={i}>
-                <span className="rv-record-value" style={f.accent ? { color: f.accent } : undefined}>{f.value}</span>
-                <span className="rv-record-caption">{f.label}</span>
+        <div className="rv-record-featured">
+          {facts.slice(0, 3).map((f, i) => (
+            <div className="rv-record-cell" key={i}>
+              <span className="rv-record-value" style={f.accent ? { color: f.accent } : undefined}>{f.value}</span>
+              <span className="rv-record-caption">{f.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {facts.length > 3 && (
+          <div className="rv-record-run">
+            {facts.slice(3).map((f, i) => (
+              <div className="rv-record-item" key={i}>
+                <span className="rv-record-num">{f.value}</span>
+                <span className="rv-record-label">{f.label}</span>
               </div>
             ))}
           </div>
-
-          {facts.length > 3 && (
-            <div className="rv-record-run">
-              {facts.slice(3).map((f, i) => (
-                <div className="rv-record-item" key={i}>
-                  <span className="rv-record-num">{f.value}</span>
-                  <span className="rv-record-label">{f.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </section>
 
-      <div className="rv-inner">
       <MomentumChart
         timeline={timeline}
         nameA={shortName(A)}

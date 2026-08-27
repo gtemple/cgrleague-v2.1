@@ -314,21 +314,18 @@
 
 
 /* ═══════════════════════════════════════
-   THE RECORD (full-bleed band)
+   THE RECORD (ink panel)
 ═══════════════════════════════════════ */
 
-/* Full-bleed dark band: an editorial chapter break between the versus header
-   and the momentum chart. Three facts at display scale, six as an inline run. */
+/* A dark panel among the white cards: three facts at display scale, the rest
+   as a wrapping inline run. Same ink as the versus band at the top of the page. */
 .rv-record {
-  background: #100e0c;
+  margin-top: 26px;
+  background: var(--cgr-ink);
   border-top: 3px solid var(--cgr-red);
+  border-radius: var(--cgr-radius-card);
+  padding: 30px 26px 32px;
   color: var(--cgr-text-on-dark);
-}
-
-.rv-record-inner {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 38px 20px 40px;
 }
 
 .rv-record-head {
@@ -336,7 +333,7 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 16px;
-  padding-bottom: 30px;
+  padding-bottom: 28px;
 }
 
 .rv-record-title {
@@ -346,7 +343,7 @@
   font-weight: 400;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #8e857c;
+  color: var(--cgr-text-on-dark-faint);
 }
 
 .rv-record-scope {
@@ -359,43 +356,43 @@
 }
 
 /* The 1px grid gap over a divider-coloured parent draws the hairlines; each
-   cell repaints the band background to punch through. */
+   cell repaints the panel background to punch through. */
 .rv-record-featured {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
-  background: #2b2723;
+  background: var(--cgr-ink-border);
 }
 
 .rv-record-cell {
-  background: #100e0c;
+  background: var(--cgr-ink);
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 0 26px;
 }
-/* Outer numbers sit flush with the container edges */
+/* Outer numbers sit flush with the panel's inner edges */
 .rv-record-cell:first-child { padding-left: 0; }
 .rv-record-cell:last-child { padding-right: 0; }
 
 .rv-record-value {
   font-family: var(--cgr-font-display);
   font-weight: 800;
-  font-size: 96px;
+  font-size: 88px;
   line-height: 0.76;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   /* without this the 5–2 figure wraps as the cell narrows */
   white-space: nowrap;
-  color: #edebe6;
+  color: var(--cgr-text-on-dark);
 }
 
-.rv-record-dash { color: #4a443e; }
+.rv-record-dash { color: var(--cgr-ink-border-2); }
 
 .rv-record-caption {
   font-size: 15px;
   line-height: 1.35;
-  color: #cfc8c0;
+  color: var(--cgr-text-on-dark-muted);
 }
 .rv-record-caption b { font-weight: 700; }
 
@@ -403,9 +400,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0 40px;
-  margin-top: 38px;
-  padding-top: 22px;
-  border-top: 1px solid #2b2723;
+  margin-top: 34px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cgr-ink-border);
 }
 
 .rv-record-item {
@@ -419,16 +416,16 @@
   font-family: var(--cgr-font-mono);
   font-weight: 700;
   font-size: 18px;
-  color: #edebe6;
+  color: var(--cgr-text-on-dark);
 }
 
 .rv-record-label {
   font-size: 14px;
-  color: #a79e95;
+  color: var(--cgr-text-on-dark-muted);
 }
 
 @media (max-width: 900px) {
-  .rv-record-inner { padding: 28px 20px 32px; }
+  .rv-record { padding: 24px 20px 26px; }
   .rv-record-value { font-size: 64px; }
 }
 
@@ -440,13 +437,13 @@
   }
   .rv-record-cell { padding: 0; }
   .rv-record-cell + .rv-record-cell {
-    border-top: 1px solid #2b2723;
+    border-top: 1px solid var(--cgr-ink-border);
     padding-top: 24px;
   }
 }
 
 @media (max-width: 560px) {
-  .rv-record-inner { padding: 28px 16px 32px; }
+  .rv-record { padding: 22px 16px 24px; }
   .rv-record-head { flex-direction: column; gap: 6px; }
   .rv-record-run { gap: 0 28px; }
 }
