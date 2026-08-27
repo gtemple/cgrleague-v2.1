@@ -40,9 +40,9 @@ LEAGUE_CONTEXT = (
     "BANNED WORDS — never use these in any output:\n"
     "- 'journeyman', 'playground' (e.g. 'personal playground'), 'testament'\n"
     "\n"
-    "DNF TRACKING — DNFs were only recorded from Season 7 onwards. Do not comment on a driver's "
-    "DNF tally unless it is notably high; low DNF counts may simply reflect that earlier seasons "
-    "were not tracked.\n"
+    "DNF TRACKING — DNF recording is incomplete in the league's earlier seasons. A low DNF "
+    "count may reflect missing data rather than a clean record, so never present one as "
+    "evidence of reliability. Only comment on a driver's DNF tally when it is notably high.\n"
 )
 
 
@@ -61,6 +61,11 @@ ANALYST_SYSTEM = (
     "You are a sports journalist covering CGR League. "
     + LEAGUE_CONTEXT
     + "Write in an engaging, analytical style with specific references to names and numbers."
+)
+
+HEADLINE_ECHO_RULE = (
+    " — and do not echo the wording, verb, or angle of any headline in the "
+    "HEADLINES ALREADY PUBLISHED list above"
 )
 
 # ─── structured-output schemas ────────────────────────────────────────────────
@@ -303,18 +308,21 @@ def _get_name_collision_note(season):
 
 def _fmt_results(race):
     from django.db.models import F as _F
-    results = (
+    results = list(
         RaceResult.objects
         .filter(race=race)
         .select_related("driver_season__driver", "driver_season__team_season__team")
         .order_by(_F("finish_position").asc(nulls_last=True), "driver_season__driver__last_name")
     )
+    # grid_position is only recorded from S7 on. Printing "(Grid ?)" on every
+    # row of an older race is noise, and invites grid commentary there is no
+    # data for, so the column only appears when the race actually has one.
+    has_grid = any(r.grid_position is not None for r in results)
+
     lines = []
     for r in results:
         driver = r.driver_season.driver
         team = r.driver_season.team_season.team
-        pos = r.finish_position or "DNF"
-        grid = r.grid_position or "?"
         flags = []
         if r.pole_position:    flags.append("Pole")
         if r.fastest_lap:     flags.append("Fastest Lap")
@@ -323,11 +331,59 @@ def _fmt_results(race):
         if r.most_overtakes:  flags.append("Most Overtakes")
         flag_str = f" [{', '.join(flags)}]" if flags else ""
         human_tag = " (Human)" if driver.human else ""
+        grid_str = f" (Grid {r.grid_position or '?'})" if has_grid else ""
+
+        # An unclassified row is not necessarily a DNF - it may be DNS/DSQ/DNQ -
+        # so the status fills the position slot rather than being assumed.
+        if r.finish_position is not None:
+            slot, status_str = f"P{r.finish_position}", f", {r.status}"
+        else:
+            slot, status_str = r.status, ""
+
         lines.append(
-            f"  P{pos} (Grid {grid}): {_name(driver)}{human_tag} ({team.team_name})"
-            f" — {r.points} pts, {r.status}{flag_str}"
+            f"  {slot}{grid_str}: {_name(driver)}{human_tag} ({team.team_name})"
+            f" — {r.points} pts{status_str}{flag_str}"
         )
     return "\n".join(lines)
+
+
+def _fmt_lineups(season):
+    """
+    Explicit team line-ups. The results block carries each driver's team, but
+    inferring "teammate" from it means a cross-reference the model gets wrong;
+    stating the pairs removes that whole error class.
+    """
+    from collections import defaultdict
+    by_team = defaultdict(list)
+    for ds in (
+        DriverSeason.objects
+        .filter(season=season)
+        .select_related("driver", "team_season__team")
+        .order_by("driver__last_name")
+    ):
+        by_team[ds.team_season.display_name or ds.team_season.team.team_name].append(_name(ds.driver))
+    lines = "\n".join(f"  - {team}: {' & '.join(names)}" for team, names in sorted(by_team.items()))
+    return f"\nTEAM LINE-UPS THIS SEASON (use this for any 'teammate' reference):\n{lines}\n"
+
+
+def _tracked_flags(race):
+    """
+    Which award flags actually occur in this race. Poles are S3+, Cleanest
+    Driver and Most Overtakes are S7+, so naming all five unconditionally asks
+    the model to highlight awards that were never recorded.
+    """
+    checks = [
+        ("pole", "pole_position"),
+        ("fastest lap", "fastest_lap"),
+        ("DOTD", "dotd"),
+        ("Cleanest Driver", "cleanest_driver"),
+        ("Most Overtakes", "most_overtakes"),
+    ]
+    fields = [f for _, f in checks]
+    present = set()
+    for row in RaceResult.objects.filter(race=race).values(*fields):
+        present.update(f for f in fields if row[f])
+    return [label for label, field in checks if field in present]
 
 
 def _fmt_standings(rows):
@@ -515,6 +571,10 @@ def generate_recap(race):
         if standings_before else ""
     )
     prior_titles_block = _fmt_prior_titles(_get_prior_titles(season))
+    flags = _tracked_flags(race)
+    lineups_block = _fmt_lineups(season)
+    flags_block = f"\n- Highlight key moments: {', '.join(flags)}" if flags else ""
+    headline_rule = HEADLINE_ECHO_RULE if prior_titles_block else ""
 
     prompt = f"""Write a race recap article for the following CGR League race.
 
@@ -532,7 +592,7 @@ CONSTRUCTOR CHAMPIONSHIP STANDINGS AFTER THIS RACE:
 
 PREVIOUS RACE WINNERS AT {track.name.upper()}:
 {_fmt_track_winners(track_winners)}
-{prior_titles_block}
+{lineups_block}{prior_titles_block}
 IMPORTANT RULES:
 - You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
 {', '.join(human_names)}
@@ -543,8 +603,9 @@ approximate results
 include at least one sentence on the constructor battle. Where the before/after standings show \
 a lead growing, shrinking, or a position swap, describe that shift concretely (e.g. the exact \
 points gap and how it moved) rather than in vague terms
-- Frame the stakes against the season length ({total_rounds} rounds total) where it matters
-- Highlight key moments: pole, fastest lap, DOTD, Cleanest Driver, Most Overtakes
+- Frame the stakes against the season length ({total_rounds} rounds total) where it matters{flags_block}
+- STICK TO THE DATA ABOVE. You are given finishing positions, grid slots, points, status, awards and standings — nothing else. You do NOT know lap numbers, lap times, gaps, corner names, tyre strategies, pit stops, overtake counts, or why any driver gained or lost places. Never write a sentence containing a fact of that kind: no "on lap 41", no "at Turn 4", no "14 overtakes", no "a bold move around the outside", no "a strategy error". Describe what the results show (grid slot, finish, points, awards, standings movement) and let the RACE NOTES supply anything else. If you do not know why something happened, say what happened and move on
+- Only claim a driver won a past race if a winner list above says so. Do not infer earlier results from the standings
 - Any RACE NOTES provided above take priority over anything you might infer from the results — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not lead with the winner's name or "Round X" every time; sometimes \
@@ -552,8 +613,7 @@ open with the championship stakes, a specific battle, or the drama of the moment
 - Vary your title format — avoid the same "[Driver] [Verb]s at [Track]" template every race; \
 use narrative titles, question titles, or drama-led angles. Steer clear of overused \
 motorsport-headline verbs — do NOT reach for "storms", "dominates", "cruises", "conquers", \
-"roars", "seals", or "masterclass" — and do not echo the wording, verb, or angle of any headline \
-in the HEADLINES ALREADY PUBLISHED list above
+"roars", "seals", or "masterclass"{headline_rule}
 - Length: 450–650 words, paragraphs separated by \\n\\n"""
 
     data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=5000)
@@ -651,6 +711,8 @@ def generate_preview(next_race, after_race=None):
     notes_block = f"\nRACE NOTES (from the league admin — treat as factual context):\n{next_race.race_notes.strip()}\n" if next_race.race_notes.strip() else ""
     collision_block = f"\n{collision_note}" if collision_note else ""
     prior_titles_block = _fmt_prior_titles(_get_prior_titles(season))
+    headline_rule = HEADLINE_ECHO_RULE if prior_titles_block else ""
+    lineups_block = _fmt_lineups(season)
 
     prompt = f"""Write a race preview article for the following upcoming CGR League race.
 
@@ -665,12 +727,14 @@ PREVIOUS RACE WINNERS AT {track.name.upper()}:
 
 DRIVER HISTORY AT THIS TRACK (human drivers only):
 {_fmt_driver_track_history(driver_track_history)}
-{prior_titles_block}
+{lineups_block}{prior_titles_block}
 IMPORTANT RULES:
 - You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
 {', '.join(human_names)}
 {stakes_rules}
 - AI drivers may be mentioned naturally by name when relevant
+- STICK TO THE DATA ABOVE. You are given finishing positions, grid slots, points, status, awards and standings — nothing else. You do NOT know lap numbers, lap times, gaps, corner names, tyre strategies, pit stops, overtake counts, or why any driver gained or lost places. Never write a sentence containing a fact of that kind: no "on lap 41", no "at Turn 4", no "14 overtakes", no "a bold move around the outside", no "a strategy error". Describe what the results show (grid slot, finish, points, awards, standings movement) and let the RACE NOTES supply anything else. If you do not know why something happened, say what happened and move on
+- Only claim a driver won a past race if a winner list above says so. Do not infer earlier results from the standings
 - Any RACE NOTES provided above take priority over anything you might infer from the data — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not lead with "Round X" or the track name every time; sometimes open \
@@ -678,8 +742,7 @@ with the championship battle, a driver's storyline, or what's at stake
 - Vary your title format — avoid the same "[Driver] eyes glory at [Track]" template; use \
 narrative, tension-led, or question-based titles. Steer clear of overused motorsport-headline \
 verbs — do NOT reach for "storms", "dominates", "cruises", "conquers", "roars", "eyes", or \
-"masterclass" — and do not echo the wording, verb, or angle of any headline in the HEADLINES \
-ALREADY PUBLISHED list above
+"masterclass"{headline_rule}
 - Length: 450–650 words, paragraphs separated by \\n\\n"""
 
     data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=5000)
