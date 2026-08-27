@@ -21,6 +21,15 @@ type Placement = {
   mostOvertakes: boolean;
 };
 
+function describeLoadError(err: unknown): string {
+  if (err instanceof ApiError) {
+    return err.status === 401
+      ? "your session has expired \u2014 log out and back in"
+      : `the server returned ${err.status}`;
+  }
+  return "could not reach the server";
+}
+
 function defaultPlacement(competing = true): Placement {
   return {
     competing,
@@ -50,6 +59,7 @@ export function AdminPage() {
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [submitState, setSubmitState] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Drag state (refs to avoid re-renders during drag)
   const dragIndexRef = useRef<number | null>(null);
@@ -57,17 +67,26 @@ export function AdminPage() {
 
   // Load races for the season
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setLoadingRaces(false);
+      return;
+    }
     setLoadingRaces(true);
     adminApi.getRaces(token, CURRENT_SEASON)
       .then(setRaces)
-      .catch(() => setRaces([]))
+      .catch((err) => {
+        setRaces([]);
+        setLoadError(describeLoadError(err));
+      })
       .finally(() => setLoadingRaces(false));
   }, [token]);
 
   // Load grid for the season (driver_seasons)
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setLoadingGrid(false);
+      return;
+    }
     setLoadingGrid(true);
     adminApi.getGrid(token, CURRENT_SEASON)
       .then((g) => {
@@ -78,7 +97,10 @@ export function AdminPage() {
         for (const d of g) initial[d.driver_season_id] = defaultPlacement();
         setPlacements(initial);
       })
-      .catch(() => setGrid([]))
+      .catch((err) => {
+        setGrid([]);
+        setLoadError(describeLoadError(err));
+      })
       .finally(() => setLoadingGrid(false));
   }, [token]);
 
@@ -276,6 +298,12 @@ export function AdminPage() {
       </div>
 
       <div className="ad-inner">
+        {loadError && (
+          <div className="ad-panel ad-alert">
+            Couldn\u2019t load Season {CURRENT_SEASON}: {loadError}
+          </div>
+        )}
+
         <div className="ad-panel">
           <label className="ad-label" htmlFor="ad-race">Select race</label>
           <select
@@ -295,6 +323,11 @@ export function AdminPage() {
               </option>
             ))}
           </select>
+          {!loadError && races.length === 0 && (
+            <p className="ad-hint" style={{ margin: "10px 0 0" }}>
+              No races found for Season {CURRENT_SEASON}.
+            </p>
+          )}
         </div>
 
         {selectedRace && (

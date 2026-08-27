@@ -297,3 +297,11 @@
 
 /* min-width:0 lets the name and team ellipsis instead of forcing the row wide */
 .ad-driver-meta { min-width: 0; }
+
+.ad-alert {
+  margin-bottom: 20px;
+  border-color: #f3c4c2;
+  background: #fdecec;
+  font-size: 13.5px;
+  color: #a3201d;
+}
