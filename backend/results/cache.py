@@ -31,6 +31,9 @@ def key_timeline(season_id):
 def key_race_detail(race_id):
     return f"race:{race_id}:detail"
 
+def key_race_prediction(race_id):
+    return f"race:{race_id}:prediction"
+
 def key_next_race_teaser(include_sprints: bool):
     return f"teaser:{int(include_sprints)}"
 
@@ -109,6 +112,13 @@ def invalidate_for_result(instance):
                 models.Q(season_id=season_id) | models.Q(track_id=track_id)
             ).values_list("id", flat=True)
         ],
+        *[
+            key_race_prediction(future_race_id)
+            for future_race_id in Race.objects.filter(
+                models.Q(season_id__gt=season_id)
+                | models.Q(season_id=season_id, round__gt=race.round)
+            ).values_list("id", flat=True)
+        ],
         key_next_race_teaser(False),
         key_next_race_teaser(True),
         key_history_teaser(),
@@ -149,6 +159,7 @@ def invalidate_for_race(instance):
         key_next_race_teaser(False),
         key_next_race_teaser(True),
         key_race_detail(instance.pk),
+        key_race_prediction(instance.pk),
         key_last_race(instance.season_id, False),
         key_last_race(instance.season_id, True),
     ])
@@ -180,6 +191,10 @@ def invalidate_for_seat(instance):
         key_driver_detail(instance.driver_id),
         *[
             key_race_detail(race_id)
+            for race_id in Race.objects.filter(season_id=season_id).values_list("id", flat=True)
+        ],
+        *[
+            key_race_prediction(race_id)
             for race_id in Race.objects.filter(season_id=season_id).values_list("id", flat=True)
         ],
     ])
