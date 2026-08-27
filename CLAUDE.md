@@ -84,7 +84,18 @@ Vanilla React Router 7 SPA, no Redux/React Query. Data fetching is a custom hook
 - `src/hooks/useApiQuery.ts` — generic query hook (loading/error/refetch, optional `transform`, `keepPreviousData`). Almost every `use*` hook in `src/hooks/` wraps this for one endpoint. Add a new hook per endpoint rather than calling `fetchJson` from components.
 - `src/lib/api.ts` (`apiGet` with `credentials: 'include'`) + `src/lib/csrf.ts` are the cookie/session path used for authenticated admin calls; `src/api/admin.ts` uses these.
 
-Routes are declared in `src/App.tsx`. Pages live in `src/pages/<PageName>/`, reusable widgets in `src/components/<Name>/`. Styling is plain CSS, **not** CSS Modules — each component/page folder has its own `style.css` imported directly; global styles in `index.css`, `App.css`, `styles/fonts.css`. (Recent history is heavy CSS refactoring; match the existing per-component `style.css` convention.)
+Routes are declared in `src/App.tsx`. Pages live in `src/pages/<PageName>/`, reusable widgets in `src/components/<Name>/`. Styling is plain CSS, **not** CSS Modules — each component/page folder has its own `style.css` imported directly. (Recent history is heavy CSS refactoring; match the existing per-component `style.css` convention.)
+
+### Design tokens (read before writing any CSS)
+
+**`src/styles/cgr-tokens.css` is the live design system.** Every page uses the `--cgr-*` tokens; see `DESIGN.md` for the full language. The shape of a page:
+
+- Page shell is **light**: `background: var(--cgr-paper)`, `color: var(--cgr-text-primary)`, `font-family: var(--cgr-font-body)`.
+- Headers are a **dark ink band** (`var(--cgr-ink)`) with a mono eyebrow and a condensed uppercase `--cgr-font-display` title. Text on ink uses the `--cgr-text-on-dark*` tokens.
+- Content sits in white panels: `var(--cgr-card)` + `1px solid var(--cgr-border-card)` + `var(--cgr-radius-card)`.
+- Numeric/label text is `--cgr-font-mono`, usually 10–11px with wide letter-spacing.
+
+The `:root` block in `index.css` (`--bg`, `--surface`, `--text-bright`, `--accent`) is **legacy** and only still applies to pages that predate the redesign. Don't build new UI on it — a page styled with those tokens renders dark-on-dark against the current light surfaces.
 
 ## Environment / secrets
 

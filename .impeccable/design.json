@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-27T00:00:00Z",
+  "title": "Design System: CGR League",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#16140f", "tonalRamp": ["#0b0a07", "#16140f", "#211e16", "#332e25", "#5c554494", "#8a8579", "#b0ada2", "#ecebe5"] },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#ecebe5", "tonalRamp": ["#16140f", "#33312a", "#6a685f", "#9b988d", "#d9d6cd", "#e3e1d8", "#ecebe5", "#f6f4ee"] },
+      "racing-red": { "role": "primary", "displayName": "Racing Red", "canonical": "#e8232c", "tonalRamp": ["#3d0508", "#5e0a10", "#8a1119", "#b81a23", "#e8232c", "#f05a61", "#f79197", "#fdd5d8"] },
+      "signal-gold": { "role": "secondary", "displayName": "Signal Gold", "canonical": "#f5b21a", "tonalRamp": ["#3d2c00", "#5e4400", "#8a6400", "#b88600", "#f5b21a", "#f8c657", "#fbda93", "#fdf0d3"] },
+      "accent-blue": { "role": "tertiary", "displayName": "Accent Blue", "canonical": "#2a6fdb", "tonalRamp": ["#071a3d", "#0d285e", "#143b8a", "#1d52b8", "#2a6fdb", "#5f92e6", "#93b5ef", "#d3e0f9"] },
+      "accent-purple": { "role": "tertiary", "displayName": "Accent Purple", "canonical": "#7c5cff", "tonalRamp": ["#1c0f4d", "#2b1873", "#3f24a3", "#5a37d1", "#7c5cff", "#9c85ff", "#bdadff", "#e4dcff"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page titles inside an ink band. One per page." },
+      "headline": { "displayName": "Headline", "purpose": "Entity names within a band, such as two drivers on a rivalry page." },
+      "title": { "displayName": "Title", "purpose": "Card and panel headings, track and driver names in lists." },
+      "body": { "displayName": "Body", "purpose": "Prose and table cells. Cap running prose at 65 to 75ch." },
+      "label": { "displayName": "Label", "purpose": "Section eyebrows, table headers, units, season markers. Always mono, always uppercase." }
+    },
+    "shadows": [
+      { "name": "ambient-lift", "value": "0 10px 22px rgba(22, 20, 15, 0.09)", "purpose": "Hover only, on interactive cards. Tinted toward ink, never neutral black." },
+      { "name": "focus-ring", "value": "0 0 0 4px rgba(245, 178, 26, 0.18)", "purpose": "Keyboard focus on inputs and controls." }
+    ],
+    "motion": [
+      { "name": "state", "value": "0.15s", "purpose": "Default duration for color, border-color, and background state changes." },
+      { "name": "lift", "value": "border-color 0.15s, transform 0.15s, box-shadow 0.15s", "purpose": "Interactive card hover." }
+    ],
+    "breakpoints": [
+      { "name": "phone", "value": "560px" },
+      { "name": "tablet", "value": "768px" },
+      { "name": "desktop", "value": "980px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Header Band",
+      "kind": "custom",
+      "refersTo": "band",
+      "description": "Full-bleed ink block that opens every page: mono eyebrow above a condensed uppercase title.",
+      "html": "<div class=\"ds-band\"><div class=\"ds-band-eyebrow\">SEASON 7 &middot; ROUND 6</div><h1 class=\"ds-band-title\">Chinese Grand Prix</h1></div>",
+      "css": ".ds-band { background: var(--cgr-ink, #16140f); padding: 26px; } .ds-band-eyebrow { font-family: var(--cgr-font-mono, monospace); font-size: 11px; letter-spacing: 0.22em; color: var(--cgr-text-on-dark-faint, #8a8579); margin-bottom: 6px; } .ds-band-title { font-family: var(--cgr-font-display, sans-serif); font-weight: 800; font-size: clamp(36px, 6vw, 54px); line-height: 0.9; letter-spacing: -0.01em; text-transform: uppercase; color: var(--cgr-text-on-dark, #f7f5ef); margin: 0; }"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "White content panel on paper. Flat at rest; border does the work.",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-panel-eyebrow\">CIRCUIT OWNERSHIP</div><div class=\"ds-panel-row\"><span>Emilia Romagna Grand Prix</span><span class=\"ds-panel-num\">5 &ndash; 4</span></div><div class=\"ds-panel-row\"><span>Austrian Grand Prix</span><span class=\"ds-panel-num\">2 &ndash; 5</span></div></section>",
+      "css": ".ds-panel { background: var(--cgr-card, #fff); border: 1px solid var(--cgr-border-card, #d9d6cd); border-radius: 5px; padding: 16px 18px; font-family: var(--cgr-font-body, sans-serif); } .ds-panel-eyebrow { font-family: var(--cgr-font-mono, monospace); font-size: 11px; letter-spacing: 0.18em; color: var(--cgr-text-muted, #7a766b); margin-bottom: 13px; } .ds-panel-row { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--cgr-border-hairline, #ece9e1); font-size: 13px; color: var(--cgr-text-body, #33312a); } .ds-panel-num { font-family: var(--cgr-font-mono, monospace); font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Interactive Card",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Panel that links somewhere. The only element in the system that lifts.",
+      "html": "<a class=\"ds-card-link\" href=\"#\"><span class=\"ds-card-name\">Ryan Reynolds</span><span class=\"ds-card-score\">57 &ndash; 48</span></a>",
+      "css": ".ds-card-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--cgr-card, #fff); border: 1px solid var(--cgr-border-card, #d9d6cd); border-radius: 5px; text-decoration: none; transition: border-color 0.15s, box-shadow 0.15s; } .ds-card-link:hover, .ds-card-link:focus-visible { border-color: var(--cgr-border-hover, #a8a496); box-shadow: 0 10px 22px rgba(22,20,15,0.09); outline: none; } .ds-card-name { font-family: var(--cgr-font-display, sans-serif); font-weight: 600; font-size: 14px; color: var(--cgr-text-primary, #16140f); } .ds-card-score { font-family: var(--cgr-font-mono, monospace); font-weight: 700; font-size: 14px; color: #1c7a4a; }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Sticky ink bar with the league's 3px racing-red signature stripe.",
+      "html": "<nav class=\"ds-nav\"><span class=\"ds-nav-brand\">CGR LEAGUE</span><span class=\"ds-nav-links\"><a class=\"ds-nav-link ds-nav-link-active\" href=\"#\">Seasons</a><a class=\"ds-nav-link\" href=\"#\">Drivers</a><a class=\"ds-nav-link\" href=\"#\">Tracks</a></span></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; gap: 26px; min-height: 62px; padding: 8px 26px; background: var(--cgr-ink, #16140f); border-bottom: 3px solid var(--cgr-red, #e8232c); } .ds-nav-brand { font-family: var(--cgr-font-display, sans-serif); font-weight: 700; font-size: 19px; color: var(--cgr-text-on-dark, #f7f5ef); } .ds-nav-links { display: flex; gap: 26px; } .ds-nav-link { font-family: var(--cgr-font-body, sans-serif); font-weight: 500; font-size: 14px; color: var(--cgr-text-on-dark-muted, #b3afa4); text-decoration: none; transition: color 0.15s; } .ds-nav-link:hover { color: var(--cgr-text-on-dark, #f7f5ef); } .ds-nav-link-active { color: var(--cgr-text-on-dark, #f7f5ef); border-bottom: 2px solid var(--cgr-red, #e8232c); padding-bottom: 3px; }"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Inert badge for counts and categories.",
+      "html": "<span class=\"ds-chip\">3 WINS</span>",
+      "css": ".ds-chip { display: inline-block; font-family: var(--cgr-font-mono, monospace); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cgr-text-muted, #7a766b); background: var(--cgr-chip, #e3e1d8); border-radius: 3px; padding: 2px 5px; }"
+    },
+    {
+      "name": "Signal Chip",
+      "kind": "chip",
+      "refersTo": "chip-sprint",
+      "description": "Gold badge reserved for exceptional facts: sprint races, records, bests.",
+      "html": "<span class=\"ds-chip-signal\">SPRINT</span>",
+      "css": ".ds-chip-signal { display: inline-block; font-family: var(--cgr-font-mono, monospace); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cgr-gold-text, #241a00); background: var(--cgr-gold, #f5b21a); border-radius: 3px; padding: 1px 4px; }"
+    },
+    {
+      "name": "Data Table",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Hairline-ruled table. Mono headers, tabular numerals, no zebra striping.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Race</th><th class=\"ds-table-num\">GT</th><th class=\"ds-table-num\">RR</th></tr></thead><tbody><tr><td>Spanish Grand Prix</td><td class=\"ds-table-num ds-table-win\">P17</td><td class=\"ds-table-num\">P19</td></tr><tr><td>Belgian Grand Prix</td><td class=\"ds-table-num ds-table-win\">P2</td><td class=\"ds-table-num\">P19</td></tr></tbody></table>",
+      "css": ".ds-table { width: 100%; border-collapse: collapse; font-family: var(--cgr-font-body, sans-serif); font-size: 13px; } .ds-table thead th { font-family: var(--cgr-font-mono, monospace); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 400; color: var(--cgr-text-muted-2, #9b988d); text-align: left; padding: 0 8px 8px 0; border-bottom: 1px solid var(--cgr-border-card, #d9d6cd); } .ds-table td { padding: 8px 8px 8px 0; border-top: 1px solid var(--cgr-border-hairline, #ece9e1); color: var(--cgr-text-body, #33312a); } .ds-table tbody tr:hover td { background: var(--cgr-row-hover, #f6f4ee); } .ds-table-num { width: 54px; text-align: center; font-family: var(--cgr-font-mono, monospace); font-variant-numeric: tabular-nums; color: var(--cgr-text-muted, #7a766b); } .ds-table-win { color: var(--cgr-text-primary, #16140f); font-weight: 700; }"
+    },
+    {
+      "name": "Split Bar",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Two-way comparison bar. Always paired with the literal values; the bar reinforces, never encodes alone.",
+      "html": "<div class=\"ds-split-wrap\"><span class=\"ds-split-val\">57</span><span class=\"ds-split\"><span class=\"ds-split-a\"></span><span class=\"ds-split-b\"></span></span><span class=\"ds-split-val\">48</span></div>",
+      "css": ".ds-split-wrap { display: flex; align-items: center; gap: 12px; font-family: var(--cgr-font-mono, monospace); } .ds-split-val { font-size: 15px; font-variant-numeric: tabular-nums; color: var(--cgr-text-primary, #16140f); font-weight: 700; } .ds-split { display: flex; flex: 1; height: 7px; gap: 2px; } .ds-split-a { flex: 57; background: #00a08e; border-radius: 3px 0 0 3px; } .ds-split-b { flex: 48; background: #c58200; border-radius: 0 3px 3px 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Paddock Almanac",
+    "overview": "CGR League is a printed motorsport record book rendered in a browser. Paper stock under ink headers, condensed uppercase titles, figures set in mono. Its authority comes from looking like a published annual of record, something a league would keep on a shelf, not from looking like software. The system rejects generic dark SaaS and the official F1 website by name; both treat stats as content to be decorated, and here the stats are the product. Density is a virtue: a sparse layout reads as unfinished, so pack information with precision and let hairline rules do the separating that whitespace would do elsewhere.",
+    "keyCharacteristics": [
+      "Paper-and-ink duality: dark bands introduce, light panels inform",
+      "Condensed uppercase display type against wide-tracked mono labels",
+      "Flat at rest, hairline-ruled, no resting shadows",
+      "Real team liveries used as data encoding, never as decoration",
+      "Numbers set in mono and tabular everywhere they are compared"
+    ],
+    "rules": [
+      { "name": "The One Ink Rule", "body": "There is a single ink (#16140f). It is the band background and it is the body text color. Never introduce a second near-black; never reach for pure #000.", "section": "colors" },
+      { "name": "The Red Is Not Decoration Rule", "body": "Racing Red marks identity and active state, nothing else. If red appears on a surface that is neither the nav rule, the logo, an active indicator, nor a focus ring, it is wrong.", "section": "colors" },
+      { "name": "The Livery Rule", "body": "Team colors are data encoding, never styling. When two liveries encode two series, they must clear both a delta-E floor and a hue gap before use; substitute a contrasting partner hue when they cannot.", "section": "colors" },
+      { "name": "The Mono Numbers Rule", "body": "Every figure that gets compared against another figure is set in JetBrains Mono with tabular numerals. A number in the body font is a number nobody is comparing.", "section": "typography" },
+      { "name": "The Eyebrow Rule", "body": "Sections are introduced by an 11px wide-tracked uppercase mono label, never by a large heading. The heading weight belongs to the ink band; inside the paper, sections whisper.", "section": "typography" },
+      { "name": "The Flat-At-Rest Rule", "body": "No surface carries a shadow at rest. Audit test: screenshot the page and squint. If you see soft gray halos under stationary elements, the system has drifted.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do build every new page on the --cgr-* tokens in frontend/src/styles/cgr-tokens.css. Page shell is --cgr-paper with --cgr-text-primary and --cgr-font-body.",
+      "Do open each page with an ink band: mono eyebrow, condensed uppercase display title.",
+      "Do set every comparable figure in --cgr-font-mono with tabular numerals.",
+      "Do separate rows with 1px #ece9e1 hairlines and let density carry credibility.",
+      "Do keep surfaces flat at rest and move border-color on hover over 0.15s.",
+      "Do validate any two-series color pair for both delta-E and hue gap before shipping it, and give every series a text label so identity is never color-alone.",
+      "Do respect prefers-reduced-motion on anything that animates."
+    ],
+    "donts": [
+      "Don't build on the legacy :root tokens in index.css (--bg, --surface, --text-bright, --accent). A new page styled with them renders dark-on-dark against the current light surfaces.",
+      "Don't produce generic dark SaaS: no blue-accent card grids, no opacity-token chrome, no glassmorphism, no floating panels with resting shadows.",
+      "Don't imitate the official F1 website: no marketing furniture, no brand promotion competing with the data.",
+      "Don't use Racing Red as a fill, a heading color, or an accent on anything that is not identity or active state.",
+      "Don't use a team livery as decoration. Liveries are data encoding and must pass the legibility gate first.",
+      "Don't use border-left or border-right above 1px as a colored stripe on cards, rows, or callouts.",
+      "Don't pad a page out with whitespace to make it feel designed. Sparse reads as unfinished here; add information instead.",
+      "Don't put a large heading inside the paper region. Sections are introduced by mono eyebrows; the display weight belongs to the band."
+    ]
+  }
+}
