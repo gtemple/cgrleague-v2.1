@@ -100,7 +100,11 @@ export function TeamPage() {
     if (teamId != null) setSelectValue(teamId);
   }, [teamId]);
 
-  if (isLoading) return <Loader label="Loading team…" full />;
+  if (isLoading) return (
+    <div className="team-page">
+      <Loader label="Loading team…" full />
+    </div>
+  );
   if (error || !data) return <div className="team-state-error">Failed to load team.</div>;
 
   const { team, career, seasons, best_driver, best_season } = data;

@@ -96,7 +96,21 @@ export const TeamsIndex = () => {
   const { data, isLoading, error } = useTeamsHomepage();
   const [search, setSearch] = useState("");
 
-  if (isLoading) return <Loader label="Loading teams…" full />;
+  if (isLoading) return (
+    <div className="tix-page">
+      <div className="tix-header-band">
+        <div className="tix-header-inner">
+          <div>
+            <div className="tix-eyebrow">CGR LEAGUE · CONSTRUCTORS</div>
+            <h1 className="tix-title">Teams</h1>
+          </div>
+        </div>
+      </div>
+      <div className="tix-body">
+        <Loader label="Loading teams…" full />
+      </div>
+    </div>
+  );
   if (error || !data) return <div style={{ color: "crimson", padding: 20 }}>Failed to load teams.</div>;
 
   const { current_season, records, all_teams, latest_season_id } = data;

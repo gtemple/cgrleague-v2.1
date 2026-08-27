@@ -75,7 +75,21 @@ export const TracksIndex = () => {
   const { data, isLoading, error } = useTracksHomepage();
   const [search, setSearch] = useState("");
 
-  if (isLoading) return <Loader label="Loading tracks…" full />;
+  if (isLoading) return (
+    <div className="trx-page">
+      <div className="trx-header-band">
+        <div className="trx-header-inner">
+          <div>
+            <div className="trx-eyebrow">CGR LEAGUE · CIRCUITS</div>
+            <h1 className="trx-title">Tracks</h1>
+          </div>
+        </div>
+      </div>
+      <div className="trx-body">
+        <Loader label="Loading tracks…" full />
+      </div>
+    </div>
+  );
   if (error || !data) return <div style={{ color: "crimson", padding: 20 }}>Failed to load tracks.</div>;
 
   const { all_tracks, records } = data;

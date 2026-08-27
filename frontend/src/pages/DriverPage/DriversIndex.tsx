@@ -101,7 +101,21 @@ export const DriversIndex = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<GridMode>("all");
 
-  if (isLoading) return <Loader label="Loading drivers…" full />;
+  if (isLoading) return (
+    <div className="dix-page">
+      <div className="dix-header-band">
+        <div className="dix-header-inner">
+          <div>
+            <div className="dix-eyebrow">CGR LEAGUE · ROSTER</div>
+            <h1 className="dix-title">Drivers</h1>
+          </div>
+        </div>
+      </div>
+      <div className="dix-body">
+        <Loader label="Loading drivers…" full />
+      </div>
+    </div>
+  );
   if (error || !data) return <div style={{ color: "crimson", padding: 20 }}>Failed to load drivers.</div>;
 
   const { human_spotlight, all_drivers, latest_season_id } = data;

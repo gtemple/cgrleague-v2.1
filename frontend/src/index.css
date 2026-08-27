@@ -44,7 +44,7 @@ body {
   flex-direction: column;
   min-width: 320px;
   min-height: 100vh;
-  background-color: var(--bg);
+  background-color: var(--cgr-paper);
 }
 
 #root {
