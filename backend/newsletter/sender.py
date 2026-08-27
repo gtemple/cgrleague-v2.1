@@ -1,5 +1,6 @@
 """Rendering and delivery. Everything that actually puts mail on the wire lives here."""
 
+import logging
 from typing import Optional, Tuple
 
 from django.conf import settings
@@ -11,6 +12,12 @@ from results.models import Race
 
 from .content import build_preview_issue, build_recap_issue
 from .models import Issue, Subscriber
+
+logger = logging.getLogger(__name__)
+
+# Stands in for the unsubscribe link while an issue is rendered once for the
+# whole list, then is swapped for each recipient's own link.
+UNSUB_PLACEHOLDER = "__CGR_UNSUBSCRIBE_URL__"
 
 # Everything that differs between the two kinds of issue, in one place.
 KINDS = {
@@ -64,21 +71,24 @@ def send_confirmation(subscriber: Subscriber) -> None:
     ).send()
 
 
+def _render(race: Race, kind: str, unsub: str) -> Tuple[str, str, str]:
+    spec = KINDS[kind]
+    context = spec["build"](race)
+    context["site_url"] = site_url()
+    context["unsubscribe_url"] = unsub
+    template = spec["template"]
+    return (
+        f"CGR League — {context['subject']}",
+        render_to_string(f"newsletter/{template}.txt", context),
+        render_to_string(f"newsletter/{template}.html", context),
+    )
+
+
 def render_issue(
     race: Race, kind: str = Issue.RECAP, subscriber: Optional[Subscriber] = None
 ) -> Tuple[str, str, str]:
     """(subject, text, html) for one race. Pass a subscriber to bake in their unsubscribe link."""
-    spec = KINDS[kind]
-    context = spec["build"](race)
-    context["site_url"] = site_url()
-    context["unsubscribe_url"] = unsubscribe_url(subscriber)
-    subject = f"CGR League — {context['subject']}"
-    template = spec["template"]
-    return (
-        subject,
-        render_to_string(f"newsletter/{template}.txt", context),
-        render_to_string(f"newsletter/{template}.html", context),
-    )
+    return _render(race, kind, unsubscribe_url(subscriber))
 
 
 def build_issue(race: Race, kind: str = Issue.RECAP, resend: bool = False) -> Issue:
@@ -103,28 +113,50 @@ def build_issue(race: Race, kind: str = Issue.RECAP, resend: bool = False) -> Is
     return issue
 
 
-def send_issue(issue: Issue) -> int:
-    """Send a draft issue to every active subscriber and mark it sent. Returns the count."""
+def send_issue(issue: Issue) -> Tuple[int, int]:
+    """Send a draft issue to every active subscriber and mark it sent.
+
+    Returns (delivered, failed).
+    """
     recipients = list(Subscriber.objects.active())
     if not recipients:
-        return 0
+        return 0, 0
+
+    # Every copy is identical bar the unsubscribe link, so the templates — and
+    # the standings and podium queries behind them — run once, not per recipient.
+    subject, text, html = _render(issue.race, issue.kind, UNSUB_PLACEHOLDER)
 
     connection = get_connection()
     connection.open()
+    sent = failed = 0
     try:
-        sent = 0
         for subscriber in recipients:
-            # Re-rendered per recipient so each unsubscribe link is their own.
-            subject, text, html = render_issue(issue.race, issue.kind, subscriber)
-            _message(subject, text, html, subscriber.email, subscriber, connection).send()
-            sent += 1
+            url = unsubscribe_url(subscriber)
+            try:
+                _message(
+                    subject,
+                    text.replace(UNSUB_PLACEHOLDER, url),
+                    html.replace(UNSUB_PLACEHOLDER, url),
+                    subscriber.email,
+                    subscriber,
+                    connection,
+                ).send()
+            except Exception:
+                # One rejected address must not cost the rest of the list the
+                # issue, nor strand it as unsent and re-mail whoever did get it.
+                logger.exception("Newsletter delivery failed for %s", subscriber.email)
+                failed += 1
+            else:
+                sent += 1
     finally:
         connection.close()
 
-    issue.sent_at = timezone.now()
-    issue.recipient_count = sent
-    issue.save(update_fields=["sent_at", "recipient_count"])
-    return sent
+    # Nothing got through, so leave it retryable rather than banking a send.
+    if sent:
+        issue.sent_at = timezone.now()
+        issue.recipient_count = sent
+        issue.save(update_fields=["sent_at", "recipient_count"])
+    return sent, failed
 
 
 def send_test(race: Race, to: str, kind: str = Issue.RECAP) -> None:

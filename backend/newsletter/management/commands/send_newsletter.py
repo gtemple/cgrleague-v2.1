@@ -68,8 +68,10 @@ class Command(BaseCommand):
 
         issue = sender.build_issue(race, kind, resend=options["force"])
         self.stdout.write(f'Sending "{issue.subject}" to {active} subscriber(s)...')
-        count = sender.send_issue(issue)
-        self.stdout.write(self.style.SUCCESS(f"Sent to {count} subscriber(s)."))
+        sent, failed = sender.send_issue(issue)
+        self.stdout.write(self.style.SUCCESS(f"Sent to {sent} subscriber(s)."))
+        if failed:
+            self.stdout.write(self.style.ERROR(f"{failed} delivery(s) failed — see the log."))
 
     def _resolve_race(self, options) -> Race:
         if options["race"]:

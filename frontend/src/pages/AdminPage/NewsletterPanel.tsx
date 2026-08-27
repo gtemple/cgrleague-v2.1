@@ -31,6 +31,30 @@ function raceLabel(r: NewsletterRace): string {
   return `R${r.round}${r.is_sprint ? " Sprint" : ""} — ${r.track.name}`;
 }
 
+type Fact = { tone: "is-ok" | "is-warn" | ""; mark: string; text: string };
+
+function articleFact(kind: NewsletterKind, state: NewsletterIssueState): Fact {
+  const label = kind.toLowerCase();
+  return state.has_article
+    ? { tone: "is-ok", mark: "✓", text: `${label} article generated` }
+    : { tone: "is-warn", mark: "!", text: `no ${label} article — the issue will go out without it` };
+}
+
+/** A recap of a race with no results is an empty podium; a preview of one
+ *  already run is a preview of the past. Neither blocks a send — both should
+ *  be visible before you make one. */
+function timingFact(kind: NewsletterKind, race: NewsletterRace): Fact {
+  const raced = race.result_count > 0;
+  if (kind === "RECAP") {
+    return raced
+      ? { tone: "is-ok", mark: "✓", text: `${race.result_count} results entered` }
+      : { tone: "is-warn", mark: "!", text: "no results entered — podium and standings will be empty" };
+  }
+  return raced
+    ? { tone: "is-warn", mark: "!", text: "this race has already been run" }
+    : { tone: "is-ok", mark: "✓", text: "not raced yet" };
+}
+
 export function NewsletterPanel({ token, seasonId }: { token: string; seasonId: number }) {
   const [overview, setOverview] = useState<NewsletterOverview | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -104,9 +128,13 @@ export function NewsletterPanel({ token, seasonId }: { token: string; seasonId: 
   async function handleSend(kind: NewsletterKind, state: NewsletterIssueState) {
     if (!race) return;
     const resend = state.sent_at !== null;
-    const question = resend
-      ? `This ${kind.toLowerCase()} already went out on ${formatSent(state.sent_at!)}. Send it again to all ${subscribers} subscriber(s)?`
-      : `Send the ${race.track.name} ${kind.toLowerCase()} to all ${subscribers} subscriber(s)? This cannot be undone.`;
+    const warnings = [timingFact(kind, race), articleFact(kind, state)].filter((f) => f.tone === "is-warn");
+    const question = [
+      resend
+        ? `This ${kind.toLowerCase()} already went out on ${formatSent(state.sent_at!)}. Send it again to all ${subscribers} subscriber(s)?`
+        : `Send the ${race.track.name} ${kind.toLowerCase()} to all ${subscribers} subscriber(s)? This cannot be undone.`,
+      ...warnings.map((w) => `\n· ${w.text}`),
+    ].join("");
     if (!window.confirm(question)) return;
 
     setBusy(`${kind}:send`);
@@ -178,18 +206,18 @@ export function NewsletterPanel({ token, seasonId }: { token: string; seasonId: 
                     <p className="adm-news-blurb">{blurb}</p>
 
                     <ul className="adm-news-facts">
-                      <li className={state.has_article ? "is-ok" : "is-warn"}>
-                        <span className="adm-news-mark">{state.has_article ? "✓" : "!"}</span>
-                        {state.has_article
-                          ? `${title.toLowerCase()} article generated`
-                          : `no ${title.toLowerCase()} article — the issue will go out without it`}
-                      </li>
-                      <li className={state.sent_at ? "is-ok" : ""}>
-                        <span className="adm-news-mark">{state.sent_at ? "✓" : "·"}</span>
-                        {state.sent_at
-                          ? `sent ${formatSent(state.sent_at)} to ${state.recipient_count}`
-                          : "not sent"}
-                      </li>
+                      {[
+                        articleFact(kind, state),
+                        timingFact(kind, race),
+                        state.sent_at
+                          ? { tone: "is-ok" as const, mark: "✓", text: `sent ${formatSent(state.sent_at)} to ${state.recipient_count}` }
+                          : { tone: "" as const, mark: "·", text: "not sent" },
+                      ].map((f) => (
+                        <li key={f.text} className={f.tone}>
+                          <span className="adm-news-mark">{f.mark}</span>
+                          {f.text}
+                        </li>
+                      ))}
                     </ul>
 
                     <div className="adm-news-actions">

@@ -142,11 +142,19 @@ class NewsletterSendView(APIView):
             )
 
         issue = sender.build_issue(race, kind, resend=force)
-        count = sender.send_issue(issue)
+        sent, failed = sender.send_issue(issue)
+
+        detail = f"Sent to {sent} subscriber(s)."
+        if failed:
+            detail += f" {failed} failed — check the server log for which."
+        if not sent:
+            detail = f"Nothing was delivered — all {failed} attempt(s) failed. Still marked unsent."
+
         return Response({
             "test": False,
-            "sent": count,
+            "sent": sent,
+            "failed": failed,
             "subject": issue.subject,
             "sent_at": issue.sent_at,
-            "detail": f"Sent to {count} subscriber(s).",
+            "detail": detail,
         })
