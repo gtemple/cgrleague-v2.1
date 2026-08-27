@@ -1,4 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
+
+from articles import llm
 from articles.generator import generate_articles_for_race
 
 
@@ -8,7 +10,14 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("race_id", type=int, help="ID of the completed race")
 
+        parser.add_argument(
+            "--provider",
+            choices=["anthropic", "deepseek"],
+            help="Override ARTICLE_LLM_PROVIDER for this run",
+        )
+
     def handle(self, *args, **options):
+        llm.set_provider(options.get("provider"))
         race_id = options["race_id"]
         self.stdout.write(f"Generating articles for race {race_id}...")
         try:

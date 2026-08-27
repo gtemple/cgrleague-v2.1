@@ -1,4 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
+
+from articles import llm
 from articles.generator import generate_articles_for_season
 
 
@@ -18,7 +20,14 @@ class Command(BaseCommand):
             help="Only generate the season preview",
         )
 
+        parser.add_argument(
+            "--provider",
+            choices=["anthropic", "deepseek"],
+            help="Override ARTICLE_LLM_PROVIDER for this run",
+        )
+
     def handle(self, *args, **options):
+        llm.set_provider(options.get("provider"))
         season_id = options["season_id"]
         recap_only = options["recap_only"]
         preview_only = options["preview_only"]

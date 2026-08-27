@@ -1,4 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
+
+from articles import llm
 from articles.generator import generate_track_bio
 
 
@@ -8,7 +10,14 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("track_id", type=int, help="ID of the track")
 
+        parser.add_argument(
+            "--provider",
+            choices=["anthropic", "deepseek"],
+            help="Override ARTICLE_LLM_PROVIDER for this run",
+        )
+
     def handle(self, *args, **options):
+        llm.set_provider(options.get("provider"))
         track_id = options["track_id"]
         self.stdout.write(f"Generating bio for track {track_id}...")
         try:

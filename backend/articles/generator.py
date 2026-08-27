@@ -11,7 +11,6 @@ import json
 import logging
 import os
 
-import anthropic
 from django.db.models import Sum, F, Q, FloatField
 from django.db.models.functions import Coalesce
 
@@ -19,6 +18,7 @@ from entries.models import DriverSeason
 from results.models import Race, RaceResult
 from results.api.views.utils import points_case, fl_bonus_case
 from seasons.models import Season
+from . import llm
 from .models import Article
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,6 @@ LEAGUE_CONTEXT = (
     "were not tracked.\n"
 )
 
-MODEL = "claude-opus-4-8"
 
 SYSTEM_PROMPT = (
     "You are a sports journalist covering CGR League. "
@@ -456,31 +455,15 @@ def _fmt_prior_titles(titles):
     )
 
 
-# ─── Claude call ─────────────────────────────────────────────────────────────
+# ─── model call ──────────────────────────────────────────────────────────────
 
-def _call_claude(user_prompt, schema=ARTICLE_SCHEMA, *, system=SYSTEM_PROMPT, max_tokens=4000):
+def _call_model(user_prompt, schema=ARTICLE_SCHEMA, *, system=SYSTEM_PROMPT, max_tokens=4000):
     """
-    Single entry point for every Claude call in this module. Uses Opus 4.8 with
-    adaptive thinking, and constrains the response to `schema` via structured
-    outputs so the returned dict is always valid — no markdown-fence stripping.
+    Single entry point for every model call in this module. The provider
+    (Anthropic or DeepSeek) is chosen in articles.llm; either way the return
+    value is a dict conforming to `schema`.
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
-
-    client = anthropic.Anthropic(api_key=api_key)
-    message = client.messages.create(
-        model=MODEL,
-        max_tokens=max_tokens,
-        thinking={"type": "adaptive"},
-        system=system,
-        messages=[{"role": "user", "content": user_prompt}],
-        output_config={"format": {"type": "json_schema", "schema": schema}},
-    )
-    # With thinking on, content leads with thinking blocks; the constrained JSON
-    # is in the text block.
-    text = next((b.text for b in message.content if b.type == "text"), "")
-    return json.loads(text)
+    return llm.generate_json(user_prompt, schema, system=system, max_tokens=max_tokens)
 
 
 # ─── rivalry callout ─────────────────────────────────────────────────────────
@@ -502,7 +485,7 @@ the tension, and the outcome. Use the drivers' real names. Be vivid and specific
 
 Identify the two drivers and write the description."""
     try:
-        data = _call_claude(prompt, RIVALRY_SCHEMA, system=ANALYST_SYSTEM, max_tokens=2500)
+        data = _call_model(prompt, RIVALRY_SCHEMA, system=ANALYST_SYSTEM, max_tokens=2500)
         return data.get("description", "")
     except Exception:
         logger.warning("Rivalry callout generation failed for race %s", race)
@@ -573,7 +556,7 @@ motorsport-headline verbs — do NOT reach for "storms", "dominates", "cruises",
 in the HEADLINES ALREADY PUBLISHED list above
 - Length: 450–650 words, paragraphs separated by \\n\\n"""
 
-    data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=5000)
+    data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=5000)
     article = Article.objects.create(
         race=race,
         type=Article.RECAP,
@@ -699,7 +682,7 @@ verbs — do NOT reach for "storms", "dominates", "cruises", "conquers", "roars"
 ALREADY PUBLISHED list above
 - Length: 450–650 words, paragraphs separated by \\n\\n"""
 
-    data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=5000)
+    data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=5000)
     article = Article.objects.create(
         race=next_race,
         type=Article.PREVIEW,
@@ -788,7 +771,7 @@ why this battle matters.
 Use the drivers' real full names."""
 
     try:
-        data = _call_claude(prompt, SIDEBAR_SCHEMA, system=ANALYST_SYSTEM, max_tokens=3000)
+        data = _call_model(prompt, SIDEBAR_SCHEMA, system=ANALYST_SYSTEM, max_tokens=3000)
         if "head_to_head" in data and "drivers_to_watch" in data:
             return data
         return None
@@ -913,7 +896,7 @@ moment, a theme, or what made this season unique
 - Vary your title — avoid generic "[Driver] Claims Season X Title" templates
 - Length: 800–1100 words, paragraphs separated by \\n\\n"""
 
-    data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=8000)
+    data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=8000)
     article = Article.objects.create(
         season=season,
         type=Article.SEASON_RECAP,
@@ -991,7 +974,7 @@ a key rivalry, or the biggest storyline going in
 - Vary your title — avoid generic "Season X Preview: Who Will Win?" templates
 - Length: 750–1000 words, paragraphs separated by \\n\\n"""
 
-    data = _call_claude(prompt, ARTICLE_SCHEMA, max_tokens=8000)
+    data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=8000)
     article = Article.objects.create(
         season=season,
         type=Article.SEASON_PREVIEW,
@@ -1185,7 +1168,7 @@ def _generate_rankings_blurbs(race, ranked_drivers, completed_races):
     )
 
     try:
-        data = _call_claude(prompt, RANKINGS_BLURBS_SCHEMA, system=ANALYST_SYSTEM, max_tokens=8000)
+        data = _call_model(prompt, RANKINGS_BLURBS_SCHEMA, system=ANALYST_SYSTEM, max_tokens=8000)
         return {b["rank"]: b["blurb"] for b in data.get("blurbs", []) if b.get("blurb")}
     except Exception:
         logger.warning("Rankings blurb generation failed for race %s", race)
@@ -1438,7 +1421,7 @@ individual and earned. Do not just list the stats back; interpret them into a ch
         + "Write in an engaging, analytical style — punchy sentences, specific references to "
         "names and numbers. Every driver profile must feel distinct."
     )
-    data = _call_claude(prompt, BIO_SCHEMA, system=bio_system, max_tokens=1500)
+    data = _call_model(prompt, BIO_SCHEMA, system=bio_system, max_tokens=1500)
 
     bio_text = data.get("bio", "").strip()
     driver.bio = bio_text
@@ -1562,7 +1545,7 @@ Do not open with the track name as the very first word."""
         + "Write in an engaging, analytical style — punchy sentences, specific references to "
         "names and results."
     )
-    data = _call_claude(prompt, BIO_SCHEMA, system=track_system, max_tokens=2000)
+    data = _call_model(prompt, BIO_SCHEMA, system=track_system, max_tokens=2000)
 
     bio_text = data.get("bio", "").strip()
     track.bio = bio_text

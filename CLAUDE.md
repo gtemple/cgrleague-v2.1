@@ -69,7 +69,16 @@ Expensive read endpoints cache their full response in Django's `LocMemCache` (24
 
 ### AI article generation
 
-`articles/generator.py` is the entry point (`generate_articles_for_race`, plus season/bio variants). Uses the `anthropic` SDK, model `claude-opus-4-6`, requires `ANTHROPIC_API_KEY`. Shared league facts (driver relationships, banned words, DNF-tracking caveat) live in `LEAGUE_CONTEXT` / `SYSTEM_PROMPT` constants — edit those rather than duplicating rules per prompt. Triggered via management commands in `articles/management/commands/` (`generate_articles`, `generate_season_articles`, `generate_track_bio`, `generate_driver_bio`), not automatically on race save.
+`articles/generator.py` is the entry point (`generate_articles_for_race`, plus season/bio variants). Shared league facts (driver relationships, banned words, DNF-tracking caveat) live in `LEAGUE_CONTEXT` / `SYSTEM_PROMPT` constants — edit those rather than duplicating rules per prompt. Triggered via management commands in `articles/management/commands/` (`generate_articles`, `generate_season_articles`, `generate_track_bio`, `generate_driver_bio`), not automatically on race save.
+
+**Providers.** Every model call in the app goes through `articles/llm.py` (`generate_json`); `generator.py` reaches it via `_call_model` and never imports a vendor SDK. Two backends, chosen by `ARTICLE_LLM_PROVIDER` (default `anthropic`) or a `--provider` flag on any of the four commands:
+
+- `anthropic` — `claude-opus-4-8` with adaptive thinking, needs `ANTHROPIC_API_KEY`.
+- `deepseek` — `deepseek-v4-pro` via the OpenAI SDK against `https://api.deepseek.com`, needs `DEEPSEEK_API_KEY`. Roughly an order of magnitude cheaper on output tokens.
+
+Override either model with `ANTHROPIC_MODEL` / `DEEPSEEK_MODEL`.
+
+The two providers are **not** equivalent on output guarantees, which is why the DeepSeek path is longer. Anthropic enforces the JSON schema server-side via `output_config`, so a parsed response always matches. DeepSeek only offers `json_object` mode, which guarantees valid JSON but not schema conformance, so that path injects the schema into the system prompt, validates the parsed result against it (`_validate`), and retries once — DeepSeek documents that the mode can intermittently return empty content. A response that fails validation twice raises rather than silently producing an article with missing fields. If you add a new schema, it needs nothing extra; `_validate` walks `required`, nested objects, and arrays already.
 
 Seed/import data commands live across apps: `seed_*` in each app, plus `results/management/commands/import_legacy_results.py` and `set_track_laps.py`.
 
@@ -99,4 +108,4 @@ The `:root` block in `index.css` (`--bg`, `--surface`, `--text-bright`, `--accen
 
 ## Environment / secrets
 
-Backend reads repo-root `.env` (loaded in `config/settings.py`): `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DATABASE_URL` (Neon Postgres in prod; SQLite `db.sqlite3` for local testing — toggle commented block in `.env`), `DB_SSL_REQUIRED`, `ANTHROPIC_API_KEY`. CORS/CSRF origins are read from `FRONTEND_ORIGINS` (comma-separated) plus Netlify/`cgr-league.net` regexes. The bot reads its own env: `DISCORD_TOKEN`, `DISCORD_GUILD_ID`, `API_BASE_URL`, `SITE_URL`, `CURRENT_SEASON`.
+Backend reads repo-root `.env` (loaded in `config/settings.py`): `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DATABASE_URL` (Neon Postgres in prod; SQLite `db.sqlite3` for local testing — toggle commented block in `.env`), `DB_SSL_REQUIRED`, `ANTHROPIC_API_KEY`, `DEEPSEEK_API_KEY`, and the optional `ARTICLE_LLM_PROVIDER` / `ANTHROPIC_MODEL` / `DEEPSEEK_MODEL` overrides. CORS/CSRF origins are read from `FRONTEND_ORIGINS` (comma-separated) plus Netlify/`cgr-league.net` regexes. The bot reads its own env: `DISCORD_TOKEN`, `DISCORD_GUILD_ID`, `API_BASE_URL`, `SITE_URL`, `CURRENT_SEASON`.
