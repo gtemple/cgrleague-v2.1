@@ -24,7 +24,7 @@ type Placement = {
 function describeLoadError(err: unknown): string {
   if (err instanceof ApiError) {
     return err.status === 401
-      ? "your session has expired \u2014 log out and back in"
+      ? "your session has expired — log out and back in"
       : `the server returned ${err.status}`;
   }
   return "could not reach the server";
@@ -300,7 +300,7 @@ export function AdminPage() {
       <div className="ad-inner">
         {loadError && (
           <div className="ad-panel ad-alert">
-            Couldn\u2019t load Season {CURRENT_SEASON}: {loadError}
+            Couldn’t load Season {CURRENT_SEASON}: {loadError}
           </div>
         )}
 
