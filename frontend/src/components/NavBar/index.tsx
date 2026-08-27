@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { SearchModal } from "../SearchModal";
 import { useLatestSeasonId } from "../../hooks/useLatestSeasonId";
 import "./style.css";
@@ -11,6 +12,7 @@ export function NavBar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const latestSeasonId = useLatestSeasonId();
   const seasonsHref = latestSeasonId ? `/seasons/${latestSeasonId}` : "/seasons/1";
   const seasonsClass = location.pathname.startsWith("/seasons")
@@ -80,6 +82,15 @@ export function NavBar() {
             <span className="nav-search-label">Search</span>
             <span className="nav-search-kbd">⌘K</span>
           </button>
+
+          {/* Sends you to the login form or straight to results entry, so the
+              button is never a dead end once you already have a token. */}
+          <NavLink
+            to={isAuthenticated ? "/admin/results" : "/login"}
+            className="nav-admin-btn"
+          >
+            {isAuthenticated ? "Results" : "Admin"}
+          </NavLink>
         </div>
       </header>
 
