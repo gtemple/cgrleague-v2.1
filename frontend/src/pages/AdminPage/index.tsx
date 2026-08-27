@@ -275,40 +275,40 @@ export function AdminPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   if (loadingRaces || loadingGrid) {
-    return <div className="ad-page"><p className="ad-loading">Loading…</p></div>;
+    return <div className="adm-page"><p className="adm-loading">Loading…</p></div>;
   }
 
   const selectedRace = races.find((r) => r.id === selectedRaceId);
 
   return (
-    <div className="ad-page">
-      <div className="ad-band">
-        <div className="ad-band-inner">
+    <div className="adm-page">
+      <div className="adm-band">
+        <div className="adm-band-inner">
           <div>
-            <span className="ad-eyebrow">CGR League · Admin</span>
-            <h1 className="ad-title">Results — Season {CURRENT_SEASON}</h1>
+            <span className="adm-eyebrow">CGR League · Admin</span>
+            <h1 className="adm-title">Results — Season {CURRENT_SEASON}</h1>
           </div>
-          <span className="ad-user">
+          <span className="adm-user">
             {username}
-            <button className="ad-logout" onClick={() => logout().then(() => navigate("/login"))}>
+            <button className="adm-logout" onClick={() => logout().then(() => navigate("/login"))}>
               Log out
             </button>
           </span>
         </div>
       </div>
 
-      <div className="ad-inner">
+      <div className="adm-inner">
         {loadError && (
-          <div className="ad-panel ad-alert">
+          <div className="adm-panel adm-alert">
             Couldn’t load Season {CURRENT_SEASON}: {loadError}
           </div>
         )}
 
-        <div className="ad-panel">
-          <label className="ad-label" htmlFor="ad-race">Select race</label>
+        <div className="adm-panel">
+          <label className="adm-label" htmlFor="adm-race">Select race</label>
           <select
-            id="ad-race"
-            className="ad-select"
+            id="adm-race"
+            className="adm-select"
             value={selectedRaceId ?? ""}
             onChange={(e) => {
               setSelectedRaceId(e.target.value ? parseInt(e.target.value, 10) : null);
@@ -324,37 +324,37 @@ export function AdminPage() {
             ))}
           </select>
           {!loadError && races.length === 0 && (
-            <p className="ad-hint" style={{ margin: "10px 0 0" }}>
+            <p className="adm-hint" style={{ margin: "10px 0 0" }}>
               No races found for Season {CURRENT_SEASON}.
             </p>
           )}
         </div>
 
         {selectedRace && (
-          <div className="ad-panel">
+          <div className="adm-panel">
             {loadingExisting ? (
-              <p className="ad-loading">Loading existing results…</p>
+              <p className="adm-loading">Loading existing results…</p>
             ) : (
               <>
-                <p className="ad-hint">
+                <p className="adm-hint">
                   Drag rows to set finish order. Position is assigned top to bottom;
                   DNS and DNQ always get no position.
                 </p>
 
-                <div className="ad-grid-scroll">
-                  <div className="ad-grid">
-                    <div className="ad-head">
-                      <span className="ad-c-handle" />
-                      <span className="ad-c-in">In</span>
-                      <span className="ad-c-pos">Pos</span>
-                      <span className="ad-c-driver">Driver</span>
-                      <span className="ad-c-grid">Grid</span>
-                      <span className="ad-c-status">Status</span>
-                      <span className="ad-c-flag">Pole</span>
-                      <span className="ad-c-flag">FL</span>
-                      <span className="ad-c-flag">DOTD</span>
-                      <span className="ad-c-flag">CD</span>
-                      <span className="ad-c-flag">OT</span>
+                <div className="adm-grid-scroll">
+                  <div className="adm-grid">
+                    <div className="adm-head">
+                      <span className="adm-c-handle" />
+                      <span className="adm-c-in">In</span>
+                      <span className="adm-c-pos">Pos</span>
+                      <span className="adm-c-driver">Driver</span>
+                      <span className="adm-c-grid">Grid</span>
+                      <span className="adm-c-status">Status</span>
+                      <span className="adm-c-flag">Pole</span>
+                      <span className="adm-c-flag">FL</span>
+                      <span className="adm-c-flag">DOTD</span>
+                      <span className="adm-c-flag">CD</span>
+                      <span className="adm-c-flag">OT</span>
                     </div>
 
                     {order.map((dsId, idx) => {
@@ -372,7 +372,7 @@ export function AdminPage() {
                         : null;
 
                       const rowClass = [
-                        "ad-row",
+                        "adm-row",
                         dragOverIndex === idx ? "is-dragover" : "",
                         dragIndexRef.current === idx ? "is-dragging" : "",
                         !p.competing ? "is-out" : "",
@@ -388,43 +388,43 @@ export function AdminPage() {
                           onDrop={handleDrop}
                           onDragEnd={handleDragEnd}
                         >
-                          <span className="ad-c-handle">
-                            <span className="ad-handle">⠿</span>
+                          <span className="adm-c-handle">
+                            <span className="adm-handle">⠿</span>
                           </span>
 
-                          <span className="ad-c-in">
+                          <span className="adm-c-in">
                             <input
                               type="checkbox"
-                              className="ad-check ad-check--in"
+                              className="adm-check adm-check--in"
                               checked={p.competing}
                               title={p.competing ? "Competed — click to mark as sat out" : "Sat out — click to mark as competed"}
                               onChange={(e) => updatePlacement(dsId, { competing: e.target.checked })}
                             />
                           </span>
 
-                          <span className="ad-c-pos">
-                            <span className={"ad-pos" + (!p.competing || isNoStart ? " is-none" : "")}>
+                          <span className="adm-c-pos">
+                            <span className={"adm-pos" + (!p.competing || isNoStart ? " is-none" : "")}>
                               {!p.competing || isNoStart ? "—" : `P${finishPos}`}
                             </span>
                           </span>
 
-                          <span className="ad-c-driver">
+                          <span className="adm-c-driver">
                             {driver.team.color && (
-                              <span className="ad-livery" style={{ background: driver.team.color }} />
+                              <span className="adm-livery" style={{ background: driver.team.color }} />
                             )}
-                            <span className="ad-driver-meta">
-                              <span className="ad-driver-name">
+                            <span className="adm-driver-meta">
+                              <span className="adm-driver-name">
                                 {driver.car_number ? `#${driver.car_number} ` : ""}
                                 {driver.driver.first_name} {driver.driver.last_name}
                               </span>
-                              <span className="ad-driver-team">{driver.team.name}</span>
+                              <span className="adm-driver-team">{driver.team.name}</span>
                             </span>
                           </span>
 
-                          <span className="ad-c-grid">
+                          <span className="adm-c-grid">
                             <input
                               type="number"
-                              className="ad-num"
+                              className="adm-num"
                               min={1}
                               max={99}
                               value={p.gridPosition}
@@ -434,9 +434,9 @@ export function AdminPage() {
                             />
                           </span>
 
-                          <span className="ad-c-status">
+                          <span className="adm-c-status">
                             <select
-                              className="ad-status"
+                              className="adm-status"
                               value={p.status}
                               onChange={(e) => updatePlacement(dsId, { status: e.target.value as Status })}
                               disabled={!p.competing}
@@ -461,16 +461,16 @@ export function AdminPage() {
                   </div>
                 </div>
 
-                <div className="ad-actions">
+                <div className="adm-actions">
                   <button
-                    className="ad-submit"
+                    className="adm-submit"
                     onClick={handleSubmit}
                     disabled={submitState === "loading"}
                   >
                     {submitState === "loading" ? "Saving…" : "Submit results"}
                   </button>
-                  {submitState === "success" && <span className="ad-ok">✓ Results saved</span>}
-                  {submitState === "error" && <span className="ad-err">Error: {submitError}</span>}
+                  {submitState === "success" && <span className="adm-ok">✓ Results saved</span>}
+                  {submitState === "error" && <span className="adm-err">Error: {submitError}</span>}
                 </div>
               </>
             )}
@@ -483,10 +483,10 @@ export function AdminPage() {
 
 function FlagCell({ checked, disabled, onChange }: { checked: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
   return (
-    <span className="ad-c-flag">
+    <span className="adm-c-flag">
       <input
         type="checkbox"
-        className="ad-check"
+        className="adm-check"
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
