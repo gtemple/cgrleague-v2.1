@@ -76,6 +76,7 @@
 }
 
 .team-picker {
+  color-scheme: dark;
   background: var(--cgr-ink-alt);
   color: var(--cgr-text-on-dark);
   border: 1px solid var(--cgr-ink-border-2);
@@ -87,7 +88,7 @@
   outline: none;
 }
 .team-picker:focus-visible { outline: 2px solid var(--cgr-red); outline-offset: 2px; }
-.team-picker option { background: var(--cgr-ink-alt); }
+.team-picker option { background: var(--cgr-ink-alt); color: var(--cgr-text-on-dark); }
 
 .team-hero-body {
   position: relative;

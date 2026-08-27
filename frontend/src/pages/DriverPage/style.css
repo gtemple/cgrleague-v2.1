@@ -82,6 +82,7 @@
 }
 
 .dp-picker {
+  color-scheme: dark;
   background: var(--cgr-ink-alt);
   color: var(--cgr-text-on-dark);
   border: 1px solid var(--cgr-ink-border-2);
@@ -97,7 +98,7 @@
 .dp-picker:hover,
 .dp-picker:focus { border-color: rgba(255, 255, 255, 0.3); }
 .dp-picker:focus-visible { outline: 2px solid var(--cgr-red); outline-offset: 2px; }
-.dp-picker option { background: var(--cgr-ink-alt); }
+.dp-picker option { background: var(--cgr-ink-alt); color: var(--cgr-text-on-dark); }
 
 .dp-hero-body {
   position: relative;

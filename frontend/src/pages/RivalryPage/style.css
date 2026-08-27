@@ -128,13 +128,6 @@
   font-size: 14px;
   color: var(--cgr-text-on-dark);
 }
-.rv-note {
-  margin: 5px 0 0;
-  font-family: var(--cgr-font-mono);
-  font-size: 11px;
-  color: var(--cgr-text-on-dark-faint);
-}
-
 .rv-title {
   font-family: var(--cgr-font-display);
   font-size: clamp(30px, 6vw, 48px);
@@ -554,6 +547,9 @@
 
 .rv-picker {
   width: 100%;
+  /* renders the open list and the arrow in dark chrome instead of the
+     browser's default white popup */
+  color-scheme: dark;
   font-family: var(--cgr-font-body);
   font-size: 13px;
   color: var(--cgr-text-on-dark);
@@ -570,7 +566,7 @@
   border-color: var(--cgr-gold);
   box-shadow: 0 0 0 4px rgba(245, 178, 26, 0.18);
 }
-.rv-picker option { color: var(--cgr-text-primary); background: var(--cgr-card); }
+.rv-picker option { color: var(--cgr-text-on-dark); background: var(--cgr-ink-alt); }
 
 /* ── Scope note on partially-tracked stats ──────────────────── */
 

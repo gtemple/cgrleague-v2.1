@@ -362,10 +362,6 @@ export const RivalryPage = () => {
           <> · {shortName(streaks.current.driver === "a" ? A : B)} has won the last {streaks.current.length}</>
         )}
       </p>
-
-      {palette.adjusted && (
-        <p className="rv-note">Second colour reassigned: these liveries are too close to read apart.</p>
-      )}
         </div>
       </div>
 
