@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 from django.core.cache import cache
-from django.db.models import Sum, F, Avg, Value, Q, FloatField
+from django.db.models import Sum, F, Avg, Count, Max, Value, Q, FloatField
 from django.db.models.functions import Coalesce
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -23,6 +23,53 @@ def _completed_main_rounds(season_id: int) -> List[int]:
     )
 
 
+def _combine_seats(seat_rows) -> List[Dict[str, Any]]:
+    """
+    Fold a season's seats into one row per driver.
+
+    A driver can hold more than one seat in a season — a substitute keeps their
+    own drive and stands in elsewhere — and their championship points are the
+    sum across all of them, as in F1, rather than a line per seat. The team
+    shown is the one they most recently raced for.
+
+    Expects seats already ordered best-first and annotated with `points` and
+    `avg_finish`.
+    """
+    combined: Dict[int, Dict[str, Any]] = {}
+    for ds in seat_rows:
+        row = combined.get(ds.driver_id)
+        if row is None:
+            combined[ds.driver_id] = {
+                "driver_id": ds.driver_id,
+                "driver": ds.driver,
+                "seat": ds,
+                "seats": [ds],
+                "points": int(ds.points or 0),
+                # weighted so the tie-break average stays a real average across seats
+                "finish_sum": (ds.avg_finish or 0) * (ds.classified or 0),
+                "classified": ds.classified or 0,
+            }
+            continue
+        row["points"] += int(ds.points or 0)
+        row["seats"].append(ds)
+        row["finish_sum"] += (ds.avg_finish or 0) * (ds.classified or 0)
+        row["classified"] += ds.classified or 0
+
+    rows = list(combined.values())
+    for row in rows:
+        row["avg_finish"] = (row["finish_sum"] / row["classified"]) if row["classified"] else None
+        # Display the seat they last actually drove for.
+        row["seat"] = max(row["seats"], key=lambda d: (d.last_round or -1, d.id))
+    rows.sort(key=lambda r: (
+        -r["points"],
+        r["avg_finish"] if r["avg_finish"] is not None else 1e9,
+        (r["driver"].last_name or ""),
+        (r["driver"].first_name or ""),
+        r["driver_id"],
+    ))
+    return rows
+
+
 def _driver_trend_map(season_id: int, current_positions: Dict[int, int]) -> Dict[int, int]:
     """driver_id -> position delta vs. standings as of the previous completed round (+ = moved up)."""
     rounds = _completed_main_rounds(season_id)
@@ -43,10 +90,20 @@ def _driver_trend_map(season_id: int, current_positions: Dict[int, int]) -> Dict
                 output_field=FloatField(),
             )
         )
+        .annotate(
+            classified=Count(
+                "results",
+                filter=Q(results__finish_position__isnull=False, results__race__round__lte=prev_cutoff),
+            )
+        )
+        .annotate(last_round=Max("results__race__round", filter=Q(results__race__round__lte=prev_cutoff)))
         .annotate(avg_finish_norm=Coalesce("avg_finish", Value(1e9)))
         .order_by("-points", "avg_finish_norm", "driver__last_name", "driver__first_name", "id")
     )
-    prev_positions = {ds.driver_id: i + 1 for i, ds in enumerate(qs)}
+    prev_positions = {
+        row["driver_id"]: i + 1
+        for i, row in enumerate(_combine_seats(qs))
+    }
     return {
         driver_id: prev_positions[driver_id] - cur_pos
         for driver_id, cur_pos in current_positions.items()
@@ -176,6 +233,10 @@ class SeasonStandingsView(APIView):
                     output_field=FloatField(),
                 )
             )
+            .annotate(
+                classified=Count("results", filter=Q(results__finish_position__isnull=False))
+            )
+            .annotate(last_round=Max("results__race__round"))
             .annotate(avg_finish_norm=Coalesce("avg_finish", Value(1e9)))
             .order_by(
                 "-points",
@@ -186,12 +247,13 @@ class SeasonStandingsView(APIView):
             )
         )
 
-        rows = list(qs)
-        current_positions = {ds.driver_id: i + 1 for i, ds in enumerate(rows)}
+        rows = _combine_seats(qs)
+        current_positions = {row["driver_id"]: i + 1 for i, row in enumerate(rows)}
         trend_map = _driver_trend_map(season_id, current_positions)
 
         data = []
-        for ds in rows:
+        for row in rows:
+            ds = row["seat"]
             team_name = None
             team_id = None
             team_logo = None
@@ -202,10 +264,10 @@ class SeasonStandingsView(APIView):
                 team_logo = ds.team_season.team.team_img
                 team_color = ds.team_season.color or None
 
-            drv = ds.driver
+            drv = row["driver"]
             data.append({
                 "driver_season_id": ds.id,
-                "points": int(ds.points or 0),
+                "points": row["points"],
                 "trend": trend_map.get(drv.id, 0),
                 "driver": {
                     "id": drv.id,

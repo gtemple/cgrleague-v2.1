@@ -61,35 +61,53 @@ def championship_timeline(request, season_id):
         if race.id in completed_race_ids:
             last_raced_index = i
 
-    # All drivers in the season
+    # All drivers in the season. A driver can hold more than one seat — a
+    # substitute keeps their own drive and stands in elsewhere — so seats are
+    # folded into one line per driver, matching the standings.
     driver_seasons = (
         DriverSeason.objects
         .filter(season=season)
         .select_related("driver", "team_season__team")
     )
 
-    drivers_data = []
+    seats_by_driver = defaultdict(list)
     for ds in driver_seasons:
+        seats_by_driver[ds.driver_id].append(ds)
+
+    # seat -> index of the last race it has a result for, so a combined line is
+    # labelled with the team that driver most recently drove for
+    raced_index = {
+        ds.id: max(
+            (i for i, race in enumerate(races) if race.id in pts_by_driver[ds.id]),
+            default=-1,
+        )
+        for ds in driver_seasons
+    }
+
+    drivers_data = []
+    for driver_id, seats in seats_by_driver.items():
+        driver = seats[0].driver
         cumulative = 0
         points_by_race = []
         for i, race in enumerate(races):
             if i <= last_raced_index:
-                cumulative += pts_by_driver[ds.id].get(race.id, 0)
+                cumulative += sum(pts_by_driver[ds.id].get(race.id, 0) for ds in seats)
                 points_by_race.append(cumulative)
             else:
                 # Future race — null so the line stops here
                 points_by_race.append(None)
 
+        seat = max(seats, key=lambda ds: (raced_index[ds.id], ds.id))
         team_name = (
-            ds.team_season.team.team_name
-            if ds.team_season and ds.team_season.team else "—"
+            seat.team_season.team.team_name
+            if seat.team_season and seat.team_season.team else "—"
         )
         final_points = points_by_race[last_raced_index] if last_raced_index >= 0 else 0
         drivers_data.append({
-            "id": ds.driver_id,
-            "name": f"{ds.driver.first_name} {ds.driver.last_name}".strip(),
+            "id": driver_id,
+            "name": f"{driver.first_name} {driver.last_name}".strip(),
             "team": team_name,
-            "is_human": ds.driver.human,
+            "is_human": driver.human,
             "points_by_race": points_by_race,
             "final_points": final_points or 0,
         })

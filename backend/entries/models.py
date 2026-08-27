@@ -27,7 +27,10 @@ class DriverSeason(models.Model):
 
     class Meta:
         db_table = "driver_seasons"
-        unique_together = [("season", "driver")]  # at most one team per season (Level 1)
+        # A driver can hold more than one seat in a season, so a substitute can
+        # stand in for another team without giving up their own drive. Still at
+        # most one seat per driver per team.
+        unique_together = [("season", "driver", "team_season")]
         ordering = ["season_id", "driver_id"]
 
     def __str__(self):
