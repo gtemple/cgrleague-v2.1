@@ -1068,3 +1068,23 @@
 .dp-rival-score--down { color: var(--cgr-red); }
 .dp-rival-score--even { color: var(--cgr-text-muted); }
 .dp-rival-dash { color: var(--cgr-text-faint); margin: 0 2px; font-weight: 400; }
+
+.dp-rival-ai {
+  margin-left: 6px;
+  font-family: var(--cgr-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--cgr-text-muted);
+  background: var(--cgr-chip);
+  border-radius: var(--cgr-radius-chip);
+  padding: 1px 4px;
+  vertical-align: 1px;
+}
+
+.dp-rival-score { display: flex; align-items: baseline; gap: 6px; }
+.dp-rival-races {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--cgr-text-faint);
+}
+.dp-rival-races::before { content: "/ "; }

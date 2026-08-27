@@ -61,6 +61,9 @@ def key_rivalry(a, b):
     lo, hi = sorted((int(a), int(b)))
     return f"rivalry:{lo}:{hi}"
 
+def key_driver_rivals(driver_id):
+    return f"driver:{driver_id}:rivals"
+
 def key_driver_specialization(driver_id):
     return f"driver:{driver_id}:specialization"
 
@@ -119,9 +122,13 @@ def invalidate_for_result(instance):
     ]
 
     # Rivalry pages are per-pair, so drop every pair this driver appears in.
+    # A result also shifts the rivals list of everyone else in that race,
+    # and the grid is small enough to just drop them all.
     from drivers.models import Driver
-    for other_id in Driver.objects.exclude(pk=driver_id).values_list("id", flat=True):
-        keys.append(key_rivalry(driver_id, other_id))
+    for other_id in Driver.objects.values_list("id", flat=True):
+        keys.append(key_driver_rivals(other_id))
+        if other_id != driver_id:
+            keys.append(key_rivalry(driver_id, other_id))
 
     cache.delete_many(keys)
 

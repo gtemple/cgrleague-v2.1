@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useRivalry, type RivalryTotals } from "../../hooks/useRivalry";
+import { useDriversList } from "../../hooks/useDriverList";
 import { resolveRivalryColors } from "../../utils/rivalryColors";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
@@ -16,6 +17,28 @@ type StatRow = {
   format?: (v: number) => string;
 };
 
+function buildTrackedRows(a: RivalryTotals, b: RivalryTotals): StatRow[] {
+  const rows: StatRow[] = [];
+  if (a.grid_races || b.grid_races) {
+    rows.push(
+      { label: "Avg grid", a: a.avg_grid, b: b.avg_grid, lowerWins: true, format: (v) => v.toFixed(2) },
+      {
+        label: "Avg places gained",
+        a: a.avg_positions_gained,
+        b: b.avg_positions_gained,
+        format: (v) => (v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2)),
+      },
+    );
+  }
+  if (a.cleanest_driver || b.cleanest_driver) {
+    rows.push({ label: "Cleanest driver", a: a.cleanest_driver, b: b.cleanest_driver });
+  }
+  if (a.most_overtakes || b.most_overtakes) {
+    rows.push({ label: "Most overtakes", a: a.most_overtakes, b: b.most_overtakes });
+  }
+  return rows;
+}
+
 function buildRows(a: RivalryTotals, b: RivalryTotals): StatRow[] {
   return [
     { label: "Points", a: a.points, b: b.points },
@@ -30,8 +53,63 @@ function buildRows(a: RivalryTotals, b: RivalryTotals): StatRow[] {
   ];
 }
 
+function StatTable({
+  rows, labelA, labelB, colorA, colorB,
+}: { rows: StatRow[]; labelA: string; labelB: string; colorA: string; colorB: string }) {
+  return (
+    <table className="rv-stats">
+      <caption className="rv-sr">Statistical comparison</caption>
+      <thead>
+        <tr>
+          <th scope="col" className="rv-stats-val">{labelA}</th>
+          <th scope="col" className="rv-stats-label">Stat</th>
+          <th scope="col" className="rv-stats-val">{labelB}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => {
+          const av = r.a;
+          const bv = r.b;
+          const fmt = r.format ?? ((v: number) => String(v));
+          const aWins = av != null && bv != null && (r.lowerWins ? av < bv : av > bv);
+          const bWins = av != null && bv != null && (r.lowerWins ? bv < av : bv > av);
+          const magA = Math.abs(av ?? 0);
+          const magB = Math.abs(bv ?? 0);
+          const total = magA + magB;
+          // On lower-is-better rows the raw share would hand the longer bar to
+          // the worse value, so flip it and let the bar always favour the winner.
+          const aShare = total > 0 ? ((r.lowerWins ? magB : magA) / total) * 100 : 50;
+          return (
+            <tr key={r.label}>
+              <td className={"rv-stats-val" + (aWins ? " is-win" : "")}>
+                {av == null ? "—" : fmt(av)}
+              </td>
+              <td className="rv-stats-label">
+                <span className="rv-stats-name">{r.label}</span>
+                <span className="rv-bar">
+                  <span className="rv-bar-a" style={{ width: `${aShare}%`, background: colorA }} />
+                  <span className="rv-bar-b" style={{ width: `${100 - aShare}%`, background: colorB }} />
+                </span>
+              </td>
+              <td className={"rv-stats-val" + (bWins ? " is-win" : "")}>
+                {bv == null ? "—" : fmt(bv)}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+function seasonList(seasons: number[]) {
+  return seasons.map((s) => `S${s}`).join(", ");
+}
+
 export const RivalryPage = () => {
   const { driverA, driverB } = useParams();
+  const navigate = useNavigate();
+  const { data: driverList } = useDriversList();
   const rawA = Number(driverA);
   const rawB = Number(driverB);
   const [lo, hi] = [Math.min(rawA, rawB), Math.max(rawA, rawB)];
@@ -80,6 +158,10 @@ export const RivalryPage = () => {
   }
 
   const rows = buildRows(totals.a, totals.b);
+  const trackedRows = buildTrackedRows(totals.a, totals.b);
+  const trackedSeasons = seasonList(
+    [...new Set([...data.tracked.grid, ...data.tracked.cleanest, ...data.tracked.overtakes])].sort((x, y) => x - y)
+  );
   const aheadA = totals.a.ahead;
   const aheadB = totals.b.ahead;
   const splitPct = (aheadA / data.shared_races) * 100;
@@ -126,6 +208,44 @@ export const RivalryPage = () => {
         </div>
       </header>
 
+      <div className="rv-swap">
+        <label className="rv-swap-field">
+          <span className="rv-sr">Replace {A.display_name}</span>
+          <select
+            className="rv-picker"
+            value={String(A.id)}
+            onChange={(e) => {
+              const next = Number(e.target.value);
+              if (next && next !== B.id) navigate(`/rivalry/${Math.min(next, B.id)}/${Math.max(next, B.id)}`);
+            }}
+          >
+            {(driverList ?? []).map((d) => (
+              <option key={d.id} value={String(d.id)} disabled={d.id === B.id}>
+                {d.display_name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <span className="rv-swap-v">v</span>
+        <label className="rv-swap-field">
+          <span className="rv-sr">Replace {B.display_name}</span>
+          <select
+            className="rv-picker"
+            value={String(B.id)}
+            onChange={(e) => {
+              const next = Number(e.target.value);
+              if (next && next !== A.id) navigate(`/rivalry/${Math.min(next, A.id)}/${Math.max(next, A.id)}`);
+            }}
+          >
+            {(driverList ?? []).map((d) => (
+              <option key={d.id} value={String(d.id)} disabled={d.id === A.id}>
+                {d.display_name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
       <div className="rv-split" role="img" aria-label={`${A.display_name} finished ahead ${aheadA} times, ${B.display_name} ${aheadB} times`}>
         <div className="rv-split-a" style={{ width: `${splitPct}%`, background: palette.a }} />
         <div className="rv-split-b" style={{ width: `${100 - splitPct}%`, background: palette.b }} />
@@ -157,46 +277,24 @@ export const RivalryPage = () => {
       <section className="rv-section">
         <h2 className="rv-h2">IN RACES THEY BOTH FINISHED</h2>
         <div className="rv-panel">
-        <table className="rv-stats">
-          <caption className="rv-sr">Statistical comparison</caption>
-          <thead>
-            <tr>
-              <th scope="col" className="rv-stats-val">{A.last_name}</th>
-              <th scope="col" className="rv-stats-label">Stat</th>
-              <th scope="col" className="rv-stats-val">{B.last_name}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => {
-              const av = r.a;
-              const bv = r.b;
-              const fmt = r.format ?? ((v: number) => String(v));
-              const aWins = av != null && bv != null && (r.lowerWins ? av < bv : av > bv);
-              const bWins = av != null && bv != null && (r.lowerWins ? bv < av : bv > av);
-              const total = (av ?? 0) + (bv ?? 0);
-              const aShare = total > 0 ? ((av ?? 0) / total) * 100 : 50;
-              return (
-                <tr key={r.label}>
-                  <td className={"rv-stats-val" + (aWins ? " is-win" : "")}>
-                    {av == null ? "—" : fmt(av)}
-                  </td>
-                  <td className="rv-stats-label">
-                    <span className="rv-stats-name">{r.label}</span>
-                    <span className="rv-bar">
-                      <span className="rv-bar-a" style={{ width: `${aShare}%`, background: palette.a }} />
-                      <span className="rv-bar-b" style={{ width: `${100 - aShare}%`, background: palette.b }} />
-                    </span>
-                  </td>
-                  <td className={"rv-stats-val" + (bWins ? " is-win" : "")}>
-                    {bv == null ? "—" : fmt(bv)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+          <StatTable rows={rows} labelA={A.last_name} labelB={B.last_name} colorA={palette.a} colorB={palette.b} />
         </div>
       </section>
+
+      {trackedRows.length > 0 && (
+        <section className="rv-section">
+          <h2 className="rv-h2">NEWER STATS</h2>
+          <div className="rv-panel">
+            <p className="rv-scope">
+              The league started recording these part-way through its history, so they
+              cover {data.tracked.grid_races} of the {data.shared_races} races these two
+              shared{trackedSeasons ? ` (${trackedSeasons})` : ""}. The set widens as more
+              seasons are logged.
+            </p>
+            <StatTable rows={trackedRows} labelA={A.last_name} labelB={B.last_name} colorA={palette.a} colorB={palette.b} />
+          </div>
+        </section>
+      )}
 
       <div className="rv-cols">
         <section className="rv-section">

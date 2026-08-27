@@ -118,10 +118,12 @@ export function MomentumChart({ timeline, nameA, nameB, colorA, colorB }: Props)
         <path d={line} fill="none" stroke={colorA} strokeWidth={2} clipPath="url(#rv-clip-a)" vectorEffect="non-scaling-stroke" />
         <path d={line} fill="none" stroke={colorB} strokeWidth={2} clipPath="url(#rv-clip-b)" vectorEffect="non-scaling-stroke" />
 
-        <text x={W - PAD.right} y={PAD.top + 10} className="rv-series-label" textAnchor="end" fill={colorA}>
+        {/* Anchored left: the series always starts at zero, so the two far
+            corners stay clear no matter how the line diverges. */}
+        <text x={PAD.left + 6} y={PAD.top + 10} className="rv-series-label" fill={colorA}>
           {nameA} ahead
         </text>
-        <text x={W - PAD.right} y={H - PAD.bottom - 4} className="rv-series-label" textAnchor="end" fill={colorB}>
+        <text x={PAD.left + 6} y={H - PAD.bottom - 4} className="rv-series-label" fill={colorB}>
           {nameB} ahead
         </text>
 

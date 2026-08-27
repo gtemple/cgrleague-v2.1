@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from drivers.models import Driver
-from results.cache import CACHE_TTL, key_rivalry
+from results.cache import CACHE_TTL, key_driver_rivals, key_rivalry
 from results.models import RaceResult
 from results.scoring import points_for_position
 
@@ -27,6 +27,13 @@ def _blank_tally():
         "finish_sum": 0,
         "finish_count": 0,
         "best_finish": None,
+        # Newer flags: only recorded from S7 on, so these carry their own
+        # denominators rather than riding on the all-time race count.
+        "grid_races": 0,
+        "grid_sum": 0,
+        "positions_gained": 0,
+        "cleanest_driver": 0,
+        "most_overtakes": 0,
     }
 
 
@@ -56,6 +63,17 @@ def _record(tally, row, ahead):
     if row["status"] == "DNF":
         tally["dnfs"] += 1
 
+    grid = row["grid_position"]
+    if grid is not None:
+        tally["grid_races"] += 1
+        tally["grid_sum"] += grid
+        if pos is not None:
+            tally["positions_gained"] += grid - pos
+    if row["cleanest_driver"]:
+        tally["cleanest_driver"] += 1
+    if row["most_overtakes"]:
+        tally["most_overtakes"] += 1
+
 
 def _finalise(tally):
     out = dict(tally)
@@ -63,7 +81,15 @@ def _finalise(tally):
         round(tally["finish_sum"] / tally["finish_count"], 2)
         if tally["finish_count"] else None
     )
-    del out["finish_sum"], out["finish_count"]
+    out["avg_grid"] = (
+        round(tally["grid_sum"] / tally["grid_races"], 2)
+        if tally["grid_races"] else None
+    )
+    out["avg_positions_gained"] = (
+        round(tally["positions_gained"] / tally["grid_races"], 2)
+        if tally["grid_races"] else None
+    )
+    del out["finish_sum"], out["finish_count"], out["grid_sum"]
     return out
 
 
@@ -104,6 +130,9 @@ class RivalryView(APIView):
                 "pole_position",
                 "fastest_lap",
                 "dotd",
+                "grid_position",
+                "cleanest_driver",
+                "most_overtakes",
                 "driver_season__driver_id",
                 "driver_season__team_season_id",
                 "driver_season__team_season__team__team_name",
@@ -134,6 +163,9 @@ class RivalryView(APIView):
         ]
 
         tally_a, tally_b = _blank_tally(), _blank_tally()
+        # Which seasons actually carry the newer flags for THIS pair. Derived
+        # from the data so it widens on its own as more seasons record them.
+        tracked = {"grid": set(), "cleanest": set(), "overtakes": set()}
         by_season = {}
         by_track = {}
         timeline = []
@@ -165,6 +197,14 @@ class RivalryView(APIView):
             else:
                 streak_holder, streak_len = winner, 1
             best_streak[winner] = max(best_streak[winner], streak_len)
+
+            season_no = ra["race__season_id"]
+            if ra["grid_position"] is not None or rb["grid_position"] is not None:
+                tracked["grid"].add(season_no)
+            if ra["cleanest_driver"] or rb["cleanest_driver"]:
+                tracked["cleanest"].add(season_no)
+            if ra["most_overtakes"] or rb["most_overtakes"]:
+                tracked["overtakes"].add(season_no)
 
             margin = abs(pa - pb)
             if biggest is None or margin > biggest["margin"]:
@@ -245,6 +285,108 @@ class RivalryView(APIView):
             },
             "closest_races": len(closest),
             "biggest_margin": biggest,
+            "tracked": {
+                "grid": sorted(tracked["grid"]),
+                "cleanest": sorted(tracked["cleanest"]),
+                "overtakes": sorted(tracked["overtakes"]),
+                "grid_races": tally_a["grid_races"],
+            },
         }
+        cache.set(ck, payload, timeout=CACHE_TTL)
+        return Response(payload)
+
+
+class DriverRivalsView(APIView):
+    """
+    GET /api/drivers/<driver_id>/rivals/
+
+    Every driver this one has shared a classified race with, human or AI,
+    with the head-to-head record against each. Powers the rivals block on
+    any driver page; unlike the Hall of Fame matrix this is not restricted
+    to human drivers, and it scales with one driver's races rather than
+    the square of the whole grid.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, driver_id: int):
+        ck = key_driver_rivals(driver_id)
+        cached = cache.get(ck)
+        if cached is not None:
+            return Response(cached)
+
+        if not Driver.objects.filter(pk=driver_id).exists():
+            return Response({"detail": "Driver not found."}, status=404)
+
+        race_ids = list(
+            RaceResult.objects
+            .filter(driver_season__driver_id=driver_id, finish_position__isnull=False)
+            .values_list("race_id", flat=True)
+        )
+        if not race_ids:
+            payload = {"driver_id": driver_id, "rivals": []}
+            cache.set(ck, payload, timeout=CACHE_TTL)
+            return Response(payload)
+
+        rows = (
+            RaceResult.objects
+            .filter(race_id__in=race_ids, finish_position__isnull=False)
+            .values(
+                "race_id",
+                "finish_position",
+                "driver_season__driver_id",
+                "driver_season__driver__first_name",
+                "driver_season__driver__last_name",
+                "driver_season__driver__profile_image",
+                "driver_season__driver__human",
+            )
+        )
+
+        mine = {}
+        others = defaultdict(list)
+        info = {}
+        for row in rows:
+            did = row["driver_season__driver_id"]
+            if did == driver_id:
+                mine[row["race_id"]] = row["finish_position"]
+            else:
+                others[did].append((row["race_id"], row["finish_position"]))
+                info.setdefault(did, row)
+
+        rivals = []
+        for did, entries in others.items():
+            wins = losses = 0
+            for race_id, pos in entries:
+                my_pos = mine.get(race_id)
+                if my_pos is None:
+                    continue
+                if my_pos < pos:
+                    wins += 1
+                else:
+                    losses += 1
+            total = wins + losses
+            if not total:
+                continue
+            row = info[did]
+            rivals.append({
+                "driver": {
+                    "id": did,
+                    "first_name": row["driver_season__driver__first_name"] or "",
+                    "last_name": row["driver_season__driver__last_name"] or "",
+                    "display_name": (
+                        f"{row['driver_season__driver__first_name'] or ''} "
+                        f"{row['driver_season__driver__last_name'] or ''}"
+                    ).strip(),
+                    "profile_image": row["driver_season__driver__profile_image"],
+                    "human": row["driver_season__driver__human"],
+                },
+                "wins": wins,
+                "losses": losses,
+                "races": total,
+            })
+
+        # Closest first: smallest skew from an even split, most meetings breaks ties.
+        rivals.sort(key=lambda r: (abs(r["wins"] / r["races"] - 0.5), -r["races"]))
+
+        payload = {"driver_id": driver_id, "rivals": rivals}
         cache.set(ck, payload, timeout=CACHE_TTL)
         return Response(payload)

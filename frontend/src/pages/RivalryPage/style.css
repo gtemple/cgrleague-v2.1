@@ -408,3 +408,49 @@
   .rv-season { grid-template-columns: 30px 48px minmax(40px, 1fr); }
   .rv-season-pts { display: none; }
 }
+
+/* ── Driver swap ────────────────────────────────────────────── */
+
+.rv-swap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+.rv-swap-field { flex: 1; min-width: 0; display: block; }
+.rv-swap-v {
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  color: var(--cgr-text-on-dark-faint);
+  flex: 0 0 auto;
+}
+
+.rv-picker {
+  width: 100%;
+  font-family: var(--cgr-font-body);
+  font-size: 13px;
+  color: var(--cgr-text-on-dark);
+  background: var(--cgr-ink-alt);
+  border: 1px solid var(--cgr-ink-border-2);
+  border-radius: var(--cgr-radius-card);
+  padding: 7px 9px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.rv-picker:hover { border-color: var(--cgr-text-on-dark-faint); }
+.rv-picker:focus-visible {
+  outline: none;
+  border-color: var(--cgr-gold);
+  box-shadow: 0 0 0 4px rgba(245, 178, 26, 0.18);
+}
+.rv-picker option { color: var(--cgr-text-primary); background: var(--cgr-card); }
+
+/* ── Scope note on partially-tracked stats ──────────────────── */
+
+.rv-scope {
+  margin: 0 0 13px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--cgr-text-secondary);
+  max-width: 70ch;
+}

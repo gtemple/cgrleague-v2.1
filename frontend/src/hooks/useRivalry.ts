@@ -23,6 +23,11 @@ export type RivalryTotals = {
   dnfs: number;
   best_finish: number | null;
   avg_finish: number | null;
+  grid_races: number;
+  avg_grid: number | null;
+  avg_positions_gained: number | null;
+  cleanest_driver: number;
+  most_overtakes: number;
 };
 
 export type RivalryTimelineEntry = {
@@ -76,6 +81,12 @@ export type RivalryData = {
   };
   closest_races: number;
   biggest_margin: { race_id: number; margin: number } | null;
+  tracked: {
+    grid: number[];
+    cleanest: number[];
+    overtakes: number[];
+    grid_races: number;
+  };
 };
 
 export function useRivalry(a: number, b: number, enabled = true) {
