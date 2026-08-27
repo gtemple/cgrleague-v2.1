@@ -83,8 +83,12 @@ def _validate(data, schema, path="response"):
             for i, item in enumerate(data):
                 _validate(item, item_schema, f"{path}[{i}]")
 
-    elif expected == "string" and not isinstance(data, str):
-        raise ValueError(f"{path}: expected a string, got {type(data).__name__}")
+    elif expected == "string":
+        if not isinstance(data, str):
+            raise ValueError(f"{path}: expected a string, got {type(data).__name__}")
+        limit = schema.get("maxLength")
+        if limit is not None and len(data) > limit:
+            raise ValueError(f"{path}: {len(data)} chars exceeds maxLength {limit}")
 
     elif expected == "integer" and not isinstance(data, int):
         raise ValueError(f"{path}: expected an integer, got {type(data).__name__}")

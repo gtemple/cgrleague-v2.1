@@ -27,6 +27,10 @@ logger = logging.getLogger(__name__)
 # This block is injected into every system prompt so universal rules only need
 # to be maintained in one place.
 
+BANNED_VERBS = (
+    "storms", "dominates", "cruises", "conquers", "roars", "seals", "eyes", "masterclass",
+)
+
 LEAGUE_CONTEXT = (
     "CGR League is a private Formula 1-style racing league played on a video game simulator. "
     "It contains both human players and AI-controlled drivers. "
@@ -37,12 +41,17 @@ LEAGUE_CONTEXT = (
     "- The Temple drivers (any first name, last name Temple) are also BROTHERS if more than one "
     "appears on the grid. Apply the same rule.\n"
     "\n"
-    "BANNED WORDS — never use these in any output:\n"
+    "BANNED WORDS — never use these in any output, in a title or a body:\n"
     "- 'journeyman', 'playground' (e.g. 'personal playground'), 'testament'\n"
+    "- these worn motorsport-headline verbs: " + ", ".join(f"'{v}'" for v in BANNED_VERBS) + "\n"
     "\n"
     "DNF TRACKING — DNF recording is incomplete in the league's earlier seasons. A low DNF "
     "count may reflect missing data rather than a clean record, so never present one as "
     "evidence of reliability. Only comment on a driver's DNF tally when it is notably high.\n"
+    "\n"
+    "POLE TRACKING — pole positions were not recorded in the league's first seasons either. "
+    "A low pole count may mean the data was never captured, so never read one as weak "
+    "qualifying pace.\n"
 )
 
 
@@ -63,10 +72,43 @@ ANALYST_SYSTEM = (
     + "Write in an engaging, analytical style with specific references to names and numbers."
 )
 
+
+# ─── shared prompt rules ──────────────────────────────────────────────────────
+# Every generator pulls from these rather than restating them, so a change to
+# what the model is allowed to claim lands in one place.
+
+DATA_DISCIPLINE_RULE = (
+    "- STICK TO THE DATA ABOVE. You are given finishing positions, grid slots, points, status, "
+    "awards and standings — nothing else. You do NOT know lap numbers, lap times, gaps, corner "
+    "names, tyre strategies, pit stops, overtake counts, or why any driver gained or lost places. "
+    "Never write a sentence containing a fact of that kind: no \"on lap 41\", no \"at Turn 4\", no "
+    "\"14 overtakes\", no \"a bold move around the outside\", no \"a strategy error\". Describe what "
+    "the results show (grid slot, finish, points, awards, standings movement) and let the notes "
+    "supply anything else. If you do not know why something happened, say what happened and move on"
+)
+
+NO_PAST_WIN_INFERENCE_RULE = (
+    "- Only claim a driver won a past race if a winner list above says so. Do not infer earlier "
+    "results from the standings"
+)
+
+STANDINGS_MOVEMENT_RULE = (
+    "- Describe a standings change only when it actually changed. If a gap is the same before and "
+    "after, say it held rather than writing it as movement"
+)
+
+TITLE_VARIETY_RULE = (
+    "- Vary your title — no repeating template, no \"[Driver] [Verb]s at [Track]\". Use narrative, "
+    "tension-led, or question-based angles, and none of the BANNED WORDS from your instructions"
+)
+
 HEADLINE_ECHO_RULE = (
     " — and do not echo the wording, verb, or angle of any headline in the "
     "HEADLINES ALREADY PUBLISHED list above"
 )
+
+# Rules every article-shaped prompt wants. Joined with newlines at the call site.
+CORE_RULES = "\n".join((DATA_DISCIPLINE_RULE, NO_PAST_WIN_INFERENCE_RULE, STANDINGS_MOVEMENT_RULE))
 
 # ─── structured-output schemas ────────────────────────────────────────────────
 # Response shape is enforced by output_config, so no JSON parsing fallbacks are
@@ -75,8 +117,11 @@ HEADLINE_ECHO_RULE = (
 ARTICLE_SCHEMA = {
     "type": "object",
     "properties": {
-        "title": {"type": "string"},
-        "teaser": {"type": "string"},
+        # Caps are deliberately looser than the prompt asks for (~100 / ~200):
+        # they exist to catch runaway output, not to fail a good article that
+        # overshot by a few characters, since a rejection costs a whole retry.
+        "title": {"type": "string", "maxLength": 140},
+        "teaser": {"type": "string", "maxLength": 320},
         "content": {"type": "string"},
     },
     "required": ["title", "teaser", "content"],
@@ -531,13 +576,19 @@ def _generate_rivalry_callout(race):
     """
     prompt = f"""Based on these race results from a CGR League race at {race.track.name} \
 (Season {race.season_id}, Round {race.round}), identify the single most compelling \
-on-track battle or storyline between two specific drivers.
+storyline between two specific drivers.
 
 RACE RESULTS:
 {_fmt_results(race)}
+{_fmt_lineups(race.season)}
+Write exactly 2–3 punchy sentences on what the results show about these two: where they \
+started, where they finished, what separated them, and what it means. Use the drivers' \
+real names.
 
-Write exactly 2–3 punchy sentences describing the key battle — the positions at stake, \
-the tension, and the outcome. Use the drivers' real names. Be vivid and specific.
+{CORE_RULES}
+- You are describing a RESULT, not a wheel-to-wheel duel. You have no lap-by-lap record, so \
+do not narrate passes, defences, or contact. "Finished two places and four points apart after \
+starting alongside each other" is the level of detail available to you
 
 Identify the two drivers and write the description."""
     try:
@@ -604,16 +655,12 @@ include at least one sentence on the constructor battle. Where the before/after 
 a lead growing, shrinking, or a position swap, describe that shift concretely (e.g. the exact \
 points gap and how it moved) rather than in vague terms
 - Frame the stakes against the season length ({total_rounds} rounds total) where it matters{flags_block}
-- STICK TO THE DATA ABOVE. You are given finishing positions, grid slots, points, status, awards and standings — nothing else. You do NOT know lap numbers, lap times, gaps, corner names, tyre strategies, pit stops, overtake counts, or why any driver gained or lost places. Never write a sentence containing a fact of that kind: no "on lap 41", no "at Turn 4", no "14 overtakes", no "a bold move around the outside", no "a strategy error". Describe what the results show (grid slot, finish, points, awards, standings movement) and let the RACE NOTES supply anything else. If you do not know why something happened, say what happened and move on
-- Only claim a driver won a past race if a winner list above says so. Do not infer earlier results from the standings
+{CORE_RULES}
 - Any RACE NOTES provided above take priority over anything you might infer from the results — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not lead with the winner's name or "Round X" every time; sometimes \
 open with the championship stakes, a specific battle, or the drama of the moment
-- Vary your title format — avoid the same "[Driver] [Verb]s at [Track]" template every race; \
-use narrative titles, question titles, or drama-led angles. Steer clear of overused \
-motorsport-headline verbs — do NOT reach for "storms", "dominates", "cruises", "conquers", \
-"roars", "seals", or "masterclass"{headline_rule}
+{TITLE_VARIETY_RULE}{headline_rule}
 - Length: 450–650 words, paragraphs separated by \\n\\n"""
 
     data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=5000)
@@ -733,16 +780,12 @@ IMPORTANT RULES:
 {', '.join(human_names)}
 {stakes_rules}
 - AI drivers may be mentioned naturally by name when relevant
-- STICK TO THE DATA ABOVE. You are given finishing positions, grid slots, points, status, awards and standings — nothing else. You do NOT know lap numbers, lap times, gaps, corner names, tyre strategies, pit stops, overtake counts, or why any driver gained or lost places. Never write a sentence containing a fact of that kind: no "on lap 41", no "at Turn 4", no "14 overtakes", no "a bold move around the outside", no "a strategy error". Describe what the results show (grid slot, finish, points, awards, standings movement) and let the RACE NOTES supply anything else. If you do not know why something happened, say what happened and move on
-- Only claim a driver won a past race if a winner list above says so. Do not infer earlier results from the standings
+{CORE_RULES}
 - Any RACE NOTES provided above take priority over anything you might infer from the data — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not lead with "Round X" or the track name every time; sometimes open \
 with the championship battle, a driver's storyline, or what's at stake
-- Vary your title format — avoid the same "[Driver] eyes glory at [Track]" template; use \
-narrative, tension-led, or question-based titles. Steer clear of overused motorsport-headline \
-verbs — do NOT reach for "storms", "dominates", "cruises", "conquers", "roars", "eyes", or \
-"masterclass"{headline_rule}
+{TITLE_VARIETY_RULE}{headline_rule}
 - Length: 450–650 words, paragraphs separated by \\n\\n"""
 
     data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=5000)
@@ -830,6 +873,10 @@ why this battle matters.
 2. Pick exactly 3 DRIVERS TO WATCH (mix of human and AI is fine). For each, write a short reason \
 (1 sentence) and a single key stat (e.g. "P1 here last season", "3 wins in last 4 races", \
 "yet to score at this track").
+{_fmt_lineups(next_race.season)}
+{CORE_RULES}
+- Every stat you cite must be readable off the blocks above. Do not invent qualifying pace, \
+form streaks, or track records that are not shown
 
 Use the drivers' real full names."""
 
@@ -924,6 +971,9 @@ def generate_season_recap(season):
 
     notes_block = f"\nSEASON NOTES (from the league admin — treat as factual context):\n{season.season_notes.strip()}\n" if season.season_notes.strip() else ""
     collision_block = f"\n{collision_note}" if collision_note else ""
+    lineups_block = _fmt_lineups(season)
+    prior_titles_block = _fmt_prior_titles(_get_prior_titles(season))
+    headline_rule = HEADLINE_ECHO_RULE if prior_titles_block else ""
 
     prompt = f"""Write a season review article for CGR League Season {season.id} ({season.game}).
 
@@ -940,6 +990,7 @@ FINAL CONSTRUCTOR CHAMPIONSHIP STANDINGS:
 
 SEASON HIGHLIGHTS (wins, poles, fastest laps, DOTD):
 {_get_season_highlights(season)}
+{lineups_block}{prior_titles_block}
 
 ROUND-BY-ROUND RESULTS:
 {_fmt_season_results(season)}
@@ -951,12 +1002,14 @@ IMPORTANT RULES:
 - AI drivers may be mentioned naturally by name when relevant
 - Cover the season arc: early leader, title battles, who faded, who improved
 - Cover BOTH titles — reference the constructors' championship outcome, not just the drivers'
-- Highlight standout moments: dominant performances, comeback wins, controversies
+- Highlight standout moments the results actually show: title swings, a driver's best round, \
+a team turning its season around
+{CORE_RULES}
+{TITLE_VARIETY_RULE}{headline_rule}
 - Any SEASON NOTES provided above take priority over anything you might infer from the data — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not open with "Season X" or the champion's name; lead with a defining \
 moment, a theme, or what made this season unique
-- Vary your title — avoid generic "[Driver] Claims Season X Title" templates
 - Length: 800–1100 words, paragraphs separated by \\n\\n"""
 
     data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=8000)
@@ -1009,6 +1062,10 @@ def generate_season_preview(season):
     except Season.DoesNotExist:
         pass
 
+    lineups_block = _fmt_lineups(season)
+    prior_titles_block = _fmt_prior_titles(_get_prior_titles(season))
+    headline_rule = HEADLINE_ECHO_RULE if prior_titles_block else ""
+
     prompt = f"""Write a season preview article for the upcoming CGR League Season {season.id} ({season.game}).
 
 SEASON INFO:
@@ -1020,7 +1077,7 @@ SEASON CALENDAR:
 
 DRIVER ROSTER (pre-season, no in-season results included):
 {_fmt_standings(final_standings)}
-{prev_block}
+{lineups_block}{prev_block}{prior_titles_block}
 IMPORTANT RULES:
 - You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
 {', '.join(human_names)}
@@ -1029,12 +1086,13 @@ IMPORTANT RULES:
 (defending champion, coming off a strong/tough year, a new team) using the standings above
 - AI drivers may be mentioned naturally by name when relevant
 - Build anticipation: rivalries to watch, title contenders, tracks to circle on the calendar
+{CORE_RULES}
+{TITLE_VARIETY_RULE}{headline_rule}
 - Discuss the format (sprint rounds, total rounds) and what it means for strategy
 - Any SEASON NOTES provided above take priority over anything you might infer from the data — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — don't open with "Season X is here"; lead with a compelling question, \
 a key rivalry, or the biggest storyline going in
-- Vary your title — avoid generic "Season X Preview: Who Will Win?" templates
 - Length: 750–1000 words, paragraphs separated by \\n\\n"""
 
     data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=8000)
@@ -1463,7 +1521,7 @@ CAREER OVERVIEW:
   Poles: {poles}
   Fastest laps: {fastest_laps}
   Driver of the Day awards: {dotds}
-  DNFs: {dnfs} (NOTE: DNFs were only tracked from Season 7 onwards — do not draw conclusions about reliability or race-finishing from this number alone)
+  DNFs: {dnfs}
   Average finish position: {avg_finish if avg_finish is not None else "N/A"}
 
 SEASON HISTORY:
@@ -1476,7 +1534,9 @@ Write 2–4 punchy sentences as a profile of this specific driver. Ground the bi
 actually makes them stand out — their wins, their scoring rate, a track they dominate, \
 their trajectory across seasons, or any other genuinely distinctive pattern in the data. \
 Avoid generic labels like "veteran" or "solid points scorer" — every driver bio must feel \
-individual and earned. Do not just list the stats back; interpret them into a character."""
+individual and earned. Do not just list the stats back; interpret them into a character.
+
+{CORE_RULES}"""
 
     bio_system = (
         "You are a sports journalist covering CGR League. "
@@ -1600,7 +1660,11 @@ You must reference every human driver listed above by name at least once — wea
 naturally into the narrative rather than listing them mechanically. \
 Focus on patterns of dominance, rivalries, memorable results, and what makes this \
 track distinctive within the league. \
-Do not open with the track name as the very first word."""
+Do not open with the track name as the very first word.
+
+{CORE_RULES}
+- You have results, not circuit knowledge. Do not describe corners, elevation, overtaking \
+spots, or surface characteristics — nothing above tells you any of that"""
 
     track_system = (
         "You are a sports journalist covering CGR League. "
