@@ -3,6 +3,7 @@ from .matrices import SeasonResultsMatrixView
 from .races import SeasonLastRaceView, NextRaceTeaserView, RaceDetailView, HistoryTeaserView
 from .hall_of_fame import HallOfFameView
 from .h2h import HeadToHeadMatrixView
+from .rivalry import RivalryView
 
 __all__ = [
     "SeasonStandingsView",
@@ -13,4 +14,5 @@ __all__ = [
     "RaceDetailView",
     "HallOfFameView",
     "HeadToHeadMatrixView",
+    "RivalryView",
 ]

@@ -251,3 +251,18 @@
   color: var(--cgr-text-secondary);
   font-weight: 600;
 }
+
+/* Cells drill through to the full rivalry breakdown. */
+.h2h-cell-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: inherit;
+  color: inherit;
+  border-radius: 3px;
+}
+.h2h-cell-link:hover,
+.h2h-cell-link:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}

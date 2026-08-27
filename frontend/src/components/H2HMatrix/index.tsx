@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useH2HMatrix, type H2HDriver } from "../../hooks/useH2HMatrix";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../Loader";
@@ -89,14 +90,20 @@ export function H2HMatrix() {
                     else if (ratio < 0.5) cls += " h2h-loss";
                     else cls += " h2h-even";
 
+                    const [lo, hi] = row.id < col.id ? [row.id, col.id] : [col.id, row.id];
+
                     return (
                       <td key={col.id} className={cls}>
                         {total > 0 ? (
-                          <>
+                          <Link
+                            to={`/rivalry/${lo}/${hi}`}
+                            className="h2h-cell-link"
+                            title={`${shortName(row)} v ${shortName(col)} — ${wins}/${total}`}
+                          >
                             <span className="h2h-cell-wins">{wins}</span>
                             <span className="h2h-cell-sep">/</span>
                             <span className="h2h-cell-total">{total}</span>
-                          </>
+                          </Link>
                         ) : (
                           <span className="h2h-cell-na">—</span>
                         )}
@@ -117,7 +124,7 @@ export function H2HMatrix() {
         </table>
       </div>
       <p className="h2h-legend">
-        Cell shows <strong>row driver's wins / races together</strong>. Green = winning record, red = losing record.
+        Cell shows <strong>row driver's wins / races together</strong>. Green = winning record, red = losing record. Select a cell for the full head-to-head.
       </p>
     </div>
   );

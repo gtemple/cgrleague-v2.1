@@ -5,6 +5,7 @@ import { useDriverDetail } from "../../hooks/useDriverDetails";
 import { DriverHistoryTable } from "./DriverHistoryTable";
 import { DriverTrackGrid } from "./DriverTrackGrid";
 import { DriverSpecialization } from "./DriverSpecialization";
+import { DriverRivals } from "./DriverRivals";
 import { DriverDNA } from "./DriverDNA";
 import { useDriverSpecialization } from "../../hooks/useDriverSpecialization";
 import { displayImage } from "../../utils/displayImage";
@@ -162,6 +163,9 @@ export const DriverPage = () => {
 
             {/* ══════════════════════ SPECIALIZATION ══════════════════════ */}
             <DriverSpecialization query={specQuery} />
+
+            {/* ══════════════════════ RIVALS ══════════════════════ */}
+            <DriverRivals driverId={driverId} />
 
             {/* ══════════════════════ TRACK RECORD ══════════════════════ */}
             <DriverTrackGrid driverId={driverId} />

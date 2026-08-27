@@ -57,6 +57,10 @@ def key_team_detail(team_id):
 def key_h2h():
     return "hof:h2h"
 
+def key_rivalry(a, b):
+    lo, hi = sorted((int(a), int(b)))
+    return f"rivalry:{lo}:{hi}"
+
 def key_driver_specialization(driver_id):
     return f"driver:{driver_id}:specialization"
 
@@ -113,6 +117,12 @@ def invalidate_for_result(instance):
         key_hof(True, False),
         key_h2h(),
     ]
+
+    # Rivalry pages are per-pair, so drop every pair this driver appears in.
+    from drivers.models import Driver
+    for other_id in Driver.objects.exclude(pk=driver_id).values_list("id", flat=True):
+        keys.append(key_rivalry(driver_id, other_id))
+
     cache.delete_many(keys)
 
 

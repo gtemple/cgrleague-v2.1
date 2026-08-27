@@ -7,6 +7,7 @@ from .views import NextRaceTeaserView, HistoryTeaserView
 from .views import RaceDetailView
 from .views import HallOfFameView
 from .views import HeadToHeadMatrixView
+from .views import RivalryView
 from .views.admin import BulkUpsertResultsView
 
 urlpatterns = [
@@ -19,6 +20,7 @@ urlpatterns = [
     path("teasers/history/", HistoryTeaserView.as_view(), name="history_teaser"),
     path("hall-of-fame/", HallOfFameView.as_view(), name="hall_of_fame"),
     path("hall-of-fame/h2h/", HeadToHeadMatrixView.as_view(), name="h2h_matrix"),
+    path("rivalry/<int:driver_a>/<int:driver_b>/", RivalryView.as_view(), name="rivalry"),
     # Admin (protected)
     path("admin/races/<int:race_id>/results/", BulkUpsertResultsView.as_view(), name="admin-bulk-results"),
 ]

@@ -996,3 +996,75 @@
   .dp-dna-bars { grid-template-columns: repeat(5, 1fr); gap: 6px; }
   .dp-body { padding: 20px 16px 40px; }
 }
+
+/* ── Closest rivals ─────────────────────────────────────────── */
+
+.dp-rivals { margin-top: 26px; }
+
+.dp-rivals-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px;
+}
+
+.dp-rival {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-card);
+  background: var(--cgr-card);
+  transition: border-color 0.15s;
+}
+.dp-rival:hover, .dp-rival:focus-visible { border-color: var(--cgr-border-hover); outline: none; }
+
+.dp-rival-avatar {
+  width: 34px; height: 34px;
+  border-radius: 999px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--cgr-chip);
+  border: 1px solid var(--cgr-border-chip);
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  color: var(--cgr-text-muted);
+}
+.dp-rival-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+
+.dp-rival-meta { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.dp-rival-name {
+  font-family: var(--cgr-font-display);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--cgr-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dp-rival-bar {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cgr-border-card);
+  overflow: hidden;
+}
+.dp-rival-bar-fill { display: block; height: 100%; background: var(--cgr-text-secondary); border-radius: 2px; }
+
+.dp-rival-score {
+  font-family: var(--cgr-font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+.dp-rival-score--up   { color: #1c7a4a; }
+.dp-rival-score--down { color: var(--cgr-red); }
+.dp-rival-score--even { color: var(--cgr-text-muted); }
+.dp-rival-dash { color: var(--cgr-text-faint); margin: 0 2px; font-weight: 400; }
