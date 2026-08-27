@@ -1775,8 +1775,17 @@ def _season_progress():
 
 
 def _fmt_rivalry_seasons(a_name, b_name, seasons, progress, timeline):
-    wins = {}
-    won_at = {}
+    """
+    One line per season. Every split names both drivers rather than relying on a
+    remembered A-then-B order — read as bare "8 - 11" pairs, the model kept
+    handing the larger half to the wrong driver — and who took the season is
+    stated outright rather than left to be read off the split.
+
+    Deliberately kept to one line each: a denser block carrying per-season
+    running totals made every other figure in the output less reliable, not
+    more.
+    """
+    wins, won_at = {}, {}
     for t in timeline:
         row = wins.setdefault(t["season_id"], [0, 0])
         tracks = won_at.setdefault(t["season_id"], ([], []))
@@ -1789,20 +1798,30 @@ def _fmt_rivalry_seasons(a_name, b_name, seasons, progress, timeline):
 
     lines = []
     for s in seasons:
-        a_wins, b_wins = wins.get(s["season_id"], (0, 0))
+        sid = s["season_id"]
+        a_wins, b_wins = wins.get(sid, (0, 0))
+
+        if s["a_ahead"] > s["b_ahead"]:
+            verdict = f"{a_name} took the season head-to-head"
+        elif s["b_ahead"] > s["a_ahead"]:
+            verdict = f"{b_name} took the season head-to-head"
+        else:
+            verdict = "the season head-to-head was level"
+
         line = (
-            f"  S{s['season_id']}: {s['races']} races together, "
-            f"{a_name} ahead {s['a_ahead']} - {s['b_ahead']} {b_name}, "
-            f"points {s['a_points']}-{s['b_points']}, "
-            f"race wins {a_wins}-{b_wins}"
+            f"  S{sid}: {s['races']} races together — {verdict}. "
+            f"Finished ahead: {a_name} {s['a_ahead']}, {b_name} {s['b_ahead']}. "
+            f"Points: {a_name} {s['a_points']}, {b_name} {s['b_points']}. "
+            f"Race wins: {a_name} {a_wins}, {b_name} {b_wins}."
         )
-        for name, won in ((a_name, won_at[s["season_id"]][0]), (b_name, won_at[s["season_id"]][1])):
+        for name, won in ((a_name, won_at[sid][0]), (b_name, won_at[sid][1])):
             if won:
-                line += f"; {name} won at {', '.join(won)}"
-        run, scheduled = progress.get(s["season_id"], (0, 0))
+                line += f" {name} won at {', '.join(won)}."
+        run, scheduled = progress.get(sid, (0, 0))
         if run < scheduled:
-            line += f" — SEASON STILL IN PROGRESS, only {run} of {scheduled} rounds run so far"
+            line += f" SEASON STILL IN PROGRESS: only {run} of {scheduled} rounds run so far."
         lines.append(line)
+
     return "\n".join(lines)
 
 
@@ -1896,9 +1915,17 @@ def _fmt_rivalry_landmarks(a_name, b_name, data):
         f"{a_name} P{last['a_finish']}, {b_name} P{last['b_finish']}"
     )
 
-    a_seasons = sum(1 for s in seasons if s["a_ahead"] > s["b_ahead"])
-    b_seasons = sum(1 for s in seasons if s["b_ahead"] > s["a_ahead"])
-    lines.append(f"  Seasons won: {a_name} {a_seasons} - {b_seasons} {b_name}")
+    a_took = [f"S{s['season_id']}" for s in seasons if s["a_ahead"] > s["b_ahead"]]
+    b_took = [f"S{s['season_id']}" for s in seasons if s["b_ahead"] > s["a_ahead"]]
+    level = [f"S{s['season_id']}" for s in seasons if s["a_ahead"] == s["b_ahead"]]
+    lines.append(
+        f"  Season head-to-heads won: {a_name} {len(a_took)} "
+        f"({', '.join(a_took) or 'none'}), {b_name} {len(b_took)} "
+        f"({', '.join(b_took) or 'none'})"
+        + (f", level in {', '.join(level)}" if level else "")
+        + ". These are the only seasons either took; do not describe a run of seasons "
+        "that is not in these lists"
+    )
 
     one_place = [t for t in timeline if t["margin"] == 1]
     a_close = sum(1 for t in one_place if t["winner"] == "a")
@@ -2115,6 +2142,9 @@ never compare it against the full {data['shared_races']}-race record
 - EVERY MEETING, IN ORDER is the complete list of results you have. Never state a win, \
 podium, or placing you cannot point to a line for. A sprint is a race like any other in \
 that list — its finishing position is already there, so do not invent sprint results
+- The figures in OVERALL RECORD are the complete 105-race totals. Never attach one to a \
+moment in the story — "by the end of S3 he led 12-6" is wrong when 12-6 is the career \
+figure. Only ever describe a total as where it stands now
 - Do not count across rows of the data. No "four wins in six races", no "three rounds \
 later", no "the only season in which...", no runs or stretches you had to assemble from \
 several lines. Either state a single fact you can read off one line, or use a figure \
