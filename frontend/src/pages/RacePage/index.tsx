@@ -120,10 +120,14 @@ export const RacePage = () => {
 
         {/* ── Controls ── */}
         <div className="rp-controls">
-          <div className="rp-seg" role="group" aria-label="Result type">
-            <button className={!isSprint ? "rp-seg-active" : ""} aria-pressed={!isSprint} onClick={() => setIsSprint(false)}>Race</button>
-            <button className={isSprint ? "rp-seg-active" : ""} aria-pressed={isSprint} onClick={() => setIsSprint(true)}>Sprint</button>
-          </div>
+          {race?.has_sprint && race?.has_feature ? (
+            <div className="rp-seg" role="group" aria-label="Result type">
+              <button className={!isSprint ? "rp-seg-active" : ""} aria-pressed={!isSprint} onClick={() => setIsSprint(false)}>Race</button>
+              <button className={isSprint ? "rp-seg-active" : ""} aria-pressed={isSprint} onClick={() => setIsSprint(true)}>Sprint</button>
+            </div>
+          ) : (
+            <span className="rp-session-tag">{race?.is_sprint ? "Sprint" : "Grand Prix"}</span>
+          )}
           <div className="rp-nav">
             <button
               className="rp-nav-btn"
@@ -169,6 +173,7 @@ export const RacePage = () => {
         )}
 
         {!isLoading && !error && data && results.length > 0 && (
+          <div className="rp-layout">
           <div className="rp-table-card">
             {/* Desktop table */}
             <div className="rp-table-scroll">
@@ -182,7 +187,6 @@ export const RacePage = () => {
                     <th>Pts</th>
                     <th>Laps</th>
                     <th>Status</th>
-                    <th className="rp-col-flags">Awards</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -219,7 +223,6 @@ export const RacePage = () => {
                       <td>
                         <span className={`rp-status${r.status !== "FIN" ? " rp-status--dnf" : ""}`}>{r.status}</span>
                       </td>
-                      <td className="rp-col-flags"><FlagChips r={r} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -260,14 +263,15 @@ export const RacePage = () => {
               ))}
             </div>
           </div>
-        )}
 
-        {!isLoading && !error && data && results.length > 0 && (
-          <div className="rp-grid-2">
+          {/* Context sits beside the classification on wide screens and drops
+              beneath it on narrow ones. */}
+          <aside className="rp-rail">
             <ChampionshipImpact rows={data.standings_impact} />
             <TeammateBattles results={results} />
             <GridFlow results={results} />
             <CircuitHistory rows={data.track_history} trackName={race?.track.name ?? ""} />
+          </aside>
           </div>
         )}
       </div>

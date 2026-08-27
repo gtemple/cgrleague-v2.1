@@ -30,21 +30,14 @@ def _standings_impact(race):
     Driver standings immediately before and after this race, so the race page
     can show what the round did to the championship.
 
-    A sprint shares its round number with the Grand Prix it supports and runs
-    first, so "before the Grand Prix" has to include that sprint.
+    A sprint takes a round of its own here rather than sharing one with a Grand
+    Prix, so the round number alone separates before from after.
     """
     from entries.models import DriverSeason
     from results.api.views.utils import fl_bonus_case, points_case
 
-    earlier_rounds = Q(results__race__round__lt=race.round)
-    this_round_sprint = Q(results__race__round=race.round, results__race__is_sprint=True)
-
-    if race.is_sprint:
-        before_q = earlier_rounds
-        after_q = earlier_rounds | this_round_sprint
-    else:
-        before_q = earlier_rounds | this_round_sprint
-        after_q = Q(results__race__round__lte=race.round)
+    before_q = Q(results__race__round__lt=race.round)
+    after_q = Q(results__race__round__lte=race.round)
 
     def totals(q):
         rows = (
@@ -133,11 +126,21 @@ class RaceDetailView(APIView):
     def get(self, request, season_id: int, round: int, *args, **kwargs):
         is_sprint = str(request.GET.get("is_sprint", "")).lower() in ("1", "true", "yes")
 
-        try:
-            race = Race.objects.select_related("track", "season").get(
-                season_id=season_id, round=round, is_sprint=is_sprint
+        race = (
+            Race.objects.select_related("track", "season")
+            .filter(season_id=season_id, round=round, is_sprint=is_sprint)
+            .first()
+        )
+        if race is None:
+            # A round holds a single session in this league — a sprint takes a
+            # round of its own rather than sharing one with a Grand Prix — so a
+            # link that omits the flag, or guesses it wrong, still resolves.
+            race = (
+                Race.objects.select_related("track", "season")
+                .filter(season_id=season_id, round=round)
+                .first()
             )
-        except Race.DoesNotExist:
+        if race is None:
             return Response({"detail": "Race not found."}, status=404)
 
         ck = key_race_detail(race.id)
@@ -156,6 +159,14 @@ class RaceDetailView(APIView):
             .order_by("finish_position", "driver_season_id")
         )
 
+        # Which sessions this round actually has, so the page only offers a
+        # sprint toggle on the weekends that ran one.
+        sessions = sorted(
+            Race.objects
+            .filter(season_id=season_id, round=round)
+            .values_list("is_sprint", flat=True)
+        )
+
         data = {
             "race": {
                 "id": race.id,
@@ -163,6 +174,8 @@ class RaceDetailView(APIView):
                 "is_sprint": race.is_sprint,
                 "laps": race.laps,
                 "started_at": race.started_at,
+                "has_sprint": True in sessions,
+                "has_feature": False in sessions,
                 "track": serialize_track(race.track),
             },
             "results": [

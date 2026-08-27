@@ -22,6 +22,8 @@ export type RaceDetail = {
   is_sprint: boolean;
   laps: number | null;
   started_at: string | null;
+  has_sprint: boolean;
+  has_feature: boolean;
   track: TrackLite;
 };
 

@@ -581,14 +581,25 @@
    LOWER PANELS
 ═══════════════════════════════════════ */
 
-.rp-grid-2 {
+/* Classification leads; context sits beside it once there is room. */
+.rp-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 18px;
-  margin-top: 18px;
+  align-items: start;
 }
-@media (min-width: 860px) {
-  .rp-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1040px) {
+  .rp-layout { grid-template-columns: minmax(0, 1.9fr) minmax(290px, 1fr); }
+}
+
+.rp-rail { display: grid; gap: 16px; align-content: start; }
+
+.rp-session-tag {
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted);
 }
 
 .rp-panel {
@@ -676,17 +687,16 @@
 .rp-impact-move.is-down { color: #a3201d; }
 
 /* Grid to finish */
-.rp-flow-scroll { overflow-x: auto; }
-.rp-flow { width: 100%; min-width: 240px; height: auto; display: block; }
+.rp-flow { width: 100%; height: auto; display: block; }
 .rp-flow-head {
   font-family: var(--cgr-font-mono);
-  font-size: 8px;
+  font-size: 6px;
   letter-spacing: 0.14em;
   fill: var(--cgr-text-muted-2);
 }
 .rp-flow-lbl {
   font-family: var(--cgr-font-mono);
-  font-size: 8.5px;
+  font-size: 6.5px;
   fill: var(--cgr-text-secondary);
 }
 

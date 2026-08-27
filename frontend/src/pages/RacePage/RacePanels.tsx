@@ -136,45 +136,38 @@ export function GridFlow({ results }: { results: RaceDetailResult[] }) {
   const rows = results.filter((r) => r.grid_position != null && r.finish_position != null);
   if (rows.length < 4) return null;
 
-  const n = Math.max(
-    ...rows.map((r) => Math.max(r.grid_position!, r.finish_position!)),
-  );
-  const H = 300;
-  const W = 260;
-  const y = (pos: number) => 18 + ((pos - 1) / Math.max(n - 1, 1)) * (H - 36);
+  const n = Math.max(...rows.map((r) => Math.max(r.grid_position!, r.finish_position!)));
+  // Height follows the field size so the lines never crowd, with a ceiling that
+  // keeps the panel the same order of size as the ones beside it.
+  const H = Math.min(20 + n * 9, 210);
+  const W = 190;
+  const y = (pos: number) => 14 + ((pos - 1) / Math.max(n - 1, 1)) * (H - 24);
 
   return (
     <section className="rp-panel" aria-label="Grid to finish">
       <h2 className="rp-panel-title">Grid to finish</h2>
-      <div className="rp-flow-scroll">
-        <svg className="rp-flow" viewBox={`0 0 ${W} ${H}`} role="img"
-             aria-label="Lines from each driver's starting slot to their finishing position">
-          <text x="6" y="11" className="rp-flow-head">GRID</text>
-          <text x={W - 6} y="11" className="rp-flow-head" textAnchor="end">FINISH</text>
-          {rows.map((r) => {
-            const y1 = y(r.grid_position!);
-            const y2 = y(r.finish_position!);
-            const colour = r.team.color || "var(--cgr-text-faint)";
-            return (
-              <g key={r.driver.id}>
-                <path
-                  d={`M 46 ${y1} C 110 ${y1}, 150 ${y2}, ${W - 46} ${y2}`}
-                  fill="none"
-                  stroke={colour}
-                  strokeWidth={2}
-                  opacity={0.85}
-                />
-                <text x="38" y={y1 + 3.5} className="rp-flow-lbl" textAnchor="end">
-                  {r.grid_position}
-                </text>
-                <text x={W - 38} y={y2 + 3.5} className="rp-flow-lbl">
-                  {r.driver.initials || r.finish_position}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-      </div>
+      <svg className="rp-flow" viewBox={`0 0 ${W} ${H}`} role="img"
+           aria-label="Lines from each driver's starting slot to their finishing position">
+        <text x="2" y="7" className="rp-flow-head">GRID</text>
+        <text x={W - 2} y="7" className="rp-flow-head" textAnchor="end">FIN</text>
+        {rows.map((r) => {
+          const y1 = y(r.grid_position!);
+          const y2 = y(r.finish_position!);
+          return (
+            <g key={r.driver.id}>
+              <path
+                d={`M 24 ${y1} C 76 ${y1}, 114 ${y2}, ${W - 24} ${y2}`}
+                fill="none"
+                stroke={r.team.color || "var(--cgr-text-faint)"}
+                strokeWidth={1.6}
+                opacity={0.85}
+              />
+              <text x="19" y={y1 + 2.6} className="rp-flow-lbl" textAnchor="end">{r.grid_position}</text>
+              <text x={W - 19} y={y2 + 2.6} className="rp-flow-lbl">{r.finish_position}</text>
+            </g>
+          );
+        })}
+      </svg>
     </section>
   );
 }
