@@ -15,6 +15,11 @@ import { ArticleDetailPage } from "./pages/ArticleDetailPage/index.tsx";
 import { TeamPage } from "./pages/TeamPage/index.tsx";
 import { TeamsIndex } from "./pages/TeamsPage/index.tsx";
 import { LoginPage } from "./pages/LoginPage/index.tsx";
+import {
+  NewsletterPage,
+  NewsletterConfirmPage,
+  NewsletterUnsubscribePage,
+} from "./pages/NewsletterPage/index.tsx";
 import { AdminPage } from "./pages/AdminPage/index.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
 
@@ -47,6 +52,9 @@ export default function App() {
         <Route path="/articles/:articleId" element={<ArticleDetailPage />} />
         <Route path="/teams" element={<TeamsIndex />} />
         <Route path="/teams/:teamId" element={<TeamPage />} />
+        <Route path="/newsletter" element={<NewsletterPage />} />
+        <Route path="/newsletter/confirm/:token" element={<NewsletterConfirmPage />} />
+        <Route path="/newsletter/unsubscribe/:token" element={<NewsletterUnsubscribePage />} />
         <Route path="/login" element={<LoginPage />} />
         {/* Protected admin routes */}
         <Route element={<ProtectedRoute />}>

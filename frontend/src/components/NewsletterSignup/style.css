@@ -1,0 +1,145 @@
+.nl-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px 34px;
+  padding: 28px 30px;
+  background: var(--cgr-ink);
+  border-radius: var(--cgr-radius-card);
+  border-left: 3px solid var(--cgr-red);
+  font-family: var(--cgr-font-body);
+}
+
+.nl-copy {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.nl-eyebrow {
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cgr-red);
+  margin-bottom: 8px;
+}
+
+.nl-title {
+  font-family: var(--cgr-font-display);
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--cgr-text-on-dark);
+  margin: 0;
+}
+
+.nl-sub {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--cgr-text-on-dark-muted);
+  max-width: 46ch;
+}
+
+/* ── Form ─────────────────────────────────────────────────── */
+
+.nl-form {
+  flex: 0 1 380px;
+  min-width: 260px;
+}
+
+.nl-row {
+  display: flex;
+  gap: 8px;
+}
+
+.nl-input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  background: var(--cgr-ink-alt);
+  border: 1px solid var(--cgr-ink-border-2);
+  border-radius: var(--cgr-radius-chip);
+  color: var(--cgr-text-on-dark);
+  font-family: var(--cgr-font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.nl-input::placeholder { color: var(--cgr-text-on-dark-faint); }
+.nl-input:focus { border-color: var(--cgr-red); }
+.nl-input:disabled { opacity: 0.6; }
+
+.nl-submit {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  background: var(--cgr-red);
+  border: none;
+  border-radius: var(--cgr-radius-chip);
+  color: #fff;
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.nl-submit:hover:not(:disabled) { background: #c81f27; }
+.nl-submit:disabled { opacity: 0.6; cursor: default; }
+.nl-submit:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* Honeypot: off-screen rather than display:none, which some bots skip. */
+.nl-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.nl-error {
+  margin-top: 10px;
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #f2a0a4;
+}
+
+.nl-done {
+  flex: 0 1 380px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 16px;
+  background: var(--cgr-ink-alt);
+  border: 1px solid var(--cgr-ink-border-2);
+  border-radius: var(--cgr-radius-chip);
+  font-size: 14px;
+  color: var(--cgr-text-on-dark);
+}
+
+.nl-done-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--cgr-red);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .nl-panel { padding: 22px 20px; }
+  .nl-title { font-size: 25px; }
+  .nl-row { flex-wrap: wrap; }
+  .nl-input, .nl-submit { flex: 1 1 100%; }
+}

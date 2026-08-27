@@ -9,6 +9,7 @@ import { useConstructorStandings } from "../../hooks/useConstructorStandings";
 import { useHallOfFame } from "../../hooks/useHallOfFame";
 import { useLatestSeasonId } from "../../hooks/useLatestSeasonId";
 import { HistoryTeaser } from "../../components/HistoryTeaser/index";
+import { NewsletterSignup } from "../../components/NewsletterSignup";
 import { StatusTicker } from "../../components/StatusTicker";
 import { displayImage } from "../../utils/displayImage";
 import { articleTypeLabel, formatArticleDate } from "../../utils/articleUtils";
@@ -541,6 +542,8 @@ export const HomePage = () => {
           </div>
         </section>
       )}
+
+      <NewsletterSignup />
 
     </div>
     </div>
