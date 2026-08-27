@@ -215,11 +215,17 @@ main.container { padding-top: 0; min-width: 0; }
   .nav-search-label { display: inline; }
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .nav-admin-btn {
   display: flex;
   align-items: center;
   padding: 7px 11px;
-  margin-left: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 5px;
   color: var(--cgr-text-on-dark-faint);
@@ -251,6 +257,6 @@ main.container { padding-top: 0; min-width: 0; }
   }
   .nav-admin-btn {
     padding: 6px 9px;
-    margin-left: 6px;
   }
+  .nav-actions { gap: 6px; }
 }

@@ -72,25 +72,28 @@ export function NavBar() {
             <NavLink to="/articles"     className={linkClass} end={false}>Articles</NavLink>
           </nav>
 
-          {/* Search button */}
-          <button
-            className="nav-search-btn"
-            onClick={() => setSearchOpen(true)}
-            aria-label="Search"
-          >
-            <span className="nav-search-icon">⌕</span>
-            <span className="nav-search-label">Search</span>
-            <span className="nav-search-kbd">⌘K</span>
-          </button>
+          {/* One flex item, so nav-inner's space-between doesn't push a gap
+              between the two buttons. */}
+          <div className="nav-actions">
+            <button
+              className="nav-search-btn"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search"
+            >
+              <span className="nav-search-icon">⌕</span>
+              <span className="nav-search-label">Search</span>
+              <span className="nav-search-kbd">⌘K</span>
+            </button>
 
-          {/* Sends you to the login form or straight to results entry, so the
-              button is never a dead end once you already have a token. */}
-          <NavLink
-            to={isAuthenticated ? "/admin/results" : "/login"}
-            className="nav-admin-btn"
-          >
-            {isAuthenticated ? "Results" : "Admin"}
-          </NavLink>
+            {/* Sends you to the login form or straight to results entry, so the
+                button is never a dead end once you already have a token. */}
+            <NavLink
+              to={isAuthenticated ? "/admin/results" : "/login"}
+              className="nav-admin-btn"
+            >
+              {isAuthenticated ? "Results" : "Admin"}
+            </NavLink>
+          </div>
         </div>
       </header>
 
