@@ -8,6 +8,8 @@ import type {
 } from "../../hooks/useRaceDetail";
 import { displayImage } from "../../utils/displayImage";
 import { CircuitHistory } from "./RacePanels";
+import type { RacePredictionResponse } from "../../hooks/useRacePrediction";
+import { RacePredictionPanel } from "./RacePredictionPanel";
 
 type Props = {
   race: RaceDetail;
@@ -16,6 +18,9 @@ type Props = {
   history: TrackHistoryRow[];
   preview: ArticleSummary | null;
   previewDetail: ArticleDetail | null;
+  prediction: RacePredictionResponse | null;
+  predictionLoading: boolean;
+  predictionError: Error | null;
 };
 
 function useCountdown(target: string | null) {
@@ -50,7 +55,17 @@ function formLabel(value: number | null | "DNF") {
   return value === "DNF" || value == null ? "DNF" : `P${value}`;
 }
 
-export function PreRaceCentre({ race, seasonId, context, history, preview, previewDetail }: Props) {
+export function PreRaceCentre({
+  race,
+  seasonId,
+  context,
+  history,
+  preview,
+  previewDetail,
+  prediction,
+  predictionLoading,
+  predictionError,
+}: Props) {
   const countdown = useCountdown(race.started_at);
   const raceDate = race.started_at
     ? new Intl.DateTimeFormat(undefined, {
@@ -123,6 +138,12 @@ export function PreRaceCentre({ race, seasonId, context, history, preview, previ
           </div>
         </div>
       )}
+
+      <RacePredictionPanel
+        data={prediction}
+        isLoading={predictionLoading}
+        error={predictionError}
+      />
 
       <div className="rp-prerace-grid">
         <section className="rp-panel rp-form-panel">

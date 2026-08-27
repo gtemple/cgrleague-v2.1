@@ -13,6 +13,7 @@ import { articleTypeLabel } from "../../utils/articleUtils";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import { PreRaceCentre } from "./PreRaceCentre";
+import { useRacePrediction } from "../../hooks/useRacePrediction";
 import "./style.css";
 
 function posClass(pos: number | null, status: string) {
@@ -62,6 +63,10 @@ export const RacePage = () => {
   const { data: previewDetail } = useArticleDetail(preview?.id, !!preview);
   const race = data?.race;
   const results = data?.results ?? [];
+  const predictionQuery = useRacePrediction(seasonId, round, {
+    isSprint,
+    enabled: !!data && results.length === 0,
+  });
   const is404 = !!error && (error as { status?: number }).status === 404;
 
   const trackImg = race?.track.image ? displayImage(race.track.image, "trackImage") : null;
@@ -170,6 +175,9 @@ export const RacePage = () => {
             history={data.track_history}
             preview={preview}
             previewDetail={previewDetail}
+            prediction={predictionQuery.data}
+            predictionLoading={predictionQuery.isLoading}
+            predictionError={predictionQuery.error}
           />
         )}
 
