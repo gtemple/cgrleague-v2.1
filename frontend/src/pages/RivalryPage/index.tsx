@@ -106,7 +106,7 @@ function StatTable({
 const shortName = (d: { first_name: string; last_name: string }) =>
   shortDriverName(d.first_name, d.last_name);
 
-type Fact = { value: string; label: React.ReactNode; accent?: string };
+type Fact = { value: React.ReactNode; label: React.ReactNode; accent?: string };
 
 /**
  * The headline facts about a rivalry, derived from the timeline the endpoint
@@ -121,6 +121,36 @@ function buildFacts(
 ): Fact[] {
   const { timeline, seasons, streaks } = data;
   const facts: Fact[] = [];
+
+  // The first three facts are the band's featured row, so the two most
+  // striking splits lead and the rest fall into the inline run below.
+  const aSeasons = seasons.filter((s) => s.a_ahead > s.b_ahead).length;
+  const bSeasons = seasons.filter((s) => s.b_ahead > s.a_ahead).length;
+  facts.push({
+    value: (
+      <>
+        <span style={{ color: colorA }}>{aSeasons}</span>
+        <span className="rv-record-dash">–</span>
+        <span style={{ color: colorB }}>{bSeasons}</span>
+      </>
+    ),
+    label: <>seasons won, <b style={{ color: colorA }}>{nameA}</b> to <b style={{ color: colorB }}>{nameB}</b></>,
+  });
+
+  const bestRun = Math.max(streaks.best_a, streaks.best_b);
+  const runHolder = streaks.best_a >= streaks.best_b ? nameA : nameB;
+  const runColor = streaks.best_a >= streaks.best_b ? colorA : colorB;
+  facts.push({
+    value: String(bestRun),
+    // A figure takes a driver colour only when it belongs to one driver.
+    accent: runColor,
+    label: <>in a row to <b style={{ color: runColor }}>{runHolder}</b>, the longest streak either has held</>,
+  });
+
+  facts.push({
+    value: String(data.closest_races),
+    label: "races settled by a single place",
+  });
 
   // How often the points lead actually changed hands — the momentum chart's
   // zero crossings, stated as a number.
@@ -137,21 +167,13 @@ function buildFacts(
     label: leadChanges === 1 ? "lead change on points" : "lead changes on points",
   });
 
-  const aSeasons = seasons.filter((s) => s.a_ahead > s.b_ahead).length;
-  const bSeasons = seasons.filter((s) => s.b_ahead > s.a_ahead).length;
-  facts.push({
-    value: `${aSeasons}–${bSeasons}`,
-    label: <>seasons won, <b style={{ color: colorA }}>{nameA}</b> to <b style={{ color: colorB }}>{nameB}</b></>,
-  });
-
-  facts.push({
-    value: String(data.closest_races),
-    label: "races settled by a single place",
-  });
-
   const podiums = timeline.filter((t) => t.a_finish <= 3 && t.b_finish <= 3).length;
   if (podiums) {
     facts.push({ value: String(podiums), label: "times both stood on the podium" });
+  }
+
+  if (data.biggest_margin) {
+    facts.push({ value: String(data.biggest_margin.margin), label: "places apart at their furthest" });
   }
 
   const swing = timeline.reduce(
@@ -165,28 +187,16 @@ function buildFacts(
     });
   }
 
-  const bestRun = Math.max(streaks.best_a, streaks.best_b);
-  const runHolder = streaks.best_a >= streaks.best_b ? nameA : nameB;
-  const runColor = streaks.best_a >= streaks.best_b ? colorA : colorB;
-  facts.push({
-    value: String(bestRun),
-    label: <>in a row to <b style={{ color: runColor }}>{runHolder}</b>, the longest streak either has held</>,
-  });
-
-  if (data.biggest_margin) {
-    facts.push({ value: String(data.biggest_margin.margin), label: "places apart at their furthest" });
-  }
-
-  const first = timeline[0];
-  if (first) {
-    facts.push({ value: `S${first.season_id}`, label: <>first met, at {first.track}</> });
-  }
-
   if (data.teammate_seasons.length) {
     facts.push({
       value: String(data.teammate_seasons.length),
       label: <>seasons as teammates ({data.teammate_seasons.map((x) => `S${x}`).join(", ")})</>,
     });
+  }
+
+  const first = timeline[0];
+  if (first) {
+    facts.push({ value: `S${first.season_id}`, label: <>first met, at {first.track}</> });
   }
 
   return facts;
@@ -249,6 +259,9 @@ export const RivalryPage = () => {
 
   const rows = buildRows(totals.a, totals.b);
   const facts = buildFacts(data, shortName(A), shortName(B), palette.a, palette.b);
+  const spanFrom = data.seasons[0]?.season_id;
+  const spanTo = data.seasons[data.seasons.length - 1]?.season_id;
+  const seasonSpan = spanFrom === spanTo ? `S${spanFrom}` : `S${spanFrom}–S${spanTo}`;
   const trackedRows = buildTrackedRows(totals.a, totals.b);
   const trackedSeasons = seasonList(
     [...new Set([...data.tracked.grid, ...data.tracked.cleanest, ...data.tracked.overtakes])].sort((x, y) => x - y)
@@ -356,19 +369,38 @@ export const RivalryPage = () => {
         </div>
       </div>
 
-      <div className="rv-inner">
-      <section className="rv-facts" aria-label="Notable facts">
-        <h2 className="rv-facts-title">The Record</h2>
-        <ul className="rv-facts-list">
-          {facts.map((f, i) => (
-            <li className="rv-fact" key={i}>
-              <span className="rv-fact-value">{f.value}</span>
-              <span className="rv-fact-label">{f.label}</span>
-            </li>
-          ))}
-        </ul>
+      {/* Full-bleed chapter break: three facts at display scale, the rest as
+          an inline run. Sits outside .rv-inner so it spans the viewport. */}
+      <section className="rv-record" aria-label="Notable facts">
+        <div className="rv-record-inner">
+          <div className="rv-record-head">
+            <h2 className="rv-record-title">The Record</h2>
+            <span className="rv-record-scope">{data.shared_races} races · {seasonSpan}</span>
+          </div>
+
+          <div className="rv-record-featured">
+            {facts.slice(0, 3).map((f, i) => (
+              <div className="rv-record-cell" key={i}>
+                <span className="rv-record-value" style={f.accent ? { color: f.accent } : undefined}>{f.value}</span>
+                <span className="rv-record-caption">{f.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {facts.length > 3 && (
+            <div className="rv-record-run">
+              {facts.slice(3).map((f, i) => (
+                <div className="rv-record-item" key={i}>
+                  <span className="rv-record-num">{f.value}</span>
+                  <span className="rv-record-label">{f.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
 
+      <div className="rv-inner">
       <MomentumChart
         timeline={timeline}
         nameA={shortName(A)}
