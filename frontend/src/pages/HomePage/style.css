@@ -48,12 +48,6 @@
   background: linear-gradient(180deg, rgba(22, 20, 15, 0.25), rgba(22, 20, 15, 0.92));
 }
 
-.hero-skeleton {
-  position: absolute;
-  inset: 0;
-  background: var(--cgr-ink-alt);
-}
-
 .hero-content {
   position: absolute;
   inset: 0;
@@ -840,11 +834,6 @@
   box-shadow: 0 10px 22px rgba(22, 20, 15, 0.09);
 }
 
-.coverage-card--skeleton {
-  height: 260px;
-  background: var(--cgr-border-hairline-3);
-}
-
 .coverage-thumb {
   position: relative;
   height: 130px;
@@ -900,6 +889,247 @@
   font-size: 10px;
   color: var(--cgr-text-faint);
   margin-top: 10px;
+}
+
+/* ═══════════════════════════════════════
+   SKELETONS
+═══════════════════════════════════════ */
+
+.home-page .sk {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--cgr-radius-chip);
+  background: #e4e1d8;
+}
+
+.home-page .sk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  animation: sk-sweep 1.5s ease-in-out infinite;
+}
+
+.home-page .sk--dark {
+  background: rgba(247, 245, 239, 0.09);
+}
+.home-page .sk--dark::after {
+  background: linear-gradient(90deg, transparent, rgba(247, 245, 239, 0.13), transparent);
+}
+
+.sk-thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  animation: sk-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes sk-sweep {
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page .sk::after,
+  .sk-thumb::after {
+    animation: none;
+  }
+}
+
+/* ticker */
+
+.ticker-sk {
+  width: 92px;
+  height: 9px;
+  flex: none;
+  background: #d5d2c7;
+}
+.ticker-sk--season {
+  width: 68px;
+}
+.ticker-sk--wide {
+  width: 170px;
+}
+
+/* hero */
+
+.hero-sk-badge {
+  width: 74px;
+  height: 18px;
+}
+.hero-sk-round {
+  width: 210px;
+  height: 11px;
+}
+.hero-sk-title {
+  width: min(62%, 460px);
+  height: clamp(36px, 6vw, 62px);
+  margin-bottom: 4px;
+}
+.hero-sk-meta {
+  width: 250px;
+  height: 12px;
+  margin-top: 22px;
+}
+.hero-sk-cta {
+  width: 168px;
+  height: 31px;
+  margin-top: 16px;
+}
+
+/* countdown card */
+
+.cd-sk-value {
+  width: 34px;
+  height: 36px;
+  margin: 0 auto;
+}
+.cd-sk-unit {
+  width: 22px;
+  height: 9px;
+  margin: 10px auto 0;
+}
+.cd-sk-season {
+  width: 16px;
+  height: 9px;
+}
+.cd-sk-name {
+  flex: 1;
+  max-width: 118px;
+  height: 14px;
+  margin: 4px 0 6px;
+}
+.cd-winner:nth-child(2) .cd-sk-name {
+  max-width: 96px;
+}
+.cd-winner:nth-child(3) .cd-sk-name {
+  max-width: 106px;
+}
+.cd-sk-team {
+  width: 24px;
+  height: 8px;
+}
+.cd-sk-then {
+  width: 190px;
+  height: 9px;
+}
+
+/* humans */
+
+.human-card--sk .human-card-bar {
+  background: var(--cgr-border-card);
+}
+.human-sk-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex: none;
+}
+.human-sk-name {
+  width: 128px;
+  height: 15px;
+}
+.human-sk-team {
+  width: 84px;
+  height: 8px;
+  margin-top: 7px;
+}
+.human-sk-pos {
+  width: 26px;
+  height: 15px;
+}
+.human-sk-stat {
+  width: 42px;
+  height: 16px;
+}
+.human-sk-stat-label {
+  width: 60px;
+  height: 7px;
+  margin-top: 6px;
+}
+.human-sk-form {
+  width: 28px;
+  height: 15px;
+}
+
+/* standings */
+
+.standings-row--sk {
+  grid-template-columns: 30px 4px 1fr auto;
+}
+.sk-row-pos {
+  width: 14px;
+  height: 14px;
+  margin: 0 auto;
+}
+.sk-row-bar {
+  width: 4px;
+  height: 30px;
+  border-radius: 2px;
+}
+.sk-row-identity {
+  min-width: 0;
+}
+.sk-row-name {
+  width: min(60%, 150px);
+  height: 13px;
+}
+.sk-row-sub {
+  width: min(42%, 104px);
+  height: 8px;
+  margin-top: 7px;
+}
+.sk-row-points {
+  width: 32px;
+  height: 15px;
+}
+.ctor-row--sk .sk-row-bar {
+  width: 34px;
+  height: 18px;
+  border-radius: var(--cgr-radius-chip);
+}
+.ctor-row--sk .sk-row-sub {
+  width: 100%;
+  height: 6px;
+}
+
+/* roll of honour */
+
+.roh-sk-season {
+  width: 18px;
+  height: 10px;
+}
+.roh-sk-bar {
+  width: 3px;
+  height: 18px;
+}
+.roh-sk-name {
+  width: 104px;
+  height: 12px;
+}
+
+/* coverage */
+
+.coverage-sk-round {
+  width: 118px;
+  height: 8px;
+}
+.coverage-sk-title {
+  width: 100%;
+  height: 15px;
+  margin-top: 10px;
+}
+.coverage-sk-title--short {
+  width: 62%;
+  margin-top: 7px;
+}
+.coverage-sk-date {
+  width: 78px;
+  height: 8px;
+  margin-top: 12px;
 }
 
 /* ═══════════════════════════════════════

@@ -68,7 +68,7 @@ function useCountdown(target: string | null) {
 export const HomePage = () => {
   const { data: teaser, isLoading: teaserLoading } = useNextRaceTeaser({ includeSprints: true });
   const { data: latestArticles, isLoading: articlesLoading } = useLatestArticles();
-  const { data: driversHome } = useDriversHomepage();
+  const { data: driversHome, isLoading: driversHomeLoading } = useDriversHomepage();
   const latestSeasonId = useLatestSeasonId();
 
   const upcoming = teaser?.upcoming_race ?? null;
@@ -86,9 +86,10 @@ export const HomePage = () => {
     race && latestArticles?.preview?.race?.id === race.id ? latestArticles.preview : null;
 
   const seasonId = teaser?.season_id ?? latestSeasonId ?? null;
-  const { data: driverStandings } = useSeasonStandings(seasonId ?? 0);
-  const { data: constructorStandings } = useConstructorStandings(seasonId ?? 0);
-  const { data: hof } = useHallOfFame(true);
+  const { data: driverStandings, isLoading: driverStandingsLoading } = useSeasonStandings(seasonId ?? 0);
+  const { data: constructorStandings, isLoading: constructorStandingsLoading } = useConstructorStandings(seasonId ?? 0);
+  const { data: hof, isLoading: hofLoading } = useHallOfFame(true);
+  const standingsLoading = teaserLoading || driverStandingsLoading || constructorStandingsLoading;
 
   const humans = driversHome?.human_spotlight ?? [];
   const lastRaceLabel = driversHome?.last_race?.track_name?.toUpperCase() ?? null;
@@ -108,7 +109,7 @@ export const HomePage = () => {
 
   return (
     <div className="home-page">
-    {seasonId && leaderRow && (
+    {seasonId && leaderRow ? (
       <StatusTicker
         seasonLabel={`SEASON ${seasonId}`}
         roundCurrent={teaser?.completed_rounds ?? 0}
@@ -118,7 +119,15 @@ export const HomePage = () => {
         margin={leaderRow.points - runnerUpPoints}
         right={track ? <span>NEXT <b>{track.name.toUpperCase()}</b></span> : null}
       />
-    )}
+    ) : standingsLoading ? (
+      <div className="status-ticker">
+        <span className="sk ticker-sk ticker-sk--season" />
+        <span className="ticker-divider" />
+        <span className="sk ticker-sk" />
+        <span className="ticker-divider" />
+        <span className="sk ticker-sk ticker-sk--wide" />
+      </div>
+    ) : null}
     <div className="home">
 
       {/* ── Hero ── */}
@@ -127,7 +136,15 @@ export const HomePage = () => {
           {trackImg && <img loading="eager" className="hero-bg" src={trackImg} alt="" aria-hidden="true" />}
           <div className="hero-overlay" />
           {teaserLoading ? (
-            <div className="hero-skeleton" />
+            <div className="hero-content">
+              <div className="hero-badges">
+                <span className="sk sk--dark hero-sk-badge" />
+                <span className="sk sk--dark hero-sk-round" />
+              </div>
+              <span className="sk sk--dark hero-sk-title" />
+              <span className="sk sk--dark hero-sk-meta" />
+              <span className="sk sk--dark hero-sk-cta" />
+            </div>
           ) : upcoming ? (
             <div className="hero-content">
               <div className="hero-badges">
@@ -162,7 +179,33 @@ export const HomePage = () => {
 
         <div className="hero-countdown-card">
           <div className="cd-label">LIGHTS OUT IN</div>
-          {countdown ? (
+          {teaserLoading ? (
+            <>
+              <div className="cd-grid">
+                {[0, 1, 2, 3].map((i) => (
+                  <div className="cd-cell" key={i}>
+                    <span className="sk cd-sk-value" />
+                    <span className="sk cd-sk-unit" />
+                  </div>
+                ))}
+              </div>
+              <div className="cd-context">
+                <div className="cd-sub-label">Winners here</div>
+                <div className="cd-winners">
+                  {[0, 1, 2].map((i) => (
+                    <div className="cd-winner" key={i}>
+                      <span className="sk cd-sk-season" />
+                      <span className="sk cd-sk-name" />
+                      <span className="sk cd-sk-team" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="cd-then">
+                <span className="sk cd-sk-then" />
+              </div>
+            </>
+          ) : countdown ? (
             <div className="cd-grid">
               <div className="cd-cell">
                 <div className="cd-value cd-value--accent">{countdown.d}</div>
@@ -184,6 +227,9 @@ export const HomePage = () => {
           ) : (
             <div className="cd-tbd">Date TBD</div>
           )}
+
+          {!teaserLoading && (
+          <>
           <div className="cd-context">
             <div className="cd-sub-label">Winners here</div>
             {trackWinners.length > 0 ? (
@@ -212,6 +258,8 @@ export const HomePage = () => {
               ))}
             </div>
           )}
+          </>
+          )}
 
           <Link
             to={
@@ -227,7 +275,45 @@ export const HomePage = () => {
       </section>
 
       {/* ── The humans ── */}
-      {humans.length > 0 && (
+      {driversHomeLoading ? (
+        <section className="humans-section">
+          <div className="humans-header">
+            <span className="humans-label">THE HUMANS</span>
+          </div>
+          <div className="humans-grid">
+            {[0, 1, 2, 3].map((i) => (
+              <div className="human-card human-card--sk" key={i}>
+                <div className="human-card-bar" />
+                <div className="human-card-body">
+                  <div className="human-card-top">
+                    <div className="human-card-id">
+                      <span className="sk human-sk-avatar" />
+                      <div className="human-card-name-block">
+                        <span className="sk human-sk-name" />
+                        <span className="sk human-sk-team" />
+                      </div>
+                    </div>
+                    <span className="sk human-sk-pos" />
+                  </div>
+                  <div className="human-stats">
+                    <div className="human-stat">
+                      <span className="sk human-sk-stat" />
+                      <span className="sk human-sk-stat-label" />
+                    </div>
+                    <div className="human-stat">
+                      <span className="sk human-sk-stat" />
+                      <span className="sk human-sk-stat-label" />
+                    </div>
+                  </div>
+                  <div className="human-form">
+                    {[0, 1, 2, 3, 4].map((j) => <span className="sk human-sk-form" key={j} />)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : humans.length > 0 && (
         <section className="humans-section">
           <div className="humans-header">
             <span className="humans-label">THE HUMANS</span>
@@ -291,7 +377,31 @@ export const HomePage = () => {
       )}
 
       {/* ── Standings ── */}
-      {(topDrivers.length > 0 || constructors.length > 0) && (
+      {standingsLoading ? (
+        <div className="home-standings-grid">
+          {[
+            { title: "DRIVER STANDINGS", rows: 8, cls: "standings-row" },
+            { title: "CONSTRUCTOR STANDINGS", rows: 8, cls: "ctor-row" },
+          ].map((card) => (
+            <div className="standings-card" key={card.title}>
+              <div className="standings-card-header">
+                <span className="standings-card-title">{card.title}</span>
+              </div>
+              {Array.from({ length: card.rows }).map((_, i) => (
+                <div className={`${card.cls} ${card.cls}--sk`} key={i}>
+                  <span className="sk sk-row-pos" />
+                  <span className="sk sk-row-bar" />
+                  <div className="sk-row-identity">
+                    <span className="sk sk-row-name" />
+                    <span className="sk sk-row-sub" />
+                  </div>
+                  <span className="sk sk-row-points" />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : (topDrivers.length > 0 || constructors.length > 0) && (
         <div className="home-standings-grid">
           <div className="standings-card">
             <div className="standings-card-header">
@@ -360,7 +470,20 @@ export const HomePage = () => {
       <HistoryTeaser />
 
       {/* ── Roll of Honour ── */}
-      {champions.length > 0 && (
+      {hofLoading ? (
+        <div className="roh-panel">
+          <span className="roh-label">ROLL OF<br />HONOUR</span>
+          <div className="roh-grid">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div className="roh-item" key={i}>
+                <span className="sk sk--dark roh-sk-season" />
+                <span className="sk sk--dark roh-sk-bar" />
+                <span className="sk sk--dark roh-sk-name" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : champions.length > 0 && (
         <div className="roh-panel">
           <span className="roh-label">ROLL OF<br />HONOUR</span>
           <div className="roh-grid">
@@ -384,7 +507,17 @@ export const HomePage = () => {
           </div>
           <div className="coverage-grid">
             {articlesLoading ? (
-              [0, 1, 2].map((i) => <div key={i} className="coverage-card coverage-card--skeleton" />)
+              [0, 1, 2].map((i) => (
+                <div key={i} className="coverage-card">
+                  <div className="coverage-thumb sk-thumb" />
+                  <div className="coverage-body">
+                    <span className="sk coverage-sk-round" />
+                    <span className="sk coverage-sk-title" />
+                    <span className="sk coverage-sk-title coverage-sk-title--short" />
+                    <span className="sk coverage-sk-date" />
+                  </div>
+                </div>
+              ))
             ) : (
               articles.map((a) => {
                 const img = a.race?.track.img ? displayImage(a.race.track.img, "trackImage") : null;
