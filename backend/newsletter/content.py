@@ -2,15 +2,19 @@
 
 from typing import Any, Dict, Optional
 
+from django.core.cache import cache
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 
 from articles.models import Article
 from entries.models import DriverSeason
 from results.api.views.utils import fl_bonus_case, points_case
+from results.cache import CACHE_TTL, key_race_prediction
 from results.models import Race, RaceResult
+from results.predictions import calculate_race_prediction
 
 STANDINGS_ROWS = 5
+ODDS_ROWS = 5
 
 
 def latest_completed_race() -> Optional[Race]:
@@ -112,6 +116,35 @@ def _standings(season_id: int, through_round: int):
     return rows[:STANDINGS_ROWS]
 
 
+def _odds(race: Race):
+    """Top of the race page's own forecast, read through its cache rather than
+    re-running the simulation. Early rounds can have too little history to model,
+    so an unavailable forecast just drops the section."""
+    key = key_race_prediction(race.id)
+    payload = cache.get(key)
+    if payload is None:
+        try:
+            payload = calculate_race_prediction(race)
+        except Exception:
+            return []
+        cache.set(key, payload, timeout=CACHE_TTL)
+
+    rows = sorted(
+        payload.get("predictions", []),
+        key=lambda r: -r.get("win_probability", 0),
+    )[:ODDS_ROWS]
+    return [
+        {
+            "driver": r["driver"]["display_name"],
+            "team": r["team"]["name"],
+            "color": r["team"]["color"] or "#16140f",
+            "win_pct": round(r["win_probability"] * 100),
+            "podium_pct": round(r["podium_probability"] * 100),
+        }
+        for r in rows
+    ]
+
+
 def _previous_race(race: Race) -> Optional[Race]:
     """Most recent round before this one that has results — what a preview looks back on."""
     return (
@@ -174,6 +207,7 @@ def build_preview_issue(race: Race) -> Dict[str, Any]:
         "season": race.season,
         "track": race.track,
         "preview": preview,
+        "odds": _odds(race),
         "head_to_head": (sidebar or {}).get("head_to_head"),
         "drivers_to_watch": (sidebar or {}).get("drivers_to_watch") or [],
         "standings": _standings(race.season_id, race.round - 1),

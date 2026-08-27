@@ -1,7 +1,11 @@
 CGR LEAGUE — UP NEXT: SEASON {{ season.id }}, ROUND {{ race.round }}{% if race.is_sprint %} SPRINT{% endif %}
 {{ track.name|upper }}{% if track.city or track.country %}
-{{ track.city }}{% if track.city and track.country %}, {% endif %}{{ track.country }}{% endif %}{% if race.started_at %}
-{{ race.started_at|date:"D j M Y, H:i" }} UTC{% endif %}
+{{ track.city }}{% if track.city and track.country %}, {% endif %}{{ track.country }}{% endif %}
+
+LIGHTS OUT
+{% if race.started_at %}{{ race.started_at|date:"D j M Y" }} at {{ race.started_at|date:"H:i" }} UTC{% else %}Date TBC{% endif %}
+
+Race centre: {{ site_url }}/seasons/{{ season.id }}/races/{{ race.round }}
 {% if preview %}
 RACE PREVIEW
 {{ preview.title }}
@@ -18,6 +22,12 @@ HEAD TO HEAD
 DRIVERS TO WATCH{% for row in drivers_to_watch %}
   {{ row.name }}{% if row.reason %} — {{ row.reason }}{% endif %}{% if row.stat %}
     {{ row.stat }}{% endif %}{% endfor %}
+{% endif %}{% if odds %}
+RACE CENTRE FORECAST — WIN CHANCE
+Modelled from form and history before this round{% for row in odds %}
+  {{ row.win_pct }}% {{ row.driver }} — {{ row.team }} ({{ row.podium_pct }}% podium){% endfor %}
+
+Full forecast: {{ site_url }}/seasons/{{ season.id }}/races/{{ race.round }}
 {% endif %}{% if standings %}
 CHAMPIONSHIP GOING IN{% for row in standings %}
   {{ row.position }}. {{ row.driver }} — {{ row.points }} pts{% if row.gap %} ({{ row.gap }}){% endif %}{% endfor %}
