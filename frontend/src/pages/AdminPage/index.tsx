@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { adminApi, type GridDriver, type RaceInfo } from "../../api/admin";
 import { ApiError } from "../../api/client";
+import "./style.css";
 
 const CURRENT_SEASON = 7;
 
@@ -252,270 +253,211 @@ export function AdminPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   if (loadingRaces || loadingGrid) {
-    return <p style={{ padding: "2rem" }}>Loading…</p>;
+    return <div className="ad-page"><p className="ad-loading">Loading…</p></div>;
   }
 
   const selectedRace = races.find((r) => r.id === selectedRaceId);
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
-        <h2 style={{ margin: 0 }}>Submit Results — Season {CURRENT_SEASON}</h2>
-        <span style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.5)" }}>
-          {username} &nbsp;
-          <button
-            onClick={() => logout().then(() => navigate("/login"))}
-            style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", fontSize: "0.85rem" }}
+    <div className="ad-page">
+      <div className="ad-band">
+        <div className="ad-band-inner">
+          <div>
+            <span className="ad-eyebrow">CGR League · Admin</span>
+            <h1 className="ad-title">Results — Season {CURRENT_SEASON}</h1>
+          </div>
+          <span className="ad-user">
+            {username}
+            <button className="ad-logout" onClick={() => logout().then(() => navigate("/login"))}>
+              Log out
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <div className="ad-inner">
+        <div className="ad-panel">
+          <label className="ad-label" htmlFor="ad-race">Select race</label>
+          <select
+            id="ad-race"
+            className="ad-select"
+            value={selectedRaceId ?? ""}
+            onChange={(e) => {
+              setSelectedRaceId(e.target.value ? parseInt(e.target.value, 10) : null);
+              setSubmitState("idle");
+            }}
           >
-            Logout
-          </button>
-        </span>
-      </div>
+            <option value="">— choose a race —</option>
+            {races.map((r) => (
+              <option key={r.id} value={r.id}>
+                R{r.round}{r.is_sprint ? " Sprint" : ""} — {r.track.name}
+                {r.started_at ? ` (${new Date(r.started_at).toLocaleDateString()})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* Race selector */}
-      <div style={{ marginBottom: "1.5rem" }}>
-        <label style={{ display: "block", marginBottom: 6, fontSize: "0.875rem", color: "rgba(255,255,255,0.6)" }}>
-          Select Race
-        </label>
-        <select
-          value={selectedRaceId ?? ""}
-          onChange={(e) => {
-            setSelectedRaceId(e.target.value ? parseInt(e.target.value, 10) : null);
-            setSubmitState("idle");
-          }}
-          style={selectStyle}
-        >
-          <option value="">— choose a race —</option>
-          {races.map((r) => (
-            <option key={r.id} value={r.id}>
-              R{r.round}{r.is_sprint ? " Sprint" : ""} — {r.track.name}
-              {r.started_at ? ` (${new Date(r.started_at).toLocaleDateString()})` : ""}
-            </option>
-          ))}
-        </select>
-      </div>
+        {selectedRace && (
+          <div className="ad-panel">
+            {loadingExisting ? (
+              <p className="ad-loading">Loading existing results…</p>
+            ) : (
+              <>
+                <p className="ad-hint">
+                  Drag rows to set finish order. Position is assigned top to bottom;
+                  DNS and DNQ always get no position.
+                </p>
 
-      {/* Grid */}
-      {selectedRace && (
-        <>
-          {loadingExisting ? (
-            <p style={{ color: "rgba(255,255,255,0.5)" }}>Loading existing results…</p>
-          ) : (
-            <>
-              <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem" }}>
-                Drag rows to set finish order. Position is assigned top → bottom (DNS/DNQ always get null position).
-              </p>
+                <div className="ad-grid-scroll">
+                  <div className="ad-grid">
+                    <div className="ad-head">
+                      <span className="ad-c-handle" />
+                      <span className="ad-c-in">In</span>
+                      <span className="ad-c-pos">Pos</span>
+                      <span className="ad-c-driver">Driver</span>
+                      <span className="ad-c-grid">Grid</span>
+                      <span className="ad-c-status">Status</span>
+                      <span className="ad-c-flag">Pole</span>
+                      <span className="ad-c-flag">FL</span>
+                      <span className="ad-c-flag">DOTD</span>
+                      <span className="ad-c-flag">CD</span>
+                      <span className="ad-c-flag">OT</span>
+                    </div>
 
-              {/* Column headers */}
-              <div style={{ ...headerRow }}>
-                <span style={{ width: 32 }} />
-                <span style={{ width: 32, textAlign: "center" }}>In</span>
-                <span style={{ width: 40, textAlign: "center" }}>Pos</span>
-                <span style={{ flex: 1 }}>Driver</span>
-                <span style={{ width: 72, textAlign: "center" }}>Grid</span>
-                <span style={{ width: 80, textAlign: "center" }}>Status</span>
-                <span style={{ width: 56, textAlign: "center" }}>Pole</span>
-                <span style={{ width: 56, textAlign: "center" }}>FL</span>
-                <span style={{ width: 56, textAlign: "center" }}>DOTD</span>
-                <span style={{ width: 56, textAlign: "center" }}>CD</span>
-                <span style={{ width: 56, textAlign: "center" }}>OT</span>
-              </div>
+                    {order.map((dsId, idx) => {
+                      const driver = gridMap[dsId];
+                      if (!driver) return null;
+                      const p = placements[dsId] ?? defaultPlacement();
+                      const isNoStart = p.status === "DNS" || p.status === "DNQ";
 
-              {order.map((dsId, idx) => {
-                const driver = gridMap[dsId];
-                if (!driver) return null;
-                const p = placements[dsId] ?? defaultPlacement();
-                const isNoStart = p.status === "DNS" || p.status === "DNQ";
-                const isDraggingOver = dragOverIndex === idx;
+                      // Position counts only competing, started drivers above this one
+                      const finishPos = p.competing && !isNoStart
+                        ? order.slice(0, idx + 1).filter((id) => {
+                            const pp = placements[id];
+                            return pp?.competing && pp.status !== "DNS" && pp.status !== "DNQ";
+                          }).length
+                        : null;
 
-                // Compute finish position only among competing, non-DNS/DNQ drivers above this one
-                const finishPos = p.competing && !isNoStart
-                  ? order.slice(0, idx + 1).filter((id) => {
-                      const pp = placements[id];
-                      return pp?.competing && pp.status !== "DNS" && pp.status !== "DNQ";
-                    }).length
-                  : null;
+                      const rowClass = [
+                        "ad-row",
+                        dragOverIndex === idx ? "is-dragover" : "",
+                        dragIndexRef.current === idx ? "is-dragging" : "",
+                        !p.competing ? "is-out" : "",
+                      ].filter(Boolean).join(" ");
 
-                return (
-                  <div
-                    key={dsId}
-                    draggable
-                    onDragStart={() => handleDragStart(idx)}
-                    onDragOver={(e) => handleDragOver(e, idx)}
-                    onDrop={handleDrop}
-                    onDragEnd={handleDragEnd}
-                    style={{
-                      ...driverRow,
-                      borderTop: isDraggingOver ? "2px solid #e10600" : "2px solid transparent",
-                      opacity: !p.competing ? 0.35 : dragIndexRef.current === idx ? 0.4 : 1,
-                    }}
-                  >
-                    {/* Drag handle */}
-                    <span style={{ width: 32, cursor: "grab", color: "rgba(255,255,255,0.3)", userSelect: "none", fontSize: "1.1rem" }}>
-                      ⠿
-                    </span>
+                      return (
+                        <div
+                          key={dsId}
+                          className={rowClass}
+                          draggable
+                          onDragStart={() => handleDragStart(idx)}
+                          onDragOver={(e) => handleDragOver(e, idx)}
+                          onDrop={handleDrop}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <span className="ad-c-handle">
+                            <span className="ad-handle">⠿</span>
+                          </span>
 
-                    {/* Competing toggle */}
-                    <span style={{ width: 32, display: "flex", justifyContent: "center" }}>
-                      <input
-                        type="checkbox"
-                        checked={p.competing}
-                        title={p.competing ? "Competed — click to mark as sat out" : "Sat out — click to mark as competed"}
-                        onChange={(e) => updatePlacement(dsId, { competing: e.target.checked })}
-                        style={{ width: 15, height: 15, cursor: "pointer", accentColor: "#60a5fa" }}
-                      />
-                    </span>
+                          <span className="ad-c-in">
+                            <input
+                              type="checkbox"
+                              className="ad-check ad-check--in"
+                              checked={p.competing}
+                              title={p.competing ? "Competed — click to mark as sat out" : "Sat out — click to mark as competed"}
+                              onChange={(e) => updatePlacement(dsId, { competing: e.target.checked })}
+                            />
+                          </span>
 
-                    {/* Position */}
-                    <span style={{ width: 40, textAlign: "center", fontWeight: 700, fontSize: "0.9rem", color: !p.competing || isNoStart ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.8)" }}>
-                      {!p.competing ? "—" : isNoStart ? "—" : `P${finishPos}`}
-                    </span>
+                          <span className="ad-c-pos">
+                            <span className={"ad-pos" + (!p.competing || isNoStart ? " is-none" : "")}>
+                              {!p.competing || isNoStart ? "—" : `P${finishPos}`}
+                            </span>
+                          </span>
 
-                    {/* Driver name + team */}
-                    <span style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, overflow: "hidden" }}>
-                      {driver.team.color && (
-                        <span style={{ width: 4, height: 28, borderRadius: 2, background: driver.team.color, flexShrink: 0 }} />
-                      )}
-                      <span>
-                        <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>
-                          {driver.car_number ? `#${driver.car_number} ` : ""}
-                          {driver.driver.first_name} {driver.driver.last_name}
-                        </span>
-                        <span style={{ display: "block", fontSize: "0.75rem", color: "rgba(255,255,255,0.45)" }}>
-                          {driver.team.name}
-                        </span>
-                      </span>
-                    </span>
+                          <span className="ad-c-driver">
+                            {driver.team.color && (
+                              <span className="ad-livery" style={{ background: driver.team.color }} />
+                            )}
+                            <span className="ad-driver-meta">
+                              <span className="ad-driver-name">
+                                {driver.car_number ? `#${driver.car_number} ` : ""}
+                                {driver.driver.first_name} {driver.driver.last_name}
+                              </span>
+                              <span className="ad-driver-team">{driver.team.name}</span>
+                            </span>
+                          </span>
 
-                    {/* Grid position */}
-                    <input
-                      type="number"
-                      min={1}
-                      max={99}
-                      value={p.gridPosition}
-                      onChange={(e) => updatePlacement(dsId, { gridPosition: e.target.value })}
-                      placeholder="—"
-                      disabled={!p.competing}
-                      style={{ ...numInput, width: 64, opacity: p.competing ? 1 : 0.3 }}
-                    />
+                          <span className="ad-c-grid">
+                            <input
+                              type="number"
+                              className="ad-num"
+                              min={1}
+                              max={99}
+                              value={p.gridPosition}
+                              onChange={(e) => updatePlacement(dsId, { gridPosition: e.target.value })}
+                              placeholder="—"
+                              disabled={!p.competing}
+                            />
+                          </span>
 
-                    {/* Status */}
-                    <select
-                      value={p.status}
-                      onChange={(e) => updatePlacement(dsId, { status: e.target.value as Status })}
-                      disabled={!p.competing}
-                      style={{ ...selectStyle, width: 80, padding: "4px 6px", fontSize: "0.8rem", opacity: p.competing ? 1 : 0.3 }}
-                    >
-                      <option>FIN</option>
-                      <option>DNF</option>
-                      <option>DNS</option>
-                      <option>DSQ</option>
-                      <option>DNQ</option>
-                    </select>
+                          <span className="ad-c-status">
+                            <select
+                              className="ad-status"
+                              value={p.status}
+                              onChange={(e) => updatePlacement(dsId, { status: e.target.value as Status })}
+                              disabled={!p.competing}
+                            >
+                              <option>FIN</option>
+                              <option>DNF</option>
+                              <option>DNS</option>
+                              <option>DSQ</option>
+                              <option>DNQ</option>
+                            </select>
+                          </span>
 
-                    {/* Exclusive flags: Pole, FL, DOTD */}
-                    <FlagCell checked={p.polePosition} disabled={!p.competing} onChange={(v) => setExclusiveFlag(dsId, "polePosition", v)} />
-                    <FlagCell checked={p.fastestLap}   disabled={!p.competing} onChange={(v) => setExclusiveFlag(dsId, "fastestLap", v)} />
-                    <FlagCell checked={p.dotd}         disabled={!p.competing} onChange={(v) => setExclusiveFlag(dsId, "dotd", v)} />
-
-                    {/* Non-exclusive: Cleanest Driver, Most Overtakes */}
-                    <FlagCell checked={p.cleanestDriver} disabled={!p.competing} onChange={(v) => updatePlacement(dsId, { cleanestDriver: v })} />
-                    <FlagCell checked={p.mostOvertakes}  disabled={!p.competing} onChange={(v) => updatePlacement(dsId, { mostOvertakes: v })} />
+                          {/* Exclusive: only one driver per race can hold these */}
+                          <FlagCell checked={p.polePosition}   disabled={!p.competing} onChange={(v) => setExclusiveFlag(dsId, "polePosition", v)} />
+                          <FlagCell checked={p.fastestLap}     disabled={!p.competing} onChange={(v) => setExclusiveFlag(dsId, "fastestLap", v)} />
+                          <FlagCell checked={p.dotd}           disabled={!p.competing} onChange={(v) => setExclusiveFlag(dsId, "dotd", v)} />
+                          <FlagCell checked={p.cleanestDriver} disabled={!p.competing} onChange={(v) => updatePlacement(dsId, { cleanestDriver: v })} />
+                          <FlagCell checked={p.mostOvertakes}  disabled={!p.competing} onChange={(v) => updatePlacement(dsId, { mostOvertakes: v })} />
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
 
-              {/* Submit */}
-              <div style={{ marginTop: "2rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-                <button
-                  onClick={handleSubmit}
-                  disabled={submitState === "loading"}
-                  style={{
-                    padding: "0.65rem 2rem",
-                    background: "#e10600",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 6,
-                    fontWeight: 700,
-                    fontSize: "0.95rem",
-                    cursor: submitState === "loading" ? "not-allowed" : "pointer",
-                    opacity: submitState === "loading" ? 0.7 : 1,
-                  }}
-                >
-                  {submitState === "loading" ? "Saving…" : "Submit Results"}
-                </button>
-                {submitState === "success" && (
-                  <span style={{ color: "#4ade80", fontWeight: 600 }}>✓ Results saved!</span>
-                )}
-                {submitState === "error" && (
-                  <span style={{ color: "#f87171" }}>Error: {submitError}</span>
-                )}
-              </div>
-            </>
-          )}
-        </>
-      )}
+                <div className="ad-actions">
+                  <button
+                    className="ad-submit"
+                    onClick={handleSubmit}
+                    disabled={submitState === "loading"}
+                  >
+                    {submitState === "loading" ? "Saving…" : "Submit results"}
+                  </button>
+                  {submitState === "success" && <span className="ad-ok">✓ Results saved</span>}
+                  {submitState === "error" && <span className="ad-err">Error: {submitError}</span>}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 function FlagCell({ checked, disabled, onChange }: { checked: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
   return (
-    <span style={{ width: 56, display: "flex", justifyContent: "center" }}>
+    <span className="ad-c-flag">
       <input
         type="checkbox"
+        className="ad-check"
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
-        style={{ width: 16, height: 16, cursor: disabled ? "default" : "pointer", accentColor: "#e10600", opacity: disabled ? 0.3 : 1 }}
       />
     </span>
   );
 }
-
-// ── Shared styles ─────────────────────────────────────────────────────────────
-
-const selectStyle: React.CSSProperties = {
-  background: "#1a1c28",
-  border: "1px solid rgba(255,255,255,0.15)",
-  borderRadius: 6,
-  color: "#fff",
-  padding: "6px 10px",
-  fontSize: "0.875rem",
-  cursor: "pointer",
-};
-
-const numInput: React.CSSProperties = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.15)",
-  borderRadius: 4,
-  color: "#fff",
-  padding: "4px 6px",
-  fontSize: "0.8rem",
-  textAlign: "center",
-  MozAppearance: "textfield",
-};
-
-const driverRow: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-  padding: "6px 8px",
-  borderRadius: 6,
-  background: "rgba(255,255,255,0.04)",
-  marginBottom: 4,
-  transition: "border-top 0.1s",
-};
-
-const headerRow: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-  padding: "4px 8px",
-  fontSize: "0.75rem",
-  color: "rgba(255,255,255,0.4)",
-  textTransform: "uppercase",
-  letterSpacing: "0.05em",
-  marginBottom: 6,
-};

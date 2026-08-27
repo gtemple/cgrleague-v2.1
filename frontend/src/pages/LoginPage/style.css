@@ -1,0 +1,101 @@
+/* ═══════════════════════════════════════
+   ADMIN LOGIN
+═══════════════════════════════════════ */
+
+.lg-page {
+  background: var(--cgr-paper);
+  min-height: 100vh;
+  font-family: var(--cgr-font-body);
+  color: var(--cgr-text-primary);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 64px 20px;
+}
+
+.lg-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--cgr-card);
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-card);
+  padding: 28px 26px 26px;
+}
+
+.lg-eyebrow {
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted);
+}
+
+.lg-title {
+  margin: 8px 0 22px;
+  font-family: var(--cgr-font-display);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--cgr-text-primary);
+}
+
+.lg-error {
+  margin: 0 0 16px;
+  padding: 9px 11px;
+  background: #fdecec;
+  border: 1px solid #f3c4c2;
+  border-radius: var(--cgr-radius-chip);
+  font-size: 13px;
+  color: #a3201d;
+}
+
+.lg-field { margin-bottom: 16px; }
+
+.lg-label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted);
+}
+
+.lg-input {
+  width: 100%;
+  padding: 9px 11px;
+  background: var(--cgr-card);
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-chip);
+  font-family: var(--cgr-font-body);
+  font-size: 14px;
+  color: var(--cgr-text-primary);
+  transition: border-color 0.15s;
+}
+.lg-input:hover { border-color: var(--cgr-border-hover); }
+.lg-input:focus {
+  outline: none;
+  border-color: var(--cgr-text-primary);
+}
+
+.lg-submit {
+  width: 100%;
+  margin-top: 6px;
+  padding: 11px 16px;
+  background: var(--cgr-red);
+  border: none;
+  border-radius: var(--cgr-radius-chip);
+  font-family: var(--cgr-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.lg-submit:hover:not(:disabled) { filter: brightness(1.08); }
+.lg-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+.lg-submit:focus-visible { outline: 2px solid var(--cgr-text-primary); outline-offset: 2px; }

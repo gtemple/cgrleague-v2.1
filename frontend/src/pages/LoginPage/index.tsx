@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ApiError } from "../../api/client";
+import "./style.css";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -31,68 +32,43 @@ export function LoginPage() {
   }
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", paddingTop: "4rem" }}>
-      <form onSubmit={handleSubmit} style={{ width: "100%", maxWidth: 360 }}>
-        <h2 style={{ marginBottom: "1.5rem" }}>Admin Login</h2>
-        {error && (
-          <p style={{ color: "#f87171", marginBottom: "1rem" }}>{error}</p>
-        )}
-        <div style={{ marginBottom: "1rem" }}>
-          <label style={{ display: "block", marginBottom: 4, fontSize: "0.875rem", color: "rgba(255,255,255,0.7)" }}>
-            Username
-          </label>
+    <div className="lg-page">
+      <form className="lg-card" onSubmit={handleSubmit}>
+        <span className="lg-eyebrow">CGR League · Admin</span>
+        <h1 className="lg-title">Sign in</h1>
+
+        {error && <p className="lg-error">{error}</p>}
+
+        <div className="lg-field">
+          <label className="lg-label" htmlFor="lg-username">Username</label>
           <input
+            id="lg-username"
+            className="lg-input"
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
             autoComplete="username"
-            style={inputStyle}
           />
         </div>
-        <div style={{ marginBottom: "1.5rem" }}>
-          <label style={{ display: "block", marginBottom: 4, fontSize: "0.875rem", color: "rgba(255,255,255,0.7)" }}>
-            Password
-          </label>
+
+        <div className="lg-field">
+          <label className="lg-label" htmlFor="lg-password">Password</label>
           <input
+            id="lg-password"
+            className="lg-input"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
-            style={inputStyle}
           />
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "0.65rem 1rem",
-            background: "oklch(83% 0.18 88)",
-            color: "oklch(15% 0.01 88)",
-            border: "none",
-            borderRadius: 6,
-            fontWeight: 600,
-            fontSize: "0.95rem",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.7 : 1,
-          }}
-        >
-          {loading ? "Logging in…" : "Login"}
+
+        <button className="lg-submit" type="submit" disabled={loading}>
+          {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "0.55rem 0.75rem",
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.15)",
-  borderRadius: 6,
-  color: "#fff",
-  fontSize: "0.95rem",
-  boxSizing: "border-box",
-};
