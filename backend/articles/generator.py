@@ -1776,12 +1776,16 @@ def _season_progress():
 
 def _fmt_rivalry_seasons(a_name, b_name, seasons, progress, timeline):
     wins = {}
+    won_at = {}
     for t in timeline:
         row = wins.setdefault(t["season_id"], [0, 0])
+        tracks = won_at.setdefault(t["season_id"], ([], []))
         if t["a_finish"] == 1:
             row[0] += 1
+            tracks[0].append(t["track"])
         if t["b_finish"] == 1:
             row[1] += 1
+            tracks[1].append(t["track"])
 
     lines = []
     for s in seasons:
@@ -1792,6 +1796,9 @@ def _fmt_rivalry_seasons(a_name, b_name, seasons, progress, timeline):
             f"points {s['a_points']}-{s['b_points']}, "
             f"race wins {a_wins}-{b_wins}"
         )
+        for name, won in ((a_name, won_at[s["season_id"]][0]), (b_name, won_at[s["season_id"]][1])):
+            if won:
+                line += f"; {name} won at {', '.join(won)}"
         run, scheduled = progress.get(s["season_id"], (0, 0))
         if run < scheduled:
             line += f" — SEASON STILL IN PROGRESS, only {run} of {scheduled} rounds run so far"
@@ -1901,14 +1908,12 @@ def _fmt_rivalry_landmarks(a_name, b_name, data):
     )
 
     if data["biggest_margin"]:
-        rid = data["biggest_margin"]["race_id"]
-        race = next((t for t in timeline if t["race_id"] == rid), None)
-        if race:
-            lines.append(
-                f"  Widest gap: {data['biggest_margin']['margin']} places at "
-                f"S{race['season_id']} {race['track']} "
-                f"({a_name} P{race['a_finish']}, {b_name} P{race['b_finish']})"
-            )
+        widest = data["biggest_margin"]["margin"]
+        at = [
+            f"S{t['season_id']} {t['track']} ({a_name} P{t['a_finish']}, {b_name} P{t['b_finish']})"
+            for t in timeline if t["margin"] == widest
+        ]
+        lines.append(f"  Widest gap, {widest} places, at: {'; '.join(at)}")
 
     swing = max(timeline, key=lambda t: abs(t["a_points"] - t["b_points"]))
     lines.append(
@@ -1928,9 +1933,19 @@ def _fmt_rivalry_landmarks(a_name, b_name, data):
     )
 
     streaks = data["streaks"]
+    run = {"a": 0, "b": 0}
+    peak = {"a": (0, None), "b": (0, None)}
+    for t in timeline:
+        w = t["winner"]
+        other = "b" if w == "a" else "a"
+        run[w] += 1
+        run[other] = 0
+        if run[w] > peak[w][0]:
+            peak[w] = (run[w], t["season_id"])
     lines.append(
-        f"  Longest run of consecutive wins over the other: "
-        f"{a_name} {streaks['best_a']}, {b_name} {streaks['best_b']}"
+        f"  Longest run of finishing ahead, back to back: "
+        f"{a_name} {peak['a'][0]} (ending in S{peak['a'][1]}), "
+        f"{b_name} {peak['b'][0]} (ending in S{peak['b'][1]})"
     )
     cur = streaks["current"]
     if cur["driver"] and cur["length"] > 1:
@@ -2073,11 +2088,16 @@ CIRCUIT RECORD:
 EVERY MEETING, IN ORDER:
 {_fmt_rivalry_timeline(a_name, b_name, data['timeline'])}
 
-Write two or three paragraphs on what this record adds up to. Find the arc — who \
-had the upper hand when, where it turned, what the numbers say about how the two \
-drivers differ. Interpret; do not read the table back. Choose the few seasons and \
-races that carry the story and build on them; do not tour every section of the data \
-in turn, and do not end on a paragraph that restates the overall record.
+Write four or five paragraphs, around 500-650 words, on what this record adds up to. \
+Find the arc — who had the upper hand when, where it turned, what the numbers say about \
+how the two drivers differ. Interpret; do not read the table back.
+
+You have room, so use it on specifics rather than on restating the overall record in \
+different words. Go season by season through the turning points, name individual races \
+and what happened in them, and give the circuits where one holds a clear edge their own \
+treatment. A paragraph that could have been written about any two drivers is a wasted \
+paragraph — every one should contain figures and race names only this pairing has. Do \
+not end on a paragraph that sums up the totals again.
 
 Also write a single sentence that captures the rivalry, shown on its own above the \
 full text while the panel is collapsed. Keep it under 30 words — one clean sentence, \
@@ -2095,6 +2115,10 @@ never compare it against the full {data['shared_races']}-race record
 - EVERY MEETING, IN ORDER is the complete list of results you have. Never state a win, \
 podium, or placing you cannot point to a line for. A sprint is a race like any other in \
 that list — its finishing position is already there, so do not invent sprint results
+- Do not count across rows of the data. No "four wins in six races", no "three rounds \
+later", no "the only season in which...", no runs or stretches you had to assemble from \
+several lines. Either state a single fact you can read off one line, or use a figure \
+that has already been totalled for you above
 - Use the figures exactly as they are written above. Do not add, subtract, average or \
 otherwise work out a number of your own — if a figure you want to state does not appear \
 above, do not state it. Check any number you write against the line it came from
