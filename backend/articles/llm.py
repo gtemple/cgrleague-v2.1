@@ -98,6 +98,20 @@ def _validate(data, schema, path="response"):
 
 # ─── providers ───────────────────────────────────────────────────────────────
 
+def _first_json_object(text):
+    """
+    Parse the first complete JSON value in `text`, ignoring anything after it.
+
+    json_object mode sometimes appends a second object or a stray line once the
+    payload is article-length, which makes json.loads fail the whole response
+    with "Extra data" even though the article itself parsed fine. raw_decode
+    stops at the end of the first value, so that case is recovered rather than
+    retried.
+    """
+    value, _ = json.JSONDecoder().raw_decode(text)
+    return value
+
+
 def _anthropic_json(user_prompt, schema, *, system, max_tokens):
     import anthropic
 
@@ -146,7 +160,9 @@ def _deepseek_json(user_prompt, schema, *, system, max_tokens):
     client = OpenAI(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
 
     last_error = None
-    for attempt in range(2):
+    # Three attempts, not two: json_object mode fails intermittently on
+    # article-length output and a single retry was observed losing an article.
+    for attempt in range(3):
         response = client.chat.completions.create(
             model=active_model(DEEPSEEK),
             max_tokens=max_tokens,
@@ -174,13 +190,13 @@ def _deepseek_json(user_prompt, schema, *, system, max_tokens):
 
         if not text:
             last_error = ValueError("DeepSeek returned empty content")
-            logger.warning("DeepSeek returned empty content (attempt %s/2)", attempt + 1)
+            logger.warning("DeepSeek returned empty content (attempt %s/3)", attempt + 1)
             continue
         try:
-            return _validate(json.loads(text), schema)
+            return _validate(_first_json_object(text), schema)
         except (json.JSONDecodeError, ValueError) as e:
             last_error = e
-            logger.warning("DeepSeek response rejected (attempt %s/2): %s", attempt + 1, e)
+            logger.warning("DeepSeek response rejected (attempt %s/3): %s", attempt + 1, e)
 
     raise RuntimeError(f"DeepSeek failed to return a valid response: {last_error}")
 
