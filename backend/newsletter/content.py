@@ -62,17 +62,21 @@ def _award(race: Race, field: str) -> Optional[str]:
     return _driver_name(result.driver_season.driver) if result else None
 
 
-def _standings(race: Race):
-    """Top of the drivers' championship as it stands after this race."""
+def _standings(season_id: int, through_round: int):
+    """Top of the drivers' championship counting every round up to and including one."""
+    # Nothing has been raced yet — an all-zero table is noise, not a standing.
+    if through_round < 1:
+        return []
+
     seats = (
         DriverSeason.objects
-        .filter(season_id=race.season_id)
+        .filter(season_id=season_id)
         .annotate(
             base_pts=Coalesce(
-                Sum(points_case(), filter=Q(results__race__round__lte=race.round)), 0
+                Sum(points_case(), filter=Q(results__race__round__lte=through_round)), 0
             ),
             fl_pts=Coalesce(
-                Sum(fl_bonus_case(), filter=Q(results__race__round__lte=race.round)), 0
+                Sum(fl_bonus_case(), filter=Q(results__race__round__lte=through_round)), 0
             ),
         )
         .select_related("driver", "team_season__team")
@@ -108,6 +112,18 @@ def _standings(race: Race):
     return rows[:STANDINGS_ROWS]
 
 
+def _previous_race(race: Race) -> Optional[Race]:
+    """Most recent round before this one that has results — what a preview looks back on."""
+    return (
+        Race.objects
+        .filter(season_id=race.season_id, round__lt=race.round, results__isnull=False)
+        .select_related("track")
+        .order_by("-round", "-is_sprint")
+        .distinct()
+        .first()
+    )
+
+
 def _next_race(race: Race) -> Optional[Race]:
     return (
         Race.objects
@@ -118,8 +134,8 @@ def _next_race(race: Race) -> Optional[Race]:
     )
 
 
-def build_race_issue(race: Race) -> Dict[str, Any]:
-    """Everything the issue template needs for one race."""
+def build_recap_issue(race: Race) -> Dict[str, Any]:
+    """Everything the recap template needs: what happened, and a nod to what's next."""
     recap = Article.objects.filter(race=race, type=Article.RECAP).order_by("-generated_at").first()
     next_race = _next_race(race)
     preview = (
@@ -136,8 +152,32 @@ def build_race_issue(race: Race) -> Dict[str, Any]:
         "podium": _podium(race),
         "fastest_lap": _award(race, "fastest_lap"),
         "dotd": _award(race, "dotd"),
-        "standings": _standings(race),
+        "standings": _standings(race.season_id, race.round),
         "next_race": next_race,
         "preview": preview,
         "subject": recap.title if recap else f"{race.track.name} — Round {race.round}",
+    }
+
+
+def build_preview_issue(race: Race) -> Dict[str, Any]:
+    """Everything the preview template needs for an upcoming race.
+
+    Standings are the table going *into* the race, so the round itself is
+    excluded even if results have already been entered.
+    """
+    preview = Article.objects.filter(race=race, type=Article.PREVIEW).order_by("-generated_at").first()
+    sidebar = preview.preview_sidebar if preview else None
+    last_race = _previous_race(race)
+
+    return {
+        "race": race,
+        "season": race.season,
+        "track": race.track,
+        "preview": preview,
+        "head_to_head": (sidebar or {}).get("head_to_head"),
+        "drivers_to_watch": (sidebar or {}).get("drivers_to_watch") or [],
+        "standings": _standings(race.season_id, race.round - 1),
+        "last_race": last_race,
+        "last_podium": _podium(last_race) if last_race else [],
+        "subject": preview.title if preview else f"{race.track.name} — Round {race.round} preview",
     }

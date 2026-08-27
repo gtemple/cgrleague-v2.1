@@ -66,6 +66,39 @@ export type SeatOptions = {
   drivers: { id: number; name: string; human: boolean; seated_team_season_ids: number[] }[];
 };
 
+export type NewsletterKind = "RECAP" | "PREVIEW";
+
+export type NewsletterIssueState = {
+  has_article: boolean;
+  sent_at: string | null;
+  recipient_count: number;
+};
+
+export type NewsletterRace = {
+  id: number;
+  round: number;
+  is_sprint: boolean;
+  result_count: number;
+  track: { id: number; name: string };
+  recap: NewsletterIssueState;
+  preview: NewsletterIssueState;
+};
+
+export type NewsletterOverview = {
+  subscriber_count: number;
+  races: NewsletterRace[];
+};
+
+export type RenderedIssue = { subject: string; html: string; text: string };
+
+export type SendOutcome = {
+  test: boolean;
+  sent: number;
+  subject?: string;
+  sent_at?: string | null;
+  detail: string;
+};
+
 export const adminApi = {
   async getSeasons(token: string): Promise<SeasonInfo[]> {
     return fetchJson("/api/admin/seasons/", { headers: authedHeaders(token) });
@@ -119,6 +152,31 @@ export const adminApi = {
       method: "POST",
       headers: authedHeaders(token),
       body: JSON.stringify({ results }),
+    });
+  },
+
+  async getNewsletter(token: string, seasonId: number): Promise<NewsletterOverview> {
+    return fetchJson("/api/admin/newsletter/", {
+      headers: authedHeaders(token),
+      params: { season: seasonId },
+    });
+  },
+
+  async renderIssue(token: string, raceId: number, kind: NewsletterKind): Promise<RenderedIssue> {
+    return fetchJson("/api/admin/newsletter/render/", {
+      headers: authedHeaders(token),
+      params: { race: raceId, kind },
+    });
+  },
+
+  async sendIssue(
+    token: string,
+    body: { race_id: number; kind: NewsletterKind; test_to?: string; force?: boolean },
+  ): Promise<SendOutcome> {
+    return fetchJson("/api/admin/newsletter/send/", {
+      method: "POST",
+      headers: authedHeaders(token),
+      body: JSON.stringify(body),
     });
   },
 };

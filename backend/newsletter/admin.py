@@ -13,6 +13,6 @@ class SubscriberAdmin(admin.ModelAdmin):
 
 @admin.register(Issue)
 class IssueAdmin(admin.ModelAdmin):
-    list_display = ("subject", "race", "sent_at", "recipient_count", "created_at")
-    list_filter = ("sent_at",)
+    list_display = ("subject", "kind", "race", "sent_at", "recipient_count", "created_at")
+    list_filter = ("kind", "sent_at")
     readonly_fields = ("html", "text", "created_at")

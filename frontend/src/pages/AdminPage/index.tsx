@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { adminApi, type GridDriver, type RaceInfo, type SeasonInfo, type SeatOptions } from "../../api/admin";
+import { NewsletterPanel } from "./NewsletterPanel";
 import { pointsForRow } from "./scoring";
 import { ApiError } from "../../api/client";
 import "./style.css";
@@ -492,6 +493,8 @@ export function AdminPage() {
             </p>
           )}
         </div>
+
+        {token && seasonId != null && <NewsletterPanel token={token} seasonId={seasonId} />}
 
         {seatOptions && (
           <div className="adm-panel">

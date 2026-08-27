@@ -9,8 +9,14 @@ from django.utils import timezone
 
 from results.models import Race
 
-from .content import build_race_issue
+from .content import build_preview_issue, build_recap_issue
 from .models import Issue, Subscriber
+
+# Everything that differs between the two kinds of issue, in one place.
+KINDS = {
+    Issue.RECAP: {"build": build_recap_issue, "template": "issue"},
+    Issue.PREVIEW: {"build": build_preview_issue, "template": "preview"},
+}
 
 
 def site_url() -> str:
@@ -58,31 +64,40 @@ def send_confirmation(subscriber: Subscriber) -> None:
     ).send()
 
 
-def render_issue(race: Race, subscriber: Optional[Subscriber] = None) -> Tuple[str, str, str]:
+def render_issue(
+    race: Race, kind: str = Issue.RECAP, subscriber: Optional[Subscriber] = None
+) -> Tuple[str, str, str]:
     """(subject, text, html) for one race. Pass a subscriber to bake in their unsubscribe link."""
-    context = build_race_issue(race)
+    spec = KINDS[kind]
+    context = spec["build"](race)
     context["site_url"] = site_url()
     context["unsubscribe_url"] = unsubscribe_url(subscriber)
     subject = f"CGR League — {context['subject']}"
+    template = spec["template"]
     return (
         subject,
-        render_to_string("newsletter/issue.txt", context),
-        render_to_string("newsletter/issue.html", context),
+        render_to_string(f"newsletter/{template}.txt", context),
+        render_to_string(f"newsletter/{template}.html", context),
     )
 
 
-def build_issue(race: Race, resend: bool = False) -> Issue:
-    """Create or refresh the draft Issue for a race.
+def build_issue(race: Race, kind: str = Issue.RECAP, resend: bool = False) -> Issue:
+    """Create or refresh the draft Issue of one kind for a race.
 
-    Only one issue per race may carry a sent_at, so a deliberate resend reuses
-    the row that already went out rather than creating a second one.
+    Only one issue per race and kind may carry a sent_at, so a deliberate resend
+    reuses the row that already went out rather than creating a second one.
     """
-    subject, text, html = render_issue(race)
-    issue = Issue.objects.filter(race=race, sent_at__isnull=True).first()
+    subject, text, html = render_issue(race, kind)
+    issue = Issue.objects.filter(race=race, kind=kind, sent_at__isnull=True).first()
     if issue is None and resend:
-        issue = Issue.objects.filter(race=race, sent_at__isnull=False).order_by("-sent_at").first()
+        issue = (
+            Issue.objects
+            .filter(race=race, kind=kind, sent_at__isnull=False)
+            .order_by("-sent_at")
+            .first()
+        )
     if issue is None:
-        return Issue.objects.create(race=race, subject=subject, text=text, html=html)
+        return Issue.objects.create(race=race, kind=kind, subject=subject, text=text, html=html)
     issue.subject, issue.text, issue.html = subject, text, html
     issue.save(update_fields=["subject", "text", "html"])
     return issue
@@ -100,7 +115,7 @@ def send_issue(issue: Issue) -> int:
         sent = 0
         for subscriber in recipients:
             # Re-rendered per recipient so each unsubscribe link is their own.
-            subject, text, html = render_issue(issue.race, subscriber)
+            subject, text, html = render_issue(issue.race, issue.kind, subscriber)
             _message(subject, text, html, subscriber.email, subscriber, connection).send()
             sent += 1
     finally:
@@ -112,6 +127,6 @@ def send_issue(issue: Issue) -> int:
     return sent
 
 
-def send_test(race: Race, to: str) -> None:
-    subject, text, html = render_issue(race)
+def send_test(race: Race, to: str, kind: str = Issue.RECAP) -> None:
+    subject, text, html = render_issue(race, kind)
     _message(f"[TEST] {subject}", text, html, to).send()

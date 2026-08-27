@@ -48,6 +48,13 @@ class Subscriber(models.Model):
 class Issue(models.Model):
     """One rendered newsletter send. Doubles as the archive and the idempotency record."""
 
+    RECAP = "RECAP"
+    PREVIEW = "PREVIEW"
+    KIND_CHOICES = [(RECAP, "Race recap"), (PREVIEW, "Race preview")]
+
+    # A recap goes out after a race; a preview goes out ahead of one. Both hang
+    # off the race they are about, so a round can have one of each.
+    kind = models.CharField(max_length=10, choices=KIND_CHOICES, default=RECAP)
     race = models.ForeignKey(
         "results.Race",
         on_delete=models.CASCADE,
@@ -66,14 +73,14 @@ class Issue(models.Model):
         ordering = ["-created_at"]
         constraints = [
             # A race can have a draft issue rebuilt any number of times, but only
-            # ever one that actually went out.
+            # ever one of each kind that actually went out.
             models.UniqueConstraint(
-                fields=["race"],
+                fields=["race", "kind"],
                 condition=Q(sent_at__isnull=False),
-                name="uniq_sent_issue_per_race",
+                name="uniq_sent_issue_per_race_kind",
             ),
         ]
 
     def __str__(self):
         state = "sent" if self.sent_at else "draft"
-        return f"[{state}] {self.subject}"
+        return f"[{state} {self.kind.lower()}] {self.subject}"

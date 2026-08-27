@@ -19,6 +19,12 @@ class Command(BaseCommand):
         )
 
         parser.add_argument(
+            "--kind",
+            choices=["recap", "preview"],
+            default="recap",
+            help="Which issue to build: the post-race recap or the pre-race preview",
+        )
+        parser.add_argument(
             "--dry-run",
             action="store_true",
             help="Render and report without sending or recording anything",
@@ -33,9 +39,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         race = self._resolve_race(options)
-        self.stdout.write(f"Race: {race}")
+        kind = options["kind"].upper()
+        self.stdout.write(f"Race: {race} ({kind.lower()})")
 
-        already_sent = Issue.objects.filter(race=race, sent_at__isnull=False).first()
+        already_sent = Issue.objects.filter(race=race, kind=kind, sent_at__isnull=False).first()
         if already_sent and not (options["force"] or options["dry_run"] or options["to"]):
             self.stdout.write(
                 self.style.WARNING(
@@ -46,11 +53,11 @@ class Command(BaseCommand):
             return
 
         if options["dry_run"]:
-            self._dry_run(race, options.get("out"))
+            self._dry_run(race, kind, options.get("out"))
             return
 
         if options["to"]:
-            sender.send_test(race, options["to"])
+            sender.send_test(race, options["to"], kind)
             self.stdout.write(self.style.SUCCESS(f"Test copy sent to {options['to']}."))
             return
 
@@ -59,7 +66,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("No confirmed subscribers — nothing to send."))
             return
 
-        issue = sender.build_issue(race, resend=options["force"])
+        issue = sender.build_issue(race, kind, resend=options["force"])
         self.stdout.write(f'Sending "{issue.subject}" to {active} subscriber(s)...')
         count = sender.send_issue(issue)
         self.stdout.write(self.style.SUCCESS(f"Sent to {count} subscriber(s)."))
@@ -76,8 +83,8 @@ class Command(BaseCommand):
             raise CommandError("No completed races found")
         return race
 
-    def _dry_run(self, race, out):
-        subject, text, html = sender.render_issue(race)
+    def _dry_run(self, race, kind, out):
+        subject, text, html = sender.render_issue(race, kind)
         self.stdout.write(f"Subject: {subject}")
         self.stdout.write(f"Recipients: {Subscriber.objects.active().count()} confirmed subscriber(s)")
         if out:
