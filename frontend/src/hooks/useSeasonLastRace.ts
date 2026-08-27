@@ -18,6 +18,8 @@ export type TeamLite = {
   id: number | null;
   name: string;
   logo_image: string | null;
+  /** Per-season livery hex. Only endpoints that read TeamSeason send it. */
+  color?: string | null;
 };
 
 export type DriverLite = {

@@ -149,7 +149,7 @@
   background: var(--cgr-card);
   border: 1px solid var(--cgr-border-card);
   border-radius: var(--cgr-radius-card);
-  padding: 24px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
 }
@@ -166,14 +166,14 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 
 .cd-cell {
   background: #f4f3ee;
   border: 1px solid var(--cgr-border-chip);
   border-radius: 4px;
-  padding: 12px 0;
+  padding: 10px 0;
   text-align: center;
 }
 
@@ -198,12 +198,11 @@
 }
 
 .cd-tbd {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 88px;
-  margin-bottom: 24px;
+  min-height: 82px;
+  margin-bottom: 18px;
   background: #f4f3ee;
   border: 1px solid var(--cgr-border-chip);
   border-radius: 4px;
@@ -213,6 +212,92 @@
   letter-spacing: 0.04em;
   color: var(--cgr-text-muted-2);
   text-transform: uppercase;
+}
+
+.cd-context {
+  border-top: 1px solid var(--cgr-border-chip);
+  padding-top: 14px;
+  margin-bottom: 18px;
+}
+
+.cd-sub-label {
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted-2);
+  margin-bottom: 10px;
+}
+
+.cd-winners {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cd-winner {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.cd-winner-season {
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--cgr-red);
+  min-width: 18px;
+}
+
+.cd-winner-name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--cgr-font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  color: var(--cgr-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cd-winner-team {
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--cgr-text-muted-2);
+}
+
+.cd-winners-empty {
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--cgr-text-muted-2);
+}
+
+.cd-then {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: -4px 0 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cgr-border-chip);
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--cgr-text-muted-2);
+}
+
+.cd-then-label {
+  color: var(--cgr-text-faint);
+}
+
+.cd-then-item b {
+  color: var(--cgr-text-primary);
+  font-weight: 700;
 }
 
 .cd-cta {

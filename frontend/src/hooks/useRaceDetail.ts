@@ -25,9 +25,28 @@ export type RaceDetail = {
   track: TrackLite;
 };
 
+export type StandingsImpactRow = {
+  driver: DriverLite;
+  points_before: number;
+  points_after: number;
+  gained: number;
+  position_before: number | null;
+  position_after: number | null;
+  move: number;
+};
+
+export type TrackHistoryRow = {
+  season_id: number;
+  round: number;
+  driver: DriverLite;
+  team: TeamLite;
+};
+
 export type RaceDetailResponse = {
   race: RaceDetail;
   results: RaceDetailResult[];
+  standings_impact: StandingsImpactRow[];
+  track_history: TrackHistoryRow[];
 };
 
 export function useRaceDetail(

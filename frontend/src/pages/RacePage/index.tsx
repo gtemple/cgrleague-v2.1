@@ -1,6 +1,14 @@
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useRaceDetail } from "../../hooks/useRaceDetail";
 import { useRaceArticles } from "../../hooks/useArticles";
+import {
+  Awards,
+  ChampionshipImpact,
+  CircuitHistory,
+  GridFlow,
+  Podium,
+  TeammateBattles,
+} from "./RacePanels";
 import { articleTypeLabel } from "../../utils/articleUtils";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
@@ -154,6 +162,13 @@ export const RacePage = () => {
         )}
 
         {!isLoading && !error && data && results.length > 0 && (
+          <>
+            <Podium results={results} />
+            <Awards results={results} />
+          </>
+        )}
+
+        {!isLoading && !error && data && results.length > 0 && (
           <div className="rp-table-card">
             {/* Desktop table */}
             <div className="rp-table-scroll">
@@ -244,6 +259,15 @@ export const RacePage = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {!isLoading && !error && data && results.length > 0 && (
+          <div className="rp-grid-2">
+            <ChampionshipImpact rows={data.standings_impact} />
+            <TeammateBattles results={results} />
+            <GridFlow results={results} />
+            <CircuitHistory rows={data.track_history} trackName={race?.track.name ?? ""} />
           </div>
         )}
       </div>

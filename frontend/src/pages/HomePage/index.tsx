@@ -78,6 +78,8 @@ export const HomePage = () => {
   const flagImg = track?.country ? displayImage(track.country, "flags") : null;
   const km = track?.distance ? (track.distance / 1000).toFixed(3) : null;
   const countdown = useCountdown(race?.started_at ?? null);
+  const trackWinners = (teaser?.recent_winners ?? []).slice(0, 3);
+  const followingTwo = (teaser?.following_two ?? []).slice(0, 2);
 
   // Preview article, only if it's for the race in the hero (not a stale fallback)
   const upcomingPreview =
@@ -182,7 +184,43 @@ export const HomePage = () => {
           ) : (
             <div className="cd-tbd">Date TBD</div>
           )}
-          <Link to={seasonId ? `/seasons/${seasonId}` : "/seasons/1"} className="cd-cta">
+          <div className="cd-context">
+            <div className="cd-sub-label">Winners here</div>
+            {trackWinners.length > 0 ? (
+              <div className="cd-winners">
+                {trackWinners.map((w) => (
+                  <div className="cd-winner" key={`${w.season_id}-${w.driver.id}`}>
+                    <span className="cd-winner-season">S{w.season_id}</span>
+                    <span className="cd-winner-name">{w.driver.display_name}</span>
+                    <span className="cd-winner-team">{teamCode(w.team?.name)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="cd-winners-empty">First visit to this circuit</div>
+            )}
+          </div>
+
+          {followingTwo.length > 0 && (
+            <div className="cd-then">
+              <span className="cd-then-label">Then</span>
+              {followingTwo.map(({ event }) => (
+                <span className="cd-then-item" key={event.id}>
+                  <b>R{String(event.round).padStart(2, "0")}</b>{" "}
+                  {(event.track.city || event.track.name).toUpperCase()}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <Link
+            to={
+              seasonId && race
+                ? `/seasons/${seasonId}/races/${race.round}${race.is_sprint ? "?is_sprint=1" : ""}`
+                : seasonId ? `/seasons/${seasonId}` : "/seasons/1"
+            }
+            className="cd-cta"
+          >
             Race Centre →
           </Link>
         </div>

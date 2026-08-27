@@ -4,7 +4,8 @@ from datetime import date
 from typing import Any, Dict, List, Optional
 import anthropic
 from django.core.cache import cache
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
+from django.db.models.functions import Coalesce
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,6 +23,102 @@ from .utils import (
 )
 
 _CACHE_MISS = object()
+
+
+def _standings_impact(race):
+    """
+    Driver standings immediately before and after this race, so the race page
+    can show what the round did to the championship.
+
+    A sprint shares its round number with the Grand Prix it supports and runs
+    first, so "before the Grand Prix" has to include that sprint.
+    """
+    from entries.models import DriverSeason
+    from results.api.views.utils import fl_bonus_case, points_case
+
+    earlier_rounds = Q(results__race__round__lt=race.round)
+    this_round_sprint = Q(results__race__round=race.round, results__race__is_sprint=True)
+
+    if race.is_sprint:
+        before_q = earlier_rounds
+        after_q = earlier_rounds | this_round_sprint
+    else:
+        before_q = earlier_rounds | this_round_sprint
+        after_q = Q(results__race__round__lte=race.round)
+
+    def totals(q):
+        rows = (
+            DriverSeason.objects
+            .filter(season_id=race.season_id)
+            .annotate(
+                pts=Coalesce(Sum(points_case(), filter=q), 0)
+                + Coalesce(Sum(fl_bonus_case(), filter=q), 0)
+            )
+            .select_related("driver")
+        )
+        return {ds.driver_id: (ds, ds.pts) for ds in rows}
+
+    before = totals(before_q)
+    after = totals(after_q)
+
+    def ranked(table):
+        ordered = sorted(
+            table.items(),
+            key=lambda kv: (-kv[1][1], kv[1][0].driver.last_name or ""),
+        )
+        return {driver_id: i + 1 for i, (driver_id, _v) in enumerate(ordered)}
+
+    before_rank = ranked(before)
+    after_rank = ranked(after)
+
+    out = []
+    for driver_id, (ds, pts_after) in after.items():
+        pts_before = before.get(driver_id, (ds, 0))[1]
+        # Drivers still on nothing have no standing worth showing.
+        if pts_after == 0 and pts_before == 0:
+            continue
+        out.append({
+            "driver": serialize_driver(ds.driver),
+            "points_before": pts_before,
+            "points_after": pts_after,
+            "gained": pts_after - pts_before,
+            "position_before": before_rank.get(driver_id),
+            "position_after": after_rank.get(driver_id),
+            "move": (before_rank.get(driver_id) or 0) - (after_rank.get(driver_id) or 0),
+        })
+    out.sort(key=lambda r: r["position_after"] or 999)
+    return out
+
+
+def _track_history(race, limit=6):
+    """Previous winners at this circuit, most recent first, excluding this race."""
+    prior = (
+        RaceResult.objects
+        .filter(
+            race__track_id=race.track_id,
+            race__is_sprint=race.is_sprint,
+            finish_position=1,
+        )
+        .exclude(race_id=race.id)
+        .select_related("race", "driver_season__driver", "driver_season__team_season__team")
+        .order_by("-race__season_id", "-race__round")[:limit]
+    )
+    return [
+        {
+            "season_id": rr.race.season_id,
+            "round": rr.race.round,
+            "driver": serialize_driver(rr.driver_season.driver),
+            "team": {
+                **serialize_team(
+                    getattr(getattr(rr.driver_season, "team_season", None), "team", None)
+                ),
+                "color": getattr(
+                    getattr(rr.driver_season, "team_season", None), "color", ""
+                ) or None,
+            },
+        }
+        for rr in prior
+    ]
 
 
 class RaceDetailView(APIView):
@@ -52,6 +149,7 @@ class RaceDetailView(APIView):
             RaceResult.objects
             .filter(race=race)
             .select_related(
+                "race",  # points_for_result reads race.is_sprint
                 "driver_season__driver",
                 "driver_season__team_season__team",
             )
@@ -81,12 +179,21 @@ class RaceDetailView(APIView):
                     "most_overtakes": rr.most_overtakes,
                     "points": points_for_result(rr),
                     "driver": serialize_driver(rr.driver_season.driver),
-                    "team": serialize_team(
-                        getattr(getattr(rr.driver_season, "team_season", None), "team", None)
-                    ),
+                    # Livery colour is per season, so it comes off TeamSeason
+                    # rather than serialize_team's Team.
+                    "team": {
+                        **serialize_team(
+                            getattr(getattr(rr.driver_season, "team_season", None), "team", None)
+                        ),
+                        "color": getattr(
+                            getattr(rr.driver_season, "team_season", None), "color", ""
+                        ) or None,
+                    },
                 }
                 for rr in results
             ],
+            "standings_impact": _standings_impact(race),
+            "track_history": _track_history(race),
         }
         cache.set(ck, data, timeout=CACHE_TTL)
         return Response(data)
