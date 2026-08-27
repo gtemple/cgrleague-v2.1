@@ -531,18 +531,28 @@ def _round_count(season):
     return Race.objects.filter(season=season, is_sprint=False).count()
 
 
-def _get_prior_titles(season, limit=40):
-    """Titles of articles already generated for this season. Fed into each recap/
-    preview prompt so a new headline can be steered away from ones already
-    published — the only cross-article signal the model gets, since each article
-    is an independent API call."""
-    return list(
-        Article.objects
-        .filter(Q(season=season) | Q(race__season=season))
-        .exclude(title="")
-        .order_by("-id")
-        .values_list("title", flat=True)[:limit]
-    )
+def _get_prior_titles(season, before_round=None, include_same_round_preview=False, limit=40):
+    """
+    Titles of articles already published in this season, fed into each prompt so
+    a new headline can be steered away from ones already out — the only
+    cross-article signal the model gets, since each article is its own API call.
+
+    `before_round` is not optional in spirit: headlines state results ("Leclerc
+    Steals Imola"), so an unbounded list hands a Round 2 preview the outcome of
+    Rounds 3-6. Callers pass the round being written about, and only articles
+    published before that point come back. A recap may additionally see its own
+    round's preview, which really was published first.
+    """
+    qs = Article.objects.filter(Q(season=season) | Q(race__season=season)).exclude(title="")
+
+    if before_round is not None:
+        # A season preview goes out before round 1, so it is prior to everything.
+        prior = Q(race__round__lt=before_round) | Q(race__isnull=True, type=Article.SEASON_PREVIEW)
+        if include_same_round_preview:
+            prior |= Q(race__round=before_round, type=Article.PREVIEW)
+        qs = qs.filter(prior)
+
+    return list(qs.order_by("-id").values_list("title", flat=True)[:limit])
 
 
 def _fmt_prior_titles(titles):
@@ -621,7 +631,9 @@ def generate_recap(race):
         f"\nDRIVER STANDINGS BEFORE THIS RACE (use to describe how the title picture shifted):\n{_fmt_standings(standings_before)}\n"
         if standings_before else ""
     )
-    prior_titles_block = _fmt_prior_titles(_get_prior_titles(season))
+    prior_titles_block = _fmt_prior_titles(
+        _get_prior_titles(season, before_round=race.round, include_same_round_preview=True)
+    )
     flags = _tracked_flags(race)
     lineups_block = _fmt_lineups(season)
     flags_block = f"\n- Highlight key moments: {', '.join(flags)}" if flags else ""
@@ -757,7 +769,7 @@ def generate_preview(next_race, after_race=None):
 
     notes_block = f"\nRACE NOTES (from the league admin — treat as factual context):\n{next_race.race_notes.strip()}\n" if next_race.race_notes.strip() else ""
     collision_block = f"\n{collision_note}" if collision_note else ""
-    prior_titles_block = _fmt_prior_titles(_get_prior_titles(season))
+    prior_titles_block = _fmt_prior_titles(_get_prior_titles(season, before_round=next_race.round))
     headline_rule = HEADLINE_ECHO_RULE if prior_titles_block else ""
     lineups_block = _fmt_lineups(season)
 
@@ -1063,7 +1075,7 @@ def generate_season_preview(season):
         pass
 
     lineups_block = _fmt_lineups(season)
-    prior_titles_block = _fmt_prior_titles(_get_prior_titles(season))
+    prior_titles_block = _fmt_prior_titles(_get_prior_titles(season, before_round=1))
     headline_rule = HEADLINE_ECHO_RULE if prior_titles_block else ""
 
     prompt = f"""Write a season preview article for the upcoming CGR League Season {season.id} ({season.game}).
