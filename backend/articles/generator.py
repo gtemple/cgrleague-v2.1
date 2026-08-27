@@ -40,6 +40,8 @@ LEAGUE_CONTEXT = (
     "or any other relation. Never imply a parent-child relationship between them.\n"
     "- The Temple drivers (any first name, last name Temple) are also BROTHERS if more than one "
     "appears on the grid. Apply the same rule.\n"
+    "- Never guess which sibling is older or younger, and never call one 'the younger brother' "
+    "or 'the elder', unless a NAME COLLISIONS block in the prompt states the order.\n"
     "\n"
     "BANNED WORDS — never use these in any output, in a title or a body:\n"
     "- 'journeyman', 'playground' (e.g. 'personal playground'), 'testament'\n"
@@ -318,9 +320,11 @@ def _get_human_driver_names(season):
 
 def _get_name_collision_note(season):
     """
-    Returns a prompt instruction block if any drivers in the season share a last name,
-    e.g. "J. Smith and T. Smith share the last name 'Smith'".
-    Returns "" if no collisions exist.
+    Prompt block for drivers sharing a surname: how to write them, and which is
+    the elder. Birth order comes from date_of_birth rather than being stated in
+    LEAGUE_CONTEXT, so it stays right for any sibling pair on any season's grid.
+    Without it the model guesses, and it guessed wrong (calling Ryan Reynolds,
+    born 1992, the younger brother of Cole, born 1996).
     """
     from collections import defaultdict
     ds_list = (
@@ -333,13 +337,27 @@ def _get_name_collision_note(season):
         by_last[ds.driver.last_name].append(ds.driver)
 
     pairs = []
-    for last_name, drivers in by_last.items():
-        if len(drivers) > 1:
-            names = " and ".join(
-                f"{d.first_name[0]}. {d.last_name}" if d.first_name else d.last_name
-                for d in sorted(drivers, key=lambda d: d.first_name or "")
-            )
-            pairs.append(f"  - {names} share the surname '{last_name}' — always write them as {names}")
+    for last_name, drivers in sorted(by_last.items()):
+        if len(drivers) < 2:
+            continue
+        unique = {d.id: d for d in drivers}.values()
+        if len(unique) < 2:
+            continue
+        names = " and ".join(
+            f"{d.first_name[0]}. {d.last_name}" if d.first_name else d.last_name
+            for d in sorted(unique, key=lambda d: d.first_name or "")
+        )
+        line = f"  - {names} share the surname '{last_name}' — always write them as {names}"
+
+        dobs = [d.date_of_birth for d in unique]
+        if all(dobs) and len(set(dobs)) == len(dobs):
+            eldest = sorted(unique, key=lambda d: d.date_of_birth)
+            label = lambda d: f"{d.first_name[0]}. {d.last_name}" if d.first_name else d.last_name
+            if len(eldest) == 2:
+                line += f". {label(eldest[0])} is the OLDER of the two"
+            else:
+                line += ". Oldest to youngest: " + ", ".join(label(d) for d in eldest)
+        pairs.append(line)
 
     if not pairs:
         return ""
