@@ -93,29 +93,44 @@
 
 .ad-label {
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 9px;
   font-family: var(--cgr-font-mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--cgr-text-muted);
+  color: var(--cgr-text-secondary);
 }
 
+/* White-on-white with a hairline border made this read as an empty card, so
+   the field carries its own tint, a full-contrast border and a real chevron. */
 .ad-select {
   width: 100%;
   max-width: 460px;
-  padding: 8px 11px;
-  background: var(--cgr-card);
-  border: 1px solid var(--cgr-border-card);
+  padding: 11px 36px 11px 13px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--cgr-chip);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%2316140f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  background-size: 11px;
+  border: 1px solid var(--cgr-text-faint);
   border-radius: var(--cgr-radius-chip);
   font-family: var(--cgr-font-body);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--cgr-text-primary);
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s;
 }
-.ad-select:hover { border-color: var(--cgr-border-hover); }
-.ad-select:focus-visible { outline: none; border-color: var(--cgr-text-primary); }
+.ad-select:hover {
+  border-color: var(--cgr-text-primary);
+  background-color: var(--cgr-row-hover);
+}
+.ad-select:focus-visible {
+  outline: 2px solid var(--cgr-red);
+  outline-offset: 2px;
+  border-color: var(--cgr-text-primary);
+}
 
 .ad-hint {
   margin: 0 0 14px;
@@ -218,8 +233,8 @@
 .ad-num {
   width: 100%;
   padding: 5px 4px;
-  background: var(--cgr-card);
-  border: 1px solid var(--cgr-border-card);
+  background: var(--cgr-chip);
+  border: 1px solid var(--cgr-border-hover);
   border-radius: var(--cgr-radius-chip);
   font-family: var(--cgr-font-mono);
   font-size: 12px;
@@ -233,8 +248,8 @@
 .ad-status {
   width: 100%;
   padding: 5px 6px;
-  background: var(--cgr-card);
-  border: 1px solid var(--cgr-border-card);
+  background: var(--cgr-chip);
+  border: 1px solid var(--cgr-border-hover);
   border-radius: var(--cgr-radius-chip);
   font-family: var(--cgr-font-mono);
   font-size: 11px;
