@@ -267,10 +267,10 @@
 .rv-bar--thin { height: 3px; }
 
 /* ═══════════════════════════════════════
-   SEASONS / TRACKS / NOTES
+   SEASONS / TRACKS
 ═══════════════════════════════════════ */
 
-.rv-seasons, .rv-tracks, .rv-notes { list-style: none; margin: 0; padding: 0; }
+.rv-seasons, .rv-tracks { list-style: none; margin: 0; padding: 0; }
 
 .rv-season {
   display: grid;
@@ -312,14 +312,82 @@
 .rv-track-score { font-family: var(--cgr-font-mono); flex: 0 0 auto; }
 .rv-track-dash { color: var(--cgr-text-faint); margin: 0 3px; }
 
-.rv-notes li {
-  padding: 8px 0;
+
+/* ═══════════════════════════════════════
+   THE RECORD (notable facts)
+═══════════════════════════════════════ */
+
+/* Almanac marginalia, not stat cards: figures set in the display face, each
+   sitting inline with its own sentence, separated by hairlines. */
+.rv-facts {
+  margin-top: 26px;
+  background: var(--cgr-card);
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-card);
+  padding: 4px 18px 8px;
+}
+
+.rv-facts-title {
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted);
+  font-weight: 400;
+  margin: 0;
+  padding: 12px 0 4px;
+}
+
+.rv-facts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 34px;
+}
+@media (min-width: 720px) {
+  .rv-facts-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.rv-fact {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 0;
   border-top: 1px solid var(--cgr-border-hairline);
+}
+.rv-fact:first-child { border-top: none; }
+@media (min-width: 720px) {
+  /* second column's first row also starts clean */
+  .rv-fact:nth-child(2) { border-top: none; }
+}
+
+.rv-fact-value {
+  flex: 0 0 auto;
+  min-width: 2.4ch;
+  font-family: var(--cgr-font-display);
+  font-weight: 800;
+  font-size: 27px;
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  color: var(--cgr-text-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.rv-fact-label {
   font-size: 13px;
+  line-height: 1.35;
   color: var(--cgr-text-body);
 }
-.rv-notes li:first-child { border-top: none; }
-.rv-notes b { font-family: var(--cgr-font-mono); color: var(--cgr-text-primary); }
+.rv-fact-label b { font-weight: 700; }
+
+@media (max-width: 560px) {
+  .rv-facts { padding: 4px 14px 6px; }
+  .rv-fact-value { font-size: 23px; }
+  .rv-fact-label { font-size: 12.5px; }
+}
 
 /* ═══════════════════════════════════════
    RACE LOG

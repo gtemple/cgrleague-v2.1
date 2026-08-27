@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import { useRivalry, type RivalryTotals } from "../../hooks/useRivalry";
+import { useRivalry, type RivalryData, type RivalryTotals } from "../../hooks/useRivalry";
 import { useDriversList } from "../../hooks/useDriverList";
 import { resolveRivalryColors } from "../../utils/rivalryColors";
 import { shortDriverName } from "../../utils/driverName";
@@ -106,6 +106,92 @@ function StatTable({
 const shortName = (d: { first_name: string; last_name: string }) =>
   shortDriverName(d.first_name, d.last_name);
 
+type Fact = { value: string; label: React.ReactNode; accent?: string };
+
+/**
+ * The headline facts about a rivalry, derived from the timeline the endpoint
+ * already returns. Anything that would need new backend aggregation stays out.
+ */
+function buildFacts(
+  data: RivalryData,
+  nameA: string,
+  nameB: string,
+  colorA: string,
+  colorB: string,
+): Fact[] {
+  const { timeline, seasons, streaks } = data;
+  const facts: Fact[] = [];
+
+  // How often the points lead actually changed hands — the momentum chart's
+  // zero crossings, stated as a number.
+  let leadChanges = 0;
+  let held = 0;
+  for (const t of timeline) {
+    const d = t.cum_a - t.cum_b;
+    const sign = d === 0 ? 0 : d > 0 ? 1 : -1;
+    if (sign !== 0 && held !== 0 && sign !== held) leadChanges += 1;
+    if (sign !== 0) held = sign;
+  }
+  facts.push({
+    value: String(leadChanges),
+    label: leadChanges === 1 ? "lead change on points" : "lead changes on points",
+  });
+
+  const aSeasons = seasons.filter((s) => s.a_ahead > s.b_ahead).length;
+  const bSeasons = seasons.filter((s) => s.b_ahead > s.a_ahead).length;
+  facts.push({
+    value: `${aSeasons}–${bSeasons}`,
+    label: <>seasons won, <b style={{ color: colorA }}>{nameA}</b> to <b style={{ color: colorB }}>{nameB}</b></>,
+  });
+
+  facts.push({
+    value: String(data.closest_races),
+    label: "races settled by a single place",
+  });
+
+  const podiums = timeline.filter((t) => t.a_finish <= 3 && t.b_finish <= 3).length;
+  if (podiums) {
+    facts.push({ value: String(podiums), label: "times both stood on the podium" });
+  }
+
+  const swing = timeline.reduce(
+    (best, t) => (Math.abs(t.a_points - t.b_points) > Math.abs(best.a_points - best.b_points) ? t : best),
+    timeline[0],
+  );
+  if (swing && Math.abs(swing.a_points - swing.b_points) > 0) {
+    facts.push({
+      value: String(Math.abs(swing.a_points - swing.b_points)),
+      label: <>point swing in one race, at {swing.track}</>,
+    });
+  }
+
+  const bestRun = Math.max(streaks.best_a, streaks.best_b);
+  const runHolder = streaks.best_a >= streaks.best_b ? nameA : nameB;
+  const runColor = streaks.best_a >= streaks.best_b ? colorA : colorB;
+  facts.push({
+    value: String(bestRun),
+    label: <>in a row to <b style={{ color: runColor }}>{runHolder}</b>, the longest streak either has held</>,
+  });
+
+  if (data.biggest_margin) {
+    facts.push({ value: String(data.biggest_margin.margin), label: "places apart at their furthest" });
+  }
+
+  const first = timeline[0];
+  if (first) {
+    facts.push({ value: `S${first.season_id}`, label: <>first met, at {first.track}</> });
+  }
+
+  if (data.teammate_seasons.length) {
+    facts.push({
+      value: String(data.teammate_seasons.length),
+      label: <>seasons as teammates ({data.teammate_seasons.map((x) => `S${x}`).join(", ")})</>,
+    });
+  }
+
+  return facts;
+}
+
 function seasonList(seasons: number[]) {
   return seasons.map((s) => `S${s}`).join(", ");
 }
@@ -162,6 +248,7 @@ export const RivalryPage = () => {
   }
 
   const rows = buildRows(totals.a, totals.b);
+  const facts = buildFacts(data, shortName(A), shortName(B), palette.a, palette.b);
   const trackedRows = buildTrackedRows(totals.a, totals.b);
   const trackedSeasons = seasonList(
     [...new Set([...data.tracked.grid, ...data.tracked.cleanest, ...data.tracked.overtakes])].sort((x, y) => x - y)
@@ -270,6 +357,18 @@ export const RivalryPage = () => {
       </div>
 
       <div className="rv-inner">
+      <section className="rv-facts" aria-label="Notable facts">
+        <h2 className="rv-facts-title">The Record</h2>
+        <ul className="rv-facts-list">
+          {facts.map((f, i) => (
+            <li className="rv-fact" key={i}>
+              <span className="rv-fact-value">{f.value}</span>
+              <span className="rv-fact-label">{f.label}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <MomentumChart
         timeline={timeline}
         nameA={shortName(A)}
@@ -346,24 +445,6 @@ export const RivalryPage = () => {
           </div>
         </section>
       </div>
-
-      <section className="rv-section">
-        <h2 className="rv-h2">NOTES</h2>
-        <div className="rv-panel">
-        <ul className="rv-notes">
-          <li><b>{data.closest_races}</b> races decided by a single position</li>
-          {data.biggest_margin && (
-            <li>Widest gap: <b>{data.biggest_margin.margin}</b> positions</li>
-          )}
-          <li>Longest run: <b>{streaks.best_a}</b> ({shortName(A)}) · <b>{streaks.best_b}</b> ({shortName(B)})</li>
-          {data.teammate_seasons.length > 0 && (
-            <li>
-              Teammates in {data.teammate_seasons.map((s) => `S${s}`).join(", ")}
-            </li>
-          )}
-        </ul>
-        </div>
-      </section>
 
       <section className="rv-section">
         <h2 className="rv-h2">EVERY MEETING</h2>
