@@ -1,3 +1,5 @@
+import logging
+
 from django.core.cache import cache
 from rest_framework import status
 from rest_framework.response import Response
@@ -6,6 +8,8 @@ from rest_framework.views import APIView
 from .. import sender
 from ..models import Subscriber
 from .serializers import SubscribeSerializer, TokenSerializer
+
+logger = logging.getLogger(__name__)
 
 RATE_LIMIT = 5
 RATE_WINDOW = 60 * 60
@@ -61,7 +65,16 @@ class SubscribeView(APIView):
             subscriber.unsubscribed_at = None
             subscriber.save(update_fields=["confirmed_at", "unsubscribed_at"])
 
-        sender.send_confirmation(subscriber)
+        try:
+            sender.send_confirmation(subscriber)
+        except Exception:
+            # The row is left unconfirmed, so subscribing again just resends.
+            logger.exception("Newsletter confirmation to %s failed", email)
+            return Response(
+                {"detail": "We couldn't send the confirmation email. Please try again shortly."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
         return Response(GENERIC_OK, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 

@@ -154,6 +154,25 @@ TEMPLATES = [
 
 STATIC_URL = "static/"
 
+# --- Logging ---
+# Django's default sends django.request errors to mail_admins, so with DEBUG off
+# an unhandled 500 leaves nothing in the logs but the access line. Send them to
+# stdout instead, where Render surfaces them.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {"format": "[{asctime}] {levelname} {name}: {message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "verbose"},
+    },
+    "root": {"handlers": ["console"], "level": "INFO"},
+    "loggers": {
+        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+    },
+}
+
 # --- Email / newsletter ---
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 

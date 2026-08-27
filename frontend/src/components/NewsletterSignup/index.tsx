@@ -25,7 +25,12 @@ export function NewsletterSignup({ source = "homepage" }: Props) {
       if (err instanceof ApiError && err.status === 429) {
         setMessage("Too many attempts. Try again a bit later.");
       } else {
-        setMessage("Something went wrong. Try again.");
+        const detail =
+          err instanceof ApiError &&
+          typeof (err.payload as { detail?: unknown })?.detail === "string"
+            ? (err.payload as { detail: string }).detail
+            : "Something went wrong. Try again.";
+        setMessage(detail);
       }
     }
   };
