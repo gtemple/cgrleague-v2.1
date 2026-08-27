@@ -11,7 +11,7 @@ import json
 import logging
 import os
 
-from django.db.models import Sum, F, Q, FloatField
+from django.db.models import Count, Sum, F, Q, FloatField
 from django.db.models.functions import Coalesce
 
 from entries.models import DriverSeason
@@ -185,7 +185,7 @@ SIDEBAR_SCHEMA = {
 RIVALRY_SUMMARY_SCHEMA = {
     "type": "object",
     "properties": {
-        "summary": {"type": "string", "maxLength": 400},
+        "summary": {"type": "string", "maxLength": 260},
         "content": {"type": "string"},
     },
     "required": ["summary", "content"],
@@ -1762,13 +1762,31 @@ def _fmt_rivalry_totals(a_name, b_name, totals):
     return "\n".join(lines)
 
 
-def _fmt_rivalry_seasons(a_name, b_name, seasons):
-    return "\n".join(
-        f"  S{s['season_id']}: {s['races']} races, "
-        f"{a_name} ahead {s['a_ahead']} - {s['b_ahead']} {b_name}, "
-        f"points {s['a_points']}-{s['b_points']}"
-        for s in seasons
-    )
+def _season_progress():
+    """Rounds run vs rounds scheduled, per season — so a season still under way
+    is never written up as though it had finished."""
+    return {
+        row["season_id"]: (row["run"], row["scheduled"])
+        for row in Race.objects.values("season_id").annotate(
+            scheduled=Count("id", distinct=True),
+            run=Count("id", distinct=True, filter=Q(results__isnull=False)),
+        )
+    }
+
+
+def _fmt_rivalry_seasons(a_name, b_name, seasons, progress):
+    lines = []
+    for s in seasons:
+        line = (
+            f"  S{s['season_id']}: {s['races']} races together, "
+            f"{a_name} ahead {s['a_ahead']} - {s['b_ahead']} {b_name}, "
+            f"points {s['a_points']}-{s['b_points']}"
+        )
+        run, scheduled = progress.get(s["season_id"], (0, 0))
+        if run < scheduled:
+            line += f" — SEASON STILL IN PROGRESS, only {run} of {scheduled} rounds run so far"
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def _teammate_spells(a_id, b_id):
@@ -1999,6 +2017,7 @@ def generate_rivalry_summary(driver_a_id, driver_b_id):
     a_name, b_name = _name(driver_a), _name(driver_b)
     spells = _teammate_spells(a_id, b_id)
     seasons = data["seasons"]
+    progress = _season_progress()
     span = (
         f"S{seasons[0]['season_id']}"
         if len(seasons) == 1
@@ -2021,8 +2040,9 @@ Throughout the data below, the two columns are always {a_name} first, then {b_na
 OVERALL RECORD — {data['shared_races']} races both finished, across {span}:
 {_fmt_rivalry_totals(a_name, b_name, data['totals'])}
 
-SEASON BY SEASON:
-{_fmt_rivalry_seasons(a_name, b_name, seasons)}
+SEASON BY SEASON — points are this pair's private tally, counted only in races
+they both finished, and are NOT championship standings:
+{_fmt_rivalry_seasons(a_name, b_name, seasons, progress)}
 
 TEAMMATE HISTORY:
 {_fmt_teammate_spells(a_name, b_name, spells, seasons)}
@@ -2038,12 +2058,14 @@ EVERY MEETING, IN ORDER:
 
 Write two or three paragraphs on what this record adds up to. Find the arc — who \
 had the upper hand when, where it turned, what the numbers say about how the two \
-drivers differ. Interpret; do not read the table back. Pick the handful of races \
-and seasons that carry the story rather than sweeping through all of them.
+drivers differ. Interpret; do not read the table back. Choose the few seasons and \
+races that carry the story and build on them; do not tour every section of the data \
+in turn, and do not end on a paragraph that restates the overall record.
 
-Also write a single sentence that captures the rivalry, shown on its own above \
-the full text. It must stand alone, name both drivers, and not be a first line \
-the paragraphs then repeat.
+Also write a single sentence that captures the rivalry, shown on its own above the \
+full text while the panel is collapsed. Keep it under 30 words — one clean sentence, \
+not several clauses stitched together. It must name both drivers, stand on its own, \
+and use figures the paragraphs then do NOT repeat.
 
 {DATA_DISCIPLINE_RULE}
 - The TEAMMATE HISTORY block is the most valuable comparison you have, because \
@@ -2056,6 +2078,9 @@ never compare it against the full {data['shared_races']}-race record
 - EVERY MEETING, IN ORDER is the complete list of results you have. Never state a win, \
 podium, or placing you cannot point to a line for. A sprint is a race like any other in \
 that list — its finishing position is already there, so do not invent sprint results
+- Every points figure here is a private tally between these two, counted only in the \
+races they both finished. It is not a championship standing, so never call it a title \
+lead, a championship gap, or evidence of where either driver finished a season
 - Do not speculate about anything outside the data: no rumoured feuds, no respect or \
 animosity between them, no off-track relationship, no talk of what either driver was \
 thinking or wanted, and nothing about confidence, momentum in the head, or a \
