@@ -145,3 +145,28 @@ def invalidate_for_race(instance):
         key_last_race(instance.season_id, False),
         key_last_race(instance.season_id, True),
     ])
+
+
+def invalidate_for_seat(instance):
+    """
+    Delete cached responses that depend on who holds a seat in a season, rather
+    than on results. Fired by the DriverSeason signals.
+
+    Adding a substitute changes the season's standings, chart and matrix, and
+    puts a driver on the head-to-head grid before they have raced, so those
+    would otherwise serve a stale response until the 24h TTL expired.
+    """
+    season_id = instance.season_id
+    cache.delete_many([
+        key_season_standings(season_id),
+        key_constructor_standings(season_id),
+        key_matrix(season_id, True),
+        key_matrix(season_id, False),
+        key_timeline(season_id),
+        key_h2h(),
+        key_hof(False, True),
+        key_hof(True, True),
+        key_hof(False, False),
+        key_hof(True, False),
+        key_driver_detail(instance.driver_id),
+    ])

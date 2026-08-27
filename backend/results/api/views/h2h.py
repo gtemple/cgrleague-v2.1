@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from drivers.models import Driver
 from results.models import RaceResult
 from results.cache import CACHE_TTL, key_h2h
 
@@ -56,6 +57,16 @@ class HeadToHeadMatrixView(APIView):
                     "profile_image": row["driver_season__driver__profile_image"],
                 }
             by_race[row["race_id"]].append((d_id, row["finish_position"]))
+
+        # Humans who hold a seat but have not raced yet — a reserve waiting on a
+        # debut belongs on the grid here, with an empty row until they drive.
+        for d in Driver.objects.filter(human=True, season_entries__isnull=False).distinct():
+            driver_info.setdefault(d.id, {
+                "id": d.id,
+                "first_name": d.first_name or "",
+                "last_name": d.last_name or "",
+                "profile_image": d.profile_image,
+            })
 
         # Pairwise comparison per race
         # matrix[winner_id][loser_id] += 1 each time winner finished ahead of loser
