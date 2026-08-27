@@ -578,3 +578,70 @@
   color: var(--cgr-text-secondary);
   max-width: 70ch;
 }
+
+/* ═══════════════════════════════════════
+   RIVALRY SUMMARY (AI profile)
+═══════════════════════════════════════ */
+
+.rv-summary {
+  background: var(--cgr-card);
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-card);
+  padding: 18px 20px 16px;
+}
+
+.rv-summary-eyebrow {
+  margin: 0 0 10px;
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted);
+}
+
+.rv-summary-lead {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--cgr-text-primary);
+}
+
+.rv-summary-body {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cgr-border-hairline);
+}
+.rv-summary-body p {
+  margin: 0 0 11px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--cgr-text-body);
+  max-width: 74ch;
+}
+.rv-summary-body p:last-child { margin-bottom: 0; }
+
+.rv-summary-toggle {
+  margin-top: 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--cgr-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cgr-text-secondary);
+  border-bottom: 1px solid var(--cgr-border-hover);
+  transition: color 0.15s;
+}
+.rv-summary-toggle:hover { color: var(--cgr-text-primary); }
+.rv-summary-toggle:focus-visible {
+  outline: 2px solid var(--cgr-red);
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .rv-summary { padding: 16px; }
+  .rv-summary-lead { font-size: 15.5px; }
+}

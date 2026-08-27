@@ -179,6 +179,19 @@ SIDEBAR_SCHEMA = {
     "additionalProperties": False,
 }
 
+# A one-sentence line shown while the rivalry panel is collapsed, plus the body
+# behind it. Split rather than one blob so the collapsed state has a real field
+# to show instead of prose truncated at a character count.
+RIVALRY_SUMMARY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "summary": {"type": "string", "maxLength": 400},
+        "content": {"type": "string"},
+    },
+    "required": ["summary", "content"],
+    "additionalProperties": False,
+}
+
 # Blurbs keyed by rank (stable, unique within one rankings article) rather than
 # by driver name — avoids dropping a blurb when the model formats a name slightly
 # differently than we store it.
@@ -1713,3 +1726,368 @@ spots, or surface characteristics — nothing above tells you any of that"""
 
     logger.info("Generated bio for track %d (%s)", track.id, track.name)
     return track
+
+
+# ─── rivalry summaries ────────────────────────────────────────────────────────
+# One AI-written profile per driver pairing, shown at the top of the rivalry
+# page. Prompted from build_rivalry_payload — the same numbers the page renders
+# — so the prose and the panel below it can never disagree.
+
+# Only pairings involving a human are worth writing about: an AI-vs-AI matchup
+# is two game-controlled cars with no story behind them.
+def rivalry_is_eligible(driver_a, driver_b):
+    return driver_a.human or driver_b.human
+
+
+def _fmt_rivalry_totals(a_name, b_name, totals):
+    """
+    The stats recorded in every season. Poles, grid slots, cleanest driver and
+    overtakes are deliberately absent — they start at S3 or S7 and would read
+    as career figures across a rivalry that spans the whole league.
+    """
+    a, b = totals["a"], totals["b"]
+    rows = [
+        ("Races finished ahead", a["ahead"], b["ahead"]),
+        ("Points (in shared races)", a["points"], b["points"]),
+        ("Wins", a["wins"], b["wins"]),
+        ("Podiums", a["podiums"], b["podiums"]),
+        ("Fastest laps", a["fastest_laps"], b["fastest_laps"]),
+        ("Driver of the day", a["dotd"], b["dotd"]),
+        ("Average finish", a["avg_finish"], b["avg_finish"]),
+        ("Best finish", a["best_finish"], b["best_finish"]),
+    ]
+    lines = [f"  {'':<26} {a_name:<22} {b_name}"]
+    for label, av, bv in rows:
+        lines.append(f"  {label:<26} {str(av):<22} {bv}")
+    return "\n".join(lines)
+
+
+def _fmt_rivalry_seasons(a_name, b_name, seasons):
+    return "\n".join(
+        f"  S{s['season_id']}: {s['races']} races, "
+        f"{a_name} ahead {s['a_ahead']} - {s['b_ahead']} {b_name}, "
+        f"points {s['a_points']}-{s['b_points']}"
+        for s in seasons
+    )
+
+
+def _teammate_spells(a_id, b_id):
+    """
+    Seasons the pair shared a team, with the name that team raced under. A seat
+    is locked for a whole season, so a shared TeamSeason means a shared garage
+    for every round of it.
+    """
+    from entries.models import DriverSeason
+
+    seats = {}
+    for ds in (
+        DriverSeason.objects
+        .filter(driver_id__in=(a_id, b_id))
+        .select_related("team_season__team")
+    ):
+        seats.setdefault(ds.team_season_id, []).append(ds)
+
+    spells = []
+    for rows in seats.values():
+        if len({r.driver_id for r in rows}) < 2:
+            continue
+        ts = rows[0].team_season
+        spells.append({
+            "season_id": ts.season_id,
+            "team": ts.display_name or ts.team.team_name,
+            "seats": ts.driver_seats.count(),
+        })
+    return sorted(spells, key=lambda s: s["season_id"])
+
+
+def _fmt_teammate_spells(a_name, b_name, spells, seasons):
+    if not spells:
+        return "  They have never been teammates — every meeting has been in different cars."
+
+    by_season = {s["season_id"]: s for s in seasons}
+    lines = []
+    for spell in spells:
+        row = by_season.get(spell["season_id"])
+        line = f"  S{spell['season_id']} at {spell['team']}"
+        if spell["seats"] > 2:
+            line += f" (a {spell['seats']}-car entry that season)"
+        if row:
+            line += (
+                f": {row['races']} races together, "
+                f"{a_name} ahead {row['a_ahead']} - {row['b_ahead']} {b_name}, "
+                f"points {row['a_points']}-{row['b_points']}"
+            )
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def _fmt_rivalry_tracks(a_name, b_name, tracks):
+    return "\n".join(
+        f"  {t['name']} ({t['country']}): {t['races']} "
+        f"{'meeting' if t['races'] == 1 else 'meetings'}, "
+        f"{a_name} {t['a_ahead']} - {t['b_ahead']} {b_name}"
+        for t in tracks
+    )
+
+
+def _fmt_rivalry_timeline(a_name, b_name, timeline):
+    lines = []
+    for t in timeline:
+        tag = " [sprint]" if t["is_sprint"] else ""
+        winner = a_name if t["winner"] == "a" else b_name
+        lines.append(
+            f"  S{t['season_id']} R{t['round']} {t['track']}{tag}: "
+            f"{a_name} P{t['a_finish']} ({t['a_points']} pts), "
+            f"{b_name} P{t['b_finish']} ({t['b_points']} pts) — "
+            f"{winner} ahead by {t['margin']}; running total {t['cum_a']}-{t['cum_b']}"
+        )
+    return "\n".join(lines)
+
+
+def _fmt_rivalry_landmarks(a_name, b_name, data):
+    """The individual races worth naming: firsts, extremes, and the streaks."""
+    timeline = data["timeline"]
+    seasons = data["seasons"]
+    lines = []
+
+    first = timeline[0]
+    last = timeline[-1]
+    lines.append(
+        f"  First meeting: S{first['season_id']} {first['track']} — "
+        f"{a_name} P{first['a_finish']}, {b_name} P{first['b_finish']}"
+    )
+    lines.append(
+        f"  Most recent meeting: S{last['season_id']} {last['track']} — "
+        f"{a_name} P{last['a_finish']}, {b_name} P{last['b_finish']}"
+    )
+
+    a_seasons = sum(1 for s in seasons if s["a_ahead"] > s["b_ahead"])
+    b_seasons = sum(1 for s in seasons if s["b_ahead"] > s["a_ahead"])
+    lines.append(f"  Seasons won: {a_name} {a_seasons} - {b_seasons} {b_name}")
+
+    lines.append(f"  Races settled by a single place: {data['closest_races']}")
+
+    if data["biggest_margin"]:
+        rid = data["biggest_margin"]["race_id"]
+        race = next((t for t in timeline if t["race_id"] == rid), None)
+        if race:
+            lines.append(
+                f"  Widest gap: {data['biggest_margin']['margin']} places at "
+                f"S{race['season_id']} {race['track']} "
+                f"({a_name} P{race['a_finish']}, {b_name} P{race['b_finish']})"
+            )
+
+    swing = max(timeline, key=lambda t: abs(t["a_points"] - t["b_points"]))
+    lines.append(
+        f"  Biggest points swing in one race: {abs(swing['a_points'] - swing['b_points'])} "
+        f"at S{swing['season_id']} {swing['track']}"
+    )
+
+    best = min(timeline, key=lambda t: t["a_finish"] + t["b_finish"])
+    worst = max(timeline, key=lambda t: t["a_finish"] + t["b_finish"])
+    lines.append(
+        f"  Best shared race (lowest combined finish, {best['a_finish'] + best['b_finish']}): "
+        f"S{best['season_id']} {best['track']} — P{best['a_finish']} and P{best['b_finish']}"
+    )
+    lines.append(
+        f"  Worst shared race (highest combined finish, {worst['a_finish'] + worst['b_finish']}): "
+        f"S{worst['season_id']} {worst['track']} — P{worst['a_finish']} and P{worst['b_finish']}"
+    )
+
+    streaks = data["streaks"]
+    lines.append(
+        f"  Longest run of consecutive wins over the other: "
+        f"{a_name} {streaks['best_a']}, {b_name} {streaks['best_b']}"
+    )
+    cur = streaks["current"]
+    if cur["driver"] and cur["length"] > 1:
+        holder = a_name if cur["driver"] == "a" else b_name
+        lines.append(f"  Current run: {holder} has come out ahead in the last {cur['length']}")
+
+    shut_out = [
+        t for t in data["tracks"]
+        if t["races"] > 1 and (t["a_ahead"] == 0 or t["b_ahead"] == 0)
+    ]
+    for t in sorted(shut_out, key=lambda t: -t["races"]):
+        loser = a_name if t["a_ahead"] == 0 else b_name
+        lines.append(
+            f"  Bogey track: {t['races']} meetings at {t['name']} "
+            f"without {loser} ever finishing ahead"
+        )
+
+    return "\n".join(lines)
+
+
+def _fmt_rivalry_newer_stats(a_name, b_name, data):
+    """
+    Grid slots, cleanest driver and overtakes, labelled with the seasons that
+    actually recorded them. Included because they are the only picture of HOW a
+    result was arrived at, but they cover a fraction of most rivalries.
+    """
+    tracked = data["tracked"]
+    a, b = data["totals"]["a"], data["totals"]["b"]
+    lines = []
+
+    if tracked["grid"] and a["avg_grid"] is not None:
+        seasons = ", ".join(f"S{s}" for s in tracked["grid"])
+        lines.append(
+            f"  Grid slots were recorded in {seasons} only — {data['tracked']['grid_races']} "
+            f"of their {data['shared_races']} meetings:"
+        )
+        lines.append(f"    Average grid slot: {a_name} {a['avg_grid']}, {b_name} {b['avg_grid']}")
+        lines.append(
+            f"    Average places gained from the grid: "
+            f"{a_name} {a['avg_positions_gained']}, {b_name} {b['avg_positions_gained']}"
+        )
+    if tracked["cleanest"]:
+        seasons = ", ".join(f"S{s}" for s in tracked["cleanest"])
+        lines.append(
+            f"  Cleanest driver awards ({seasons} only): "
+            f"{a_name} {a['cleanest_driver']}, {b_name} {b['cleanest_driver']}"
+        )
+    if tracked["overtakes"]:
+        seasons = ", ".join(f"S{s}" for s in tracked["overtakes"])
+        lines.append(
+            f"  Most-overtakes awards ({seasons} only): "
+            f"{a_name} {a['most_overtakes']}, {b_name} {b['most_overtakes']}"
+        )
+
+    return "\n".join(lines)
+
+
+def _fmt_rivalry_drivers(driver_a, driver_b, data):
+    lines = []
+    for driver, key in ((driver_a, "driver_a"), (driver_b, "driver_b")):
+        kind = "a human player" if driver.human else "an AI-controlled driver"
+        team = data[key]["team"]["name"]
+        line = f"  {_name(driver)} — {kind}"
+        if team:
+            line += f", most recently racing for {team}"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def generate_rivalry_summary(driver_a_id, driver_b_id):
+    """
+    Generate and save the AI profile for one driver pairing.
+
+    Writes a DriverRivalry row (one per pair, canonically ordered) and drops the
+    cached rivalry payload so the summary appears immediately. Returns the row.
+    """
+    from django.core.cache import cache
+    from drivers.models import Driver, DriverRivalry
+    from results.api.views.rivalry import build_rivalry_payload
+    from results.cache import key_rivalry
+
+    a_id, b_id = sorted((int(driver_a_id), int(driver_b_id)))
+    if a_id == b_id:
+        raise ValueError("A rivalry needs two different drivers.")
+
+    driver_a = Driver.objects.get(pk=a_id)
+    driver_b = Driver.objects.get(pk=b_id)
+
+    if not rivalry_is_eligible(driver_a, driver_b):
+        raise ValueError(
+            f"{driver_a} v {driver_b}: neither driver is human, so there is no "
+            "rivalry worth writing about."
+        )
+
+    data = build_rivalry_payload(a_id, b_id)
+    if not data or not data["shared_races"]:
+        raise ValueError(f"{driver_a} v {driver_b} have never been classified in the same race.")
+
+    a_name, b_name = _name(driver_a), _name(driver_b)
+    spells = _teammate_spells(a_id, b_id)
+    seasons = data["seasons"]
+    span = (
+        f"S{seasons[0]['season_id']}"
+        if len(seasons) == 1
+        else f"S{seasons[0]['season_id']}-S{seasons[-1]['season_id']}"
+    )
+    newer_stats = _fmt_rivalry_newer_stats(a_name, b_name, data)
+
+    # Only one of the two can be an AI driver — an AI-vs-AI pair is rejected
+    # above — so this fires on exactly the pairings that need the caveat.
+    mixed = driver_a.human != driver_b.human
+    ai_name = _name(driver_a if not driver_a.human else driver_b)
+
+    prompt = f"""Write a profile of the head-to-head record between two CGR League drivers.
+
+THE TWO DRIVERS:
+{_fmt_rivalry_drivers(driver_a, driver_b, data)}
+
+Throughout the data below, the two columns are always {a_name} first, then {b_name}.
+
+OVERALL RECORD — {data['shared_races']} races both finished, across {span}:
+{_fmt_rivalry_totals(a_name, b_name, data['totals'])}
+
+SEASON BY SEASON:
+{_fmt_rivalry_seasons(a_name, b_name, seasons)}
+
+TEAMMATE HISTORY:
+{_fmt_teammate_spells(a_name, b_name, spells, seasons)}
+
+LANDMARK RACES:
+{_fmt_rivalry_landmarks(a_name, b_name, data)}
+
+CIRCUIT RECORD:
+{_fmt_rivalry_tracks(a_name, b_name, data['tracks'])}
+{f"{chr(10)}PARTIALLY-TRACKED STATS:{chr(10)}{newer_stats}{chr(10)}" if newer_stats else ""}
+EVERY MEETING, IN ORDER:
+{_fmt_rivalry_timeline(a_name, b_name, data['timeline'])}
+
+Write two or three paragraphs on what this record adds up to. Find the arc — who \
+had the upper hand when, where it turned, what the numbers say about how the two \
+drivers differ. Interpret; do not read the table back. Pick the handful of races \
+and seasons that carry the story rather than sweeping through all of them.
+
+Also write a single sentence that captures the rivalry, shown on its own above \
+the full text. It must stand alone, name both drivers, and not be a first line \
+the paragraphs then repeat.
+
+{DATA_DISCIPLINE_RULE}
+- The TEAMMATE HISTORY block is the most valuable comparison you have, because \
+teammates share a car. If they were teammates, give those seasons real weight and \
+say what happened when the equipment was equal. If they were never teammates, say \
+nothing about equipment being equal or unequal — you have no car performance data
+- Rely on the reliably-tracked stats. Anything under PARTIALLY-TRACKED STATS covers \
+only the seasons named beside it, so never present it as a career-long pattern, and \
+never compare it against the full {data['shared_races']}-race record
+- EVERY MEETING, IN ORDER is the complete list of results you have. Never state a win, \
+podium, or placing you cannot point to a line for. A sprint is a race like any other in \
+that list — its finishing position is already there, so do not invent sprint results
+- Do not speculate about anything outside the data: no rumoured feuds, no respect or \
+animosity between them, no off-track relationship, no talk of what either driver was \
+thinking or wanted, and nothing about confidence, momentum in the head, or a \
+psychological edge"""
+
+    if mixed:
+        prompt += (
+            f"\n- {ai_name} is controlled by the game, not a person. Write the record "
+            f"factually and never suggest {ai_name} has intent, motivation, nerves, or "
+            f"a career of their own — describe what the AI car did, not what it wanted"
+        )
+
+    rivalry_system = (
+        "You are a sports journalist covering CGR League. "
+        + LEAGUE_CONTEXT
+        + "Write in an engaging, analytical style — punchy sentences, specific "
+        "references to names and numbers. Every rivalry profile must feel distinct. "
+        "Separate the paragraphs of `content` with \\n\\n."
+    )
+    result = _call_model(
+        prompt, RIVALRY_SUMMARY_SCHEMA, system=rivalry_system, max_tokens=4000
+    )
+
+    rivalry, _ = DriverRivalry.objects.update_or_create(
+        driver_a=driver_a,
+        driver_b=driver_b,
+        defaults={
+            "summary": result["summary"].strip(),
+            "content": result["content"].strip(),
+            "shared_races": data["shared_races"],
+        },
+    )
+    cache.delete(key_rivalry(a_id, b_id))
+    logger.info("Generated rivalry summary for %s v %s", a_name, b_name)
+    return rivalry

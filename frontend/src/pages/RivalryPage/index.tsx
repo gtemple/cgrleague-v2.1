@@ -13,6 +13,7 @@ import { shortDriverName } from "../../utils/driverName";
 import { displayImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import { MomentumChart } from "./MomentumChart";
+import { RivalrySummary } from "./RivalrySummary";
 import "./style.css";
 
 type StatRow = {
@@ -407,6 +408,10 @@ export const RivalryPage = () => {
       </div>
 
       <div className="rv-inner">
+      {data.summary && (
+        <RivalrySummary summary={data.summary.summary} content={data.summary.content} />
+      )}
+
       {/* Three facts at display scale, the rest as an inline run — a dark
           panel among the white cards, not a page-width band. */}
       <section className="rv-record" aria-label="Notable facts">

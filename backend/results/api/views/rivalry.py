@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from drivers.models import Driver
+from drivers.models import Driver, DriverRivalry
 from results.cache import CACHE_TTL, key_driver_rivals, key_rivalry
 from results.models import RaceResult
 from results.scoring import points_for_position
@@ -93,6 +93,213 @@ def _finalise(tally):
     return out
 
 
+def _rivalry_summary(a_id, b_id, shared_races):
+    """The AI profile for this pair, if one has been generated."""
+    row = DriverRivalry.objects.filter(driver_a_id=a_id, driver_b_id=b_id).first()
+    if row is None:
+        return None
+    return {
+        "summary": row.summary,
+        "content": row.content,
+        "generated_at": row.generated_at.isoformat(),
+        # Written before races they have since shared, so the prose may be
+        # describing a record that has already moved on.
+        "stale": row.shared_races != shared_races,
+    }
+
+
+def build_rivalry_payload(a_id, b_id):
+    """
+    Every head-to-head fact for one pair, in the shape the rivalry endpoint
+    returns. `a_id` must be the lower driver id.
+
+    Lives outside the view because the article generator prompts from exactly
+    these numbers, so a generated summary and the page can never disagree.
+
+    Returns None if either driver does not exist.
+    """
+    try:
+        driver_a_obj = Driver.objects.get(pk=a_id)
+        driver_b_obj = Driver.objects.get(pk=b_id)
+    except Driver.DoesNotExist:
+        return None
+
+    rows = list(
+        RaceResult.objects
+        .filter(driver_season__driver_id__in=(a_id, b_id))
+        .values(
+            "race_id",
+            "finish_position",
+            "status",
+            "pole_position",
+            "fastest_lap",
+            "dotd",
+            "grid_position",
+            "cleanest_driver",
+            "most_overtakes",
+            "driver_season__driver_id",
+            "driver_season__team_season_id",
+            "driver_season__team_season__team__team_name",
+            "driver_season__team_season__display_name",
+            "driver_season__team_season__color",
+            "race__season_id",
+            "race__round",
+            "race__is_sprint",
+            "race__track_id",
+            "race__track__name",
+            "race__track__country",
+        )
+        .order_by("race__season_id", "race__round", "race__is_sprint")
+    )
+
+    by_race = defaultdict(dict)
+    race_meta = {}
+    for row in rows:
+        by_race[row["race_id"]][row["driver_season__driver_id"]] = row
+        race_meta[row["race_id"]] = row
+
+    # Preserve chronological order of the shared races.
+    shared = [
+        rid for rid in dict.fromkeys(r["race_id"] for r in rows)
+        if len(by_race[rid]) == 2
+        and by_race[rid][a_id]["finish_position"] is not None
+        and by_race[rid][b_id]["finish_position"] is not None
+    ]
+
+    tally_a, tally_b = _blank_tally(), _blank_tally()
+    # Which seasons actually carry the newer flags for THIS pair. Derived
+    # from the data so it widens on its own as more seasons record them.
+    tracked = {"grid": set(), "cleanest": set(), "overtakes": set()}
+    by_season = {}
+    by_track = {}
+    timeline = []
+    teammate_seasons = set()
+    cum_a = cum_b = 0
+    streak_holder, streak_len = None, 0
+    best_streak = {a_id: 0, b_id: 0}
+    biggest = None
+
+    for rid in shared:
+        ra, rb = by_race[rid][a_id], by_race[rid][b_id]
+        pa, pb = ra["finish_position"], rb["finish_position"]
+        a_ahead = pa < pb
+
+        _record(tally_a, ra, a_ahead)
+        _record(tally_b, rb, not a_ahead)
+
+        pts_a = points_for_position(pa) + (1 if ra["fastest_lap"] and pa <= 10 else 0)
+        pts_b = points_for_position(pb) + (1 if rb["fastest_lap"] and pb <= 10 else 0)
+        cum_a += pts_a
+        cum_b += pts_b
+
+        if ra["driver_season__team_season_id"] == rb["driver_season__team_season_id"]:
+            teammate_seasons.add(ra["race__season_id"])
+
+        winner = a_id if a_ahead else b_id
+        if winner == streak_holder:
+            streak_len += 1
+        else:
+            streak_holder, streak_len = winner, 1
+        best_streak[winner] = max(best_streak[winner], streak_len)
+
+        season_no = ra["race__season_id"]
+        if ra["grid_position"] is not None or rb["grid_position"] is not None:
+            tracked["grid"].add(season_no)
+        if ra["cleanest_driver"] or rb["cleanest_driver"]:
+            tracked["cleanest"].add(season_no)
+        if ra["most_overtakes"] or rb["most_overtakes"]:
+            tracked["overtakes"].add(season_no)
+
+        margin = abs(pa - pb)
+        if biggest is None or margin > biggest["margin"]:
+            biggest = {"race_id": rid, "margin": margin}
+
+        s = ra["race__season_id"]
+        season_row = by_season.setdefault(s, {
+            "season_id": s, "races": 0, "a_ahead": 0, "b_ahead": 0,
+            "a_points": 0, "b_points": 0,
+        })
+        season_row["races"] += 1
+        season_row["a_ahead" if a_ahead else "b_ahead"] += 1
+        season_row["a_points"] += pts_a
+        season_row["b_points"] += pts_b
+
+        t = ra["race__track_id"]
+        track_row = by_track.setdefault(t, {
+            "track_id": t, "name": ra["race__track__name"],
+            "country": ra["race__track__country"],
+            "races": 0, "a_ahead": 0, "b_ahead": 0,
+        })
+        track_row["races"] += 1
+        track_row["a_ahead" if a_ahead else "b_ahead"] += 1
+
+        timeline.append({
+            "race_id": rid,
+            "season_id": s,
+            "round": ra["race__round"],
+            "is_sprint": ra["race__is_sprint"],
+            "track": ra["race__track__name"],
+            "country": ra["race__track__country"],
+            "a_finish": pa,
+            "b_finish": pb,
+            "a_points": pts_a,
+            "b_points": pts_b,
+            "winner": "a" if a_ahead else "b",
+            "margin": margin,
+            "cum_a": cum_a,
+            "cum_b": cum_b,
+        })
+
+    # Current streak runs backwards from the most recent shared race.
+    current = {"driver": None, "length": 0}
+    if timeline:
+        last = timeline[-1]["winner"]
+        n = 0
+        for entry in reversed(timeline):
+            if entry["winner"] != last:
+                break
+            n += 1
+        current = {"driver": last, "length": n}
+
+    closest = [t for t in timeline if t["margin"] == 1]
+
+    def team_of(did):
+        for row in reversed(rows):
+            if row["driver_season__driver_id"] == did:
+                return {
+                    "name": (row["driver_season__team_season__display_name"]
+                             or row["driver_season__team_season__team__team_name"]),
+                    "color": row["driver_season__team_season__color"] or "",
+                }
+        return {"name": "", "color": ""}
+
+    payload = {
+        "driver_a": {**serialize_driver(driver_a_obj), "team": team_of(a_id)},
+        "driver_b": {**serialize_driver(driver_b_obj), "team": team_of(b_id)},
+        "shared_races": len(shared),
+        "summary": _rivalry_summary(a_id, b_id, len(shared)),
+        "totals": {"a": _finalise(tally_a), "b": _finalise(tally_b)},
+        "seasons": sorted(by_season.values(), key=lambda r: r["season_id"]),
+        "tracks": sorted(by_track.values(), key=lambda r: (-r["races"], r["name"])),
+        "timeline": timeline,
+        "teammate_seasons": sorted(teammate_seasons),
+        "streaks": {
+            "current": current,
+            "best_a": best_streak[a_id],
+            "best_b": best_streak[b_id],
+        },
+        "closest_races": len(closest),
+        "biggest_margin": biggest,
+        "tracked": {
+            "grid": sorted(tracked["grid"]),
+            "cleanest": sorted(tracked["cleanest"]),
+            "overtakes": sorted(tracked["overtakes"]),
+            "grid_races": tally_a["grid_races"],
+        },
+    }
+    return payload
+
+
 class RivalryView(APIView):
     """
     GET /api/rivalry/<driver_a>/<driver_b>/
@@ -114,184 +321,10 @@ class RivalryView(APIView):
         if cached is not None:
             return Response(cached)
 
-        try:
-            driver_a_obj = Driver.objects.get(pk=a_id)
-            driver_b_obj = Driver.objects.get(pk=b_id)
-        except Driver.DoesNotExist:
+        payload = build_rivalry_payload(a_id, b_id)
+        if payload is None:
             return Response({"detail": "Driver not found."}, status=404)
 
-        rows = list(
-            RaceResult.objects
-            .filter(driver_season__driver_id__in=(a_id, b_id))
-            .values(
-                "race_id",
-                "finish_position",
-                "status",
-                "pole_position",
-                "fastest_lap",
-                "dotd",
-                "grid_position",
-                "cleanest_driver",
-                "most_overtakes",
-                "driver_season__driver_id",
-                "driver_season__team_season_id",
-                "driver_season__team_season__team__team_name",
-                "driver_season__team_season__display_name",
-                "driver_season__team_season__color",
-                "race__season_id",
-                "race__round",
-                "race__is_sprint",
-                "race__track_id",
-                "race__track__name",
-                "race__track__country",
-            )
-            .order_by("race__season_id", "race__round", "race__is_sprint")
-        )
-
-        by_race = defaultdict(dict)
-        race_meta = {}
-        for row in rows:
-            by_race[row["race_id"]][row["driver_season__driver_id"]] = row
-            race_meta[row["race_id"]] = row
-
-        # Preserve chronological order of the shared races.
-        shared = [
-            rid for rid in dict.fromkeys(r["race_id"] for r in rows)
-            if len(by_race[rid]) == 2
-            and by_race[rid][a_id]["finish_position"] is not None
-            and by_race[rid][b_id]["finish_position"] is not None
-        ]
-
-        tally_a, tally_b = _blank_tally(), _blank_tally()
-        # Which seasons actually carry the newer flags for THIS pair. Derived
-        # from the data so it widens on its own as more seasons record them.
-        tracked = {"grid": set(), "cleanest": set(), "overtakes": set()}
-        by_season = {}
-        by_track = {}
-        timeline = []
-        teammate_seasons = set()
-        cum_a = cum_b = 0
-        streak_holder, streak_len = None, 0
-        best_streak = {a_id: 0, b_id: 0}
-        biggest = None
-
-        for rid in shared:
-            ra, rb = by_race[rid][a_id], by_race[rid][b_id]
-            pa, pb = ra["finish_position"], rb["finish_position"]
-            a_ahead = pa < pb
-
-            _record(tally_a, ra, a_ahead)
-            _record(tally_b, rb, not a_ahead)
-
-            pts_a = points_for_position(pa) + (1 if ra["fastest_lap"] and pa <= 10 else 0)
-            pts_b = points_for_position(pb) + (1 if rb["fastest_lap"] and pb <= 10 else 0)
-            cum_a += pts_a
-            cum_b += pts_b
-
-            if ra["driver_season__team_season_id"] == rb["driver_season__team_season_id"]:
-                teammate_seasons.add(ra["race__season_id"])
-
-            winner = a_id if a_ahead else b_id
-            if winner == streak_holder:
-                streak_len += 1
-            else:
-                streak_holder, streak_len = winner, 1
-            best_streak[winner] = max(best_streak[winner], streak_len)
-
-            season_no = ra["race__season_id"]
-            if ra["grid_position"] is not None or rb["grid_position"] is not None:
-                tracked["grid"].add(season_no)
-            if ra["cleanest_driver"] or rb["cleanest_driver"]:
-                tracked["cleanest"].add(season_no)
-            if ra["most_overtakes"] or rb["most_overtakes"]:
-                tracked["overtakes"].add(season_no)
-
-            margin = abs(pa - pb)
-            if biggest is None or margin > biggest["margin"]:
-                biggest = {"race_id": rid, "margin": margin}
-
-            s = ra["race__season_id"]
-            season_row = by_season.setdefault(s, {
-                "season_id": s, "races": 0, "a_ahead": 0, "b_ahead": 0,
-                "a_points": 0, "b_points": 0,
-            })
-            season_row["races"] += 1
-            season_row["a_ahead" if a_ahead else "b_ahead"] += 1
-            season_row["a_points"] += pts_a
-            season_row["b_points"] += pts_b
-
-            t = ra["race__track_id"]
-            track_row = by_track.setdefault(t, {
-                "track_id": t, "name": ra["race__track__name"],
-                "country": ra["race__track__country"],
-                "races": 0, "a_ahead": 0, "b_ahead": 0,
-            })
-            track_row["races"] += 1
-            track_row["a_ahead" if a_ahead else "b_ahead"] += 1
-
-            timeline.append({
-                "race_id": rid,
-                "season_id": s,
-                "round": ra["race__round"],
-                "is_sprint": ra["race__is_sprint"],
-                "track": ra["race__track__name"],
-                "country": ra["race__track__country"],
-                "a_finish": pa,
-                "b_finish": pb,
-                "a_points": pts_a,
-                "b_points": pts_b,
-                "winner": "a" if a_ahead else "b",
-                "margin": margin,
-                "cum_a": cum_a,
-                "cum_b": cum_b,
-            })
-
-        # Current streak runs backwards from the most recent shared race.
-        current = {"driver": None, "length": 0}
-        if timeline:
-            last = timeline[-1]["winner"]
-            n = 0
-            for entry in reversed(timeline):
-                if entry["winner"] != last:
-                    break
-                n += 1
-            current = {"driver": last, "length": n}
-
-        closest = [t for t in timeline if t["margin"] == 1]
-
-        def team_of(did):
-            for row in reversed(rows):
-                if row["driver_season__driver_id"] == did:
-                    return {
-                        "name": (row["driver_season__team_season__display_name"]
-                                 or row["driver_season__team_season__team__team_name"]),
-                        "color": row["driver_season__team_season__color"] or "",
-                    }
-            return {"name": "", "color": ""}
-
-        payload = {
-            "driver_a": {**serialize_driver(driver_a_obj), "team": team_of(a_id)},
-            "driver_b": {**serialize_driver(driver_b_obj), "team": team_of(b_id)},
-            "shared_races": len(shared),
-            "totals": {"a": _finalise(tally_a), "b": _finalise(tally_b)},
-            "seasons": sorted(by_season.values(), key=lambda r: r["season_id"]),
-            "tracks": sorted(by_track.values(), key=lambda r: (-r["races"], r["name"])),
-            "timeline": timeline,
-            "teammate_seasons": sorted(teammate_seasons),
-            "streaks": {
-                "current": current,
-                "best_a": best_streak[a_id],
-                "best_b": best_streak[b_id],
-            },
-            "closest_races": len(closest),
-            "biggest_margin": biggest,
-            "tracked": {
-                "grid": sorted(tracked["grid"]),
-                "cleanest": sorted(tracked["cleanest"]),
-                "overtakes": sorted(tracked["overtakes"]),
-                "grid_races": tally_a["grid_races"],
-            },
-        }
         cache.set(ck, payload, timeout=CACHE_TTL)
         return Response(payload)
 

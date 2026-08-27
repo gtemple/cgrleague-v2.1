@@ -69,6 +69,12 @@ export type RivalryData = {
   driver_a: RivalryDriver;
   driver_b: RivalryDriver;
   shared_races: number;
+  summary: {
+    summary: string;
+    content: string;
+    generated_at: string;
+    stale: boolean;
+  } | null;
   totals: { a: RivalryTotals; b: RivalryTotals };
   seasons: RivalrySeason[];
   tracks: RivalryTrack[];
