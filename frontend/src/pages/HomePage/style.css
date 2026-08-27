@@ -895,50 +895,6 @@
    SKELETONS
 ═══════════════════════════════════════ */
 
-.home-page .sk {
-  display: block;
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--cgr-radius-chip);
-  background: #e4e1d8;
-}
-
-.home-page .sk::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
-  animation: sk-sweep 1.5s ease-in-out infinite;
-}
-
-.home-page .sk--dark {
-  background: rgba(247, 245, 239, 0.09);
-}
-.home-page .sk--dark::after {
-  background: linear-gradient(90deg, transparent, rgba(247, 245, 239, 0.13), transparent);
-}
-
-.sk-thumb::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
-  animation: sk-sweep 1.5s ease-in-out infinite;
-}
-
-@keyframes sk-sweep {
-  100% { transform: translateX(100%); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home-page .sk::after,
-  .sk-thumb::after {
-    animation: none;
-  }
-}
-
 /* ticker */
 
 .ticker-sk {

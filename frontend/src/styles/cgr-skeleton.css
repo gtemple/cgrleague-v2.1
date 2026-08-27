@@ -1,0 +1,39 @@
+/* Loading placeholders for the CGR design language.
+   .sk is a filled bar; .sk-sweep adds only the shine to an element that
+   already paints its own background. */
+
+.sk {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--cgr-radius-chip);
+  background: #e4e1d8;
+}
+
+.sk::after,
+.sk-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  animation: sk-sweep 1.5s ease-in-out infinite;
+}
+
+.sk--dark {
+  background: rgba(247, 245, 239, 0.09);
+}
+.sk--dark::after {
+  background: linear-gradient(90deg, transparent, rgba(247, 245, 239, 0.13), transparent);
+}
+
+@keyframes sk-sweep {
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk::after,
+  .sk-sweep::after {
+    animation: none;
+  }
+}

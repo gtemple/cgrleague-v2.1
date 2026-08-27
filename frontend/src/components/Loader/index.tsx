@@ -12,7 +12,7 @@ type LoaderProps = {
 };
 
 export function Loader({
-  label = "Loading…",
+  label = "Loading",
   variant = "spinner",
   lines = 6,
   full = false,
@@ -20,24 +20,28 @@ export function Loader({
 }: LoaderProps) {
   if (variant === "skeleton") {
     return (
-      <div className={"loader-wrap" + (full ? " loader-full" : "")} role="status" aria-live="polite">
+      <div
+        className={"loader-wrap" + (full ? " loader-full" : "")}
+        role="status"
+        aria-live="polite"
+        aria-label={label}
+      >
         <div className="skeleton-stack">
           {Array.from({ length: lines }).map((_, i) => (
-            <div
+            <span
               key={i}
-              className="skeleton-bar"
+              className="sk"
               style={{ height: barHeight, width: `${90 - (i % 3) * 8}%` }}
             />
           ))}
         </div>
-        <div className="loader-label">{label}</div>
       </div>
     );
   }
 
   return (
     <div className={"loader-wrap" + (full ? " loader-full" : "")} role="status" aria-live="polite">
-      <div className="spinner" aria-hidden />
+      <div className="loader-spinner" aria-hidden />
       <div className="loader-label">{label}</div>
     </div>
   );

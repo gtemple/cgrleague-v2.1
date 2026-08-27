@@ -380,6 +380,30 @@ const LastRaceResults = ({ data, seasonId }: { data?: SeasonLastRaceResponse; se
   );
 }
 
+function SkPanel({ rows, block, chips, className }: { rows?: number; block?: number; chips?: number; className?: string }) {
+  return (
+    <div className={"season-sk-panel" + (className ? ` ${className}` : "")}>
+      <span className="sk season-sk-head" />
+      {block ? (
+        <span className="sk season-sk-block" style={{ height: block }} />
+      ) : (
+        <div className="season-sk-rows">
+          {Array.from({ length: rows ?? 5 }).map((_, i) => (
+            <span key={i} className="sk season-sk-row" />
+          ))}
+        </div>
+      )}
+      {chips ? (
+        <div className="season-sk-chips">
+          {Array.from({ length: chips }).map((_, i) => (
+            <span key={i} className="sk season-sk-chip" />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export const SeasonPage = () => {
   const params = useParams();
   const navigate = useNavigate();
@@ -433,7 +457,24 @@ export const SeasonPage = () => {
 
       <div className="season-body">
         {isLoading && (
-          <Loader label="Loading season…" full />
+          <div className="season-content" aria-busy="true" aria-label="Loading season">
+            <SkPanel block={330} chips={14} />
+            <div className="season-grid-rail">
+              <SkPanel rows={22} className="season-sk-matrix" />
+              <div className="season-rail">
+                <SkPanel rows={15} />
+                <SkPanel rows={9} />
+              </div>
+            </div>
+            <div className="season-stats-section">
+              <div className="season-stats-label">SEASON STATS</div>
+              <div className="season-stats-grid">
+                <SkPanel rows={8} />
+                <SkPanel rows={8} />
+                <SkPanel rows={8} />
+              </div>
+            </div>
+          </div>
         )}
         {errorMessage && <p style={{ color: "crimson" }}>Failed to load results: {errorMessage}</p>}
 

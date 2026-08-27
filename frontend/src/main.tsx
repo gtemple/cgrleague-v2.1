@@ -5,6 +5,7 @@ import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import "./styles/fonts.css";
 import "./styles/cgr-tokens.css";
+import "./styles/cgr-skeleton.css";
 import { ErrorBoundary } from "./components/ErrorBoundary/index.tsx";
 import { AuthProvider } from "./context/AuthContext";
 

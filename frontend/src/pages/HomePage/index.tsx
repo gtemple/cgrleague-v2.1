@@ -509,7 +509,7 @@ export const HomePage = () => {
             {articlesLoading ? (
               [0, 1, 2].map((i) => (
                 <div key={i} className="coverage-card">
-                  <div className="coverage-thumb sk-thumb" />
+                  <div className="coverage-thumb sk-sweep" />
                   <div className="coverage-body">
                     <span className="sk coverage-sk-round" />
                     <span className="sk coverage-sk-title" />

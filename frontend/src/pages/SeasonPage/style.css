@@ -622,6 +622,62 @@
    SEASON STATS PANELS
 ═══════════════════════════════════════ */
 
+.season-sk-panel {
+  background: var(--cgr-card);
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-card);
+  padding: 16px 18px;
+}
+
+.season-sk-matrix {
+  flex: 999 1 480px;
+  min-width: 0;
+}
+
+.season-sk-head {
+  width: 132px;
+  height: 11px;
+}
+
+.season-sk-block {
+  margin-top: 16px;
+}
+
+.season-sk-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin-top: 16px;
+}
+
+.season-sk-row {
+  height: 15px;
+}
+.season-sk-row:nth-child(2n) {
+  width: 82%;
+}
+.season-sk-row:nth-child(3n) {
+  width: 91%;
+}
+
+.season-sk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.season-sk-chip {
+  width: 124px;
+  height: 27px;
+}
+.season-sk-chip:nth-child(3n) {
+  width: 104px;
+}
+.season-sk-chip:nth-child(4n) {
+  width: 142px;
+}
+
 .season-stats-section {
   margin-top: 8px;
 }
