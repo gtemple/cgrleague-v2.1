@@ -2,7 +2,7 @@
 Provider layer for article generation.
 
 Two backends, selected by ARTICLE_LLM_PROVIDER (or a --provider flag on the
-management commands): "anthropic" (default) and "deepseek".
+management commands): "deepseek" (default) and "anthropic".
 
 They differ in one way that shapes this module. Anthropic enforces the JSON
 schema server-side through `output_config`, so a parsed response is guaranteed
@@ -25,6 +25,13 @@ ANTHROPIC_MODEL = "claude-opus-4-8"
 # roughly an order of magnitude under Opus on output tokens.
 DEEPSEEK_MODEL = "deepseek-v4-pro"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+# DeepSeek enables thinking by default at effort "high". These prompts hand the
+# model every fact it needs and ask for prose, so reasoning buys nothing here and
+# costs a great deal: on a race recap it ran 3.7k-6.6k reasoning tokens, pushed
+# latency from ~24s to 80-170s, and — because max_tokens covers reasoning AND
+# output — sometimes consumed the whole budget and returned empty content.
+# Override with DEEPSEEK_REASONING_EFFORT=low|high|max if a prompt ever needs it.
+DEEPSEEK_REASONING_EFFORT = "none"
 
 _override = None
 
@@ -38,7 +45,7 @@ def set_provider(name):
 
 
 def active_provider():
-    return _override or os.environ.get("ARTICLE_LLM_PROVIDER", ANTHROPIC).strip().lower()
+    return _override or os.environ.get("ARTICLE_LLM_PROVIDER", DEEPSEEK).strip().lower()
 
 
 def active_model(provider=None):
@@ -126,11 +133,15 @@ def _deepseek_json(user_prompt, schema, *, system, max_tokens):
         f"{json.dumps(schema, indent=2)}"
     )
 
+    effort = os.environ.get("DEEPSEEK_REASONING_EFFORT", DEEPSEEK_REASONING_EFFORT).strip().lower()
+    if effort in ("none", "off", "disabled", ""):
+        thinking = {"thinking": {"type": "disabled"}}
+    else:
+        thinking = {"thinking": {"type": "enabled"}, "reasoning_effort": effort}
+
     client = OpenAI(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
 
     last_error = None
-    # DeepSeek documents that json_object mode can occasionally return empty
-    # content, so a blank or unparseable body gets one more go.
     for attempt in range(2):
         response = client.chat.completions.create(
             model=active_model(DEEPSEEK),
@@ -140,8 +151,23 @@ def _deepseek_json(user_prompt, schema, *, system, max_tokens):
                 {"role": "system", "content": system_with_schema},
                 {"role": "user", "content": user_prompt},
             ],
+            extra_body=thinking,
         )
-        text = (response.choices[0].message.content or "").strip()
+        choice = response.choices[0]
+        text = (choice.message.content or "").strip()
+
+        # A truncated response is not worth retrying blind: with reasoning on,
+        # max_tokens is shared with the reasoning trace, so the retry hits the
+        # same ceiling. Say what actually happened instead.
+        if choice.finish_reason == "length":
+            details = response.usage.completion_tokens_details
+            reasoning = getattr(details, "reasoning_tokens", 0) if details else 0
+            raise RuntimeError(
+                f"DeepSeek hit max_tokens ({max_tokens}) before finishing the JSON "
+                f"({reasoning} of those went to reasoning). Raise max_tokens, or set "
+                f"DEEPSEEK_REASONING_EFFORT=none."
+            )
+
         if not text:
             last_error = ValueError("DeepSeek returned empty content")
             logger.warning("DeepSeek returned empty content (attempt %s/2)", attempt + 1)

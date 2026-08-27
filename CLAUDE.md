@@ -71,12 +71,14 @@ Expensive read endpoints cache their full response in Django's `LocMemCache` (24
 
 `articles/generator.py` is the entry point (`generate_articles_for_race`, plus season/bio variants). Shared league facts (driver relationships, banned words, DNF-tracking caveat) live in `LEAGUE_CONTEXT` / `SYSTEM_PROMPT` constants — edit those rather than duplicating rules per prompt. Triggered via management commands in `articles/management/commands/` (`generate_articles`, `generate_season_articles`, `generate_track_bio`, `generate_driver_bio`), not automatically on race save.
 
-**Providers.** Every model call in the app goes through `articles/llm.py` (`generate_json`); `generator.py` reaches it via `_call_model` and never imports a vendor SDK. Two backends, chosen by `ARTICLE_LLM_PROVIDER` (default `anthropic`) or a `--provider` flag on any of the four commands:
+**Providers.** Every model call in the app goes through `articles/llm.py` (`generate_json`); `generator.py` reaches it via `_call_model` and never imports a vendor SDK. Two backends, chosen by `ARTICLE_LLM_PROVIDER` (default `deepseek`) or a `--provider` flag on any of the four commands:
 
+- `deepseek` — **the default.** `deepseek-v4-pro` via the OpenAI SDK against `https://api.deepseek.com`, needs `DEEPSEEK_API_KEY`. Roughly an order of magnitude cheaper on output tokens.
 - `anthropic` — `claude-opus-4-8` with adaptive thinking, needs `ANTHROPIC_API_KEY`.
-- `deepseek` — `deepseek-v4-pro` via the OpenAI SDK against `https://api.deepseek.com`, needs `DEEPSEEK_API_KEY`. Roughly an order of magnitude cheaper on output tokens.
 
 Override either model with `ANTHROPIC_MODEL` / `DEEPSEEK_MODEL`.
+
+**DeepSeek thinking is disabled by default and should stay that way.** DeepSeek enables reasoning at effort `high` unless told otherwise, and `max_tokens` covers the reasoning trace *and* the output. On a race recap that meant 3.7k–6.6k reasoning tokens, 80–170s latency instead of ~23s, and calls that spent the whole budget reasoning and returned empty content. These prompts hand the model every fact it needs and ask for prose, so reasoning buys nothing. `DEEPSEEK_REASONING_EFFORT=low|high|max` re-enables it per-run if a future prompt ever needs it; a truncated response now raises naming the cause instead of retrying into the same ceiling.
 
 The two providers are **not** equivalent on output guarantees, which is why the DeepSeek path is longer. Anthropic enforces the JSON schema server-side via `output_config`, so a parsed response always matches. DeepSeek only offers `json_object` mode, which guarantees valid JSON but not schema conformance, so that path injects the schema into the system prompt, validates the parsed result against it (`_validate`), and retries once — DeepSeek documents that the mode can intermittently return empty content. A response that fails validation twice raises rather than silently producing an article with missing fields. If you add a new schema, it needs nothing extra; `_validate` walks `required`, nested objects, and arrays already.
 
