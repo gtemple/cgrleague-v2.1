@@ -40,7 +40,7 @@ def _blank_tally():
 def _record(tally, row, ahead):
     pos = row["finish_position"]
     tally["races"] += 1
-    tally["points"] += points_for_position(pos) + (
+    tally["points"] += points_for_position(pos, row["race__is_sprint"]) + (
         1 if row["fastest_lap"] and pos is not None and pos <= 10 else 0
     )
     if ahead:

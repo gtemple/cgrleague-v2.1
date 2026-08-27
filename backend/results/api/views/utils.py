@@ -1,16 +1,29 @@
 from typing import Any, Dict, Optional
 from django.db.models import Case, When, Value, IntegerField, Q
 from teams.models import Team
-from results.scoring import POINTS_BY_POSITION as PLACE_POINTS
+from results.scoring import (
+    POINTS_BY_POSITION as PLACE_POINTS,
+    SPRINT_POINTS_BY_POSITION as SPRINT_PLACE_POINTS,
+)
 
 def points_case(prefix: str = "results__") -> Case:
     """
-    Build a per-row points CASE using PLACE_POINTS for annotations like:
+    Per-row points CASE for annotations like:
       .annotate(base_points=Coalesce(Sum(points_case()), 0))
     prefix: relation prefix to 'finish_position' (e.g., 'results__' or '')
+
+    Branches on the race type so sprints pay the short table, matching
+    points_for_result in results.scoring. Keep the two in step.
     """
     field = f"{prefix}finish_position"
-    whens = [When(**{field: pos}, then=Value(pts)) for pos, pts in PLACE_POINTS.items()]
+    sprint = f"{prefix}race__is_sprint"
+    whens = [
+        When(Q(**{field: pos}) & Q(**{sprint: True}), then=Value(pts))
+        for pos, pts in SPRINT_PLACE_POINTS.items()
+    ] + [
+        When(Q(**{field: pos}) & Q(**{sprint: False}), then=Value(pts))
+        for pos, pts in PLACE_POINTS.items()
+    ]
     return Case(*whens, default=Value(0), output_field=IntegerField())
 
 def fl_bonus_case(prefix: str = "results__") -> Case:
