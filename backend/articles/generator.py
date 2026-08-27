@@ -1739,6 +1739,42 @@ def rivalry_is_eligible(driver_a, driver_b):
     return driver_a.human or driver_b.human
 
 
+def eligible_rivalry_pairs():
+    """
+    Every pairing worth a summary: at least one human, and at least one race
+    both drivers finished. Ordered human-vs-human first, then by how much
+    shared history the pair has, so a truncated batch does the richest ones.
+
+    Returns [((a_id, b_id), shared_races), ...] with a_id < b_id.
+    """
+    from collections import defaultdict
+    from drivers.models import Driver
+    from results.models import RaceResult
+
+    humans = set(Driver.objects.filter(human=True).values_list("id", flat=True))
+
+    by_race = defaultdict(set)
+    for race_id, driver_id in (
+        RaceResult.objects
+        .exclude(finish_position=None)
+        .values_list("race_id", "driver_season__driver_id")
+    ):
+        by_race[race_id].add(driver_id)
+
+    shared = defaultdict(int)
+    for drivers in by_race.values():
+        ids = sorted(drivers)
+        for i, a in enumerate(ids):
+            for b in ids[i + 1:]:
+                if a in humans or b in humans:
+                    shared[(a, b)] += 1
+
+    return sorted(
+        shared.items(),
+        key=lambda kv: (not (kv[0][0] in humans and kv[0][1] in humans), -kv[1]),
+    )
+
+
 def _fmt_rivalry_totals(a_name, b_name, totals):
     """
     The stats recorded in every season. Poles, grid slots, cleanest driver and
