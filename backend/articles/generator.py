@@ -1861,52 +1861,95 @@ def _fmt_rivalry_seasons(a_name, b_name, seasons, progress, timeline):
     return "\n".join(lines)
 
 
-def _teammate_spells(a_id, b_id):
+def _teammate_spells(a_id, b_id, timeline):
     """
-    Seasons the pair shared a team, with the name that team raced under. A seat
-    is locked for a whole season, so a shared TeamSeason means a shared garage
-    for every round of it.
-    """
-    from entries.models import DriverSeason
+    The races the pair actually drove for the same team, grouped into spells.
 
-    seats = {}
-    for ds in (
-        DriverSeason.objects
-        .filter(driver_id__in=(a_id, b_id))
-        .select_related("team_season__team")
+    Derived race by race rather than from a shared seat: once substitutes exist,
+    two drivers can hold seats at the same team in a season without ever sharing
+    a grid — the sub replaces the driver they stand in for. Counting a shared
+    TeamSeason would call those two teammates for the whole season.
+    """
+    from collections import defaultdict
+    from entries.models import TeamSeason
+    from results.models import RaceResult
+
+    by_race = defaultdict(dict)
+    for row in (
+        RaceResult.objects
+        .filter(driver_season__driver_id__in=(a_id, b_id))
+        .values(
+            "race_id",
+            "driver_season__driver_id",
+            "driver_season__team_season_id",
+            "driver_season__team_season__display_name",
+            "driver_season__team_season__team__team_name",
+            "race__season_id",
+        )
     ):
-        seats.setdefault(ds.team_season_id, []).append(ds)
+        by_race[row["race_id"]][row["driver_season__driver_id"]] = row
 
-    spells = []
-    for rows in seats.values():
-        if len({r.driver_id for r in rows}) < 2:
+    # race_id -> the team_season they shared for it
+    shared = {}
+    meta = {}
+    for race_id, sides in by_race.items():
+        if len(sides) < 2:
             continue
-        ts = rows[0].team_season
-        spells.append({
-            "season_id": ts.season_id,
-            "team": ts.display_name or ts.team.team_name,
-            "seats": ts.driver_seats.count(),
-        })
-    return sorted(spells, key=lambda s: s["season_id"])
+        ra, rb = sides[a_id], sides[b_id]
+        ts_id = ra["driver_season__team_season_id"]
+        if ts_id != rb["driver_season__team_season_id"]:
+            continue
+        shared[race_id] = ts_id
+        meta[ts_id] = {
+            "season_id": ra["race__season_id"],
+            "team": (ra["driver_season__team_season__display_name"]
+                     or ra["driver_season__team_season__team__team_name"]),
+        }
+
+    if not shared:
+        return []
+
+    spells = {
+        ts_id: {**info, "races": 0, "a_ahead": 0, "b_ahead": 0, "a_points": 0, "b_points": 0}
+        for ts_id, info in meta.items()
+    }
+    # Only races both finished carry a head-to-head, so tally over the timeline.
+    for t in timeline:
+        ts_id = shared.get(t["race_id"])
+        if ts_id is None:
+            continue
+        spell = spells[ts_id]
+        spell["races"] += 1
+        spell["a_ahead" if t["winner"] == "a" else "b_ahead"] += 1
+        spell["a_points"] += t["a_points"]
+        spell["b_points"] += t["b_points"]
+
+    seat_counts = dict(
+        TeamSeason.objects
+        .filter(id__in=spells)
+        .annotate(n=Count("driver_seats"))
+        .values_list("id", "n")
+    )
+    for ts_id, spell in spells.items():
+        spell["seats"] = seat_counts.get(ts_id, 0)
+
+    return sorted(spells.values(), key=lambda s: s["season_id"])
 
 
-def _fmt_teammate_spells(a_name, b_name, spells, seasons):
+def _fmt_teammate_spells(a_name, b_name, spells):
     if not spells:
         return "  They have never been teammates — every meeting has been in different cars."
 
-    by_season = {s["season_id"]: s for s in seasons}
     lines = []
     for spell in spells:
-        row = by_season.get(spell["season_id"])
         line = f"  S{spell['season_id']} at {spell['team']}"
         if spell["seats"] > 2:
-            line += f" (a {spell['seats']}-car entry that season)"
-        if row:
-            line += (
-                f": {row['races']} races together, "
-                f"{a_name} ahead {row['a_ahead']} - {row['b_ahead']} {b_name}, "
-                f"points {row['a_points']}-{row['b_points']}"
-            )
+            line += f" (a {spell['seats']}-seat entry that season)"
+        line += (
+            f": {spell['races']} races as teammates, "
+            f"finished ahead: {a_name} {spell['a_ahead']}, {b_name} {spell['b_ahead']}"
+            f" | points: {a_name} {spell['a_points']}, {b_name} {spell['b_points']}"
+        )
         lines.append(line)
     return "\n".join(lines)
 
@@ -2108,7 +2151,7 @@ def generate_rivalry_summary(driver_a_id, driver_b_id):
         raise ValueError(f"{driver_a} v {driver_b} have never been classified in the same race.")
 
     a_name, b_name = _name(driver_a), _name(driver_b)
-    spells = _teammate_spells(a_id, b_id)
+    spells = _teammate_spells(a_id, b_id, data["timeline"])
     seasons = data["seasons"]
     progress = _season_progress()
     span = (
@@ -2140,7 +2183,7 @@ they both finished, and are NOT championship standings:
 {_fmt_rivalry_seasons(a_name, b_name, seasons, progress, data['timeline'])}
 
 TEAMMATE HISTORY:
-{_fmt_teammate_spells(a_name, b_name, spells, seasons)}
+{_fmt_teammate_spells(a_name, b_name, spells)}
 
 LANDMARK RACES:
 {_fmt_rivalry_landmarks(a_name, b_name, data)}
