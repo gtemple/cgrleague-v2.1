@@ -60,8 +60,6 @@ export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: bo
   const recent_winners: RecentWinnerItem[] = data.recent_winners ?? [];
   const nextTwo: NextTwoItem[] = data.following_two ?? [];
 
-  console.log(data)
-
   const { race, track } = upcoming_race;
 
   const trackImg = track.image ? displayImage(track.image, "trackImage") : null;

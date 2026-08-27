@@ -1,6 +1,7 @@
 # results/services/track_laps.py
 from typing import Optional, Dict
 from django.db import transaction
+from results.cache import invalidate_for_result
 from results.models import Race, RaceResult
 
 def set_track_laps(
@@ -45,8 +46,18 @@ def set_track_laps(
     if dry_run:
         return {"non_sprint_to_update": ns_count, "sprint_to_update": sp_count, "updated": 0}
 
+    # Materialise before the update: with only_empty the filter matches on
+    # laps_completed, so the rows stop matching once they're written.
+    affected = list(
+        (non_sprint_qs | sprint_qs).only("race_id", "driver_season_id")
+    )
+
     with transaction.atomic():
         updated_ns = non_sprint_qs.update(laps_completed=laps)
         updated_sp = sprint_qs.update(laps_completed=sprint_laps)
+
+    # queryset.update() fires no post_save, so invalidate explicitly.
+    for rr in affected:
+        invalidate_for_result(rr)
 
     return {"non_sprint_updated": updated_ns, "sprint_updated": updated_sp, "updated": updated_ns + updated_sp}

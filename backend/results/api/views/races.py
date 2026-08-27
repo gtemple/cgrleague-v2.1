@@ -21,6 +21,8 @@ from .utils import (
     serialize_race_basic, serialize_track, serialize_driver, serialize_team, initials_for
 )
 
+_CACHE_MISS = object()
+
 
 class RaceDetailView(APIView):
     """
@@ -545,8 +547,10 @@ class HistoryTeaserView(APIView):
 
     def get(self, request, *args, **kwargs):
         ck = key_history_teaser()
-        cached = cache.get(ck)
-        if cached is not None:
+        # Sentinel, not None: this endpoint caches a null payload when there is
+        # no flashback race, and cache.get would report that as a miss.
+        cached = cache.get(ck, _CACHE_MISS)
+        if cached is not _CACHE_MISS:
             return Response(cached)
 
         chosen = choose_flashback_race()

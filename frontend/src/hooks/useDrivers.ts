@@ -5,7 +5,6 @@ import { useApiMutation } from "./useApiMutation";
 import { type Driver } from "../api/drivers";
 
 export function useDrivers() {
-  console.log("useDrivers hook called");
   // Query drivers
   const { data, isLoading, error, refetch } = useApiQuery<{ drivers: Driver[] }>(`api/drivers/`);
 
