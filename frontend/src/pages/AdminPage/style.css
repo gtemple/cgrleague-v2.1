@@ -320,3 +320,22 @@
   font-size: 13.5px;
   color: #a3201d;
 }
+
+/* ── Substitute seats ───────────────────────────────────────── */
+
+.adm-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.adm-sub-field { width: auto; min-width: 190px; flex: 0 1 auto; }
+.adm-sub-car { width: 76px; flex: 0 0 auto; padding: 10px 4px; font-size: 14px; }
+.adm-sub-add { padding: 11px 20px; }
+.adm-sub-msg { margin: 12px 0 0; }
+
+@media (max-width: 560px) {
+  .adm-sub { flex-direction: column; align-items: stretch; }
+  .adm-sub-field, .adm-sub-car, .adm-sub-add { width: 100%; min-width: 0; }
+}

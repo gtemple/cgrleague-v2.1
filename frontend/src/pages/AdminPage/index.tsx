@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { adminApi, type GridDriver, type RaceInfo } from "../../api/admin";
+import { adminApi, type GridDriver, type RaceInfo, type SeatOptions } from "../../api/admin";
 import { ApiError } from "../../api/client";
 import "./style.css";
 
@@ -61,6 +61,16 @@ export function AdminPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  // Substitute seats
+  const [seatOptions, setSeatOptions] = useState<SeatOptions | null>(null);
+  const [subDriver, setSubDriver] = useState("");
+  const [subTeam, setSubTeam] = useState("");
+  const [subCar, setSubCar] = useState("");
+  const [subBusy, setSubBusy] = useState(false);
+  const [subMessage, setSubMessage] = useState<string | null>(null);
+  const [subError, setSubError] = useState<string | null>(null);
+  const [gridVersion, setGridVersion] = useState(0);
+
   // Drag state (refs to avoid re-renders during drag)
   const dragIndexRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -91,10 +101,10 @@ export function AdminPage() {
     adminApi.getGrid(token, CURRENT_SEASON)
       .then((g) => {
         setGrid(g);
-        // Set default order (car number order)
+        // Backend returns the grid in championship order.
         setOrder(g.map((d) => d.driver_season_id));
         const initial: Record<number, Placement> = {};
-        for (const d of g) initial[d.driver_season_id] = defaultPlacement();
+        for (const d of g) initial[d.driver_season_id] = defaultPlacement(!d.is_reserve);
         setPlacements(initial);
       })
       .catch((err) => {
@@ -102,7 +112,7 @@ export function AdminPage() {
         setLoadError(describeLoadError(err));
       })
       .finally(() => setLoadingGrid(false));
-  }, [token]);
+  }, [token, gridVersion]);
 
   // When a race is selected, load existing results to pre-populate
   useEffect(() => {
@@ -118,7 +128,7 @@ export function AdminPage() {
           // No existing results — reset to default order
           setOrder(grid.map((d) => d.driver_season_id));
           const initial: Record<number, Placement> = {};
-          for (const d of grid) initial[d.driver_season_id] = defaultPlacement();
+          for (const d of grid) initial[d.driver_season_id] = defaultPlacement(!d.is_reserve);
           setPlacements(initial);
           return;
         }
@@ -167,14 +177,57 @@ export function AdminPage() {
         // Race has no results yet — keep defaults
         setOrder(grid.map((d) => d.driver_season_id));
         const initial: Record<number, Placement> = {};
-        for (const d of grid) initial[d.driver_season_id] = defaultPlacement();
+        for (const d of grid) initial[d.driver_season_id] = defaultPlacement(!d.is_reserve);
         setPlacements(initial);
       })
       .finally(() => setLoadingExisting(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRaceId]);
 
+  useEffect(() => {
+    if (!token) return;
+    adminApi.getSeatOptions(token, CURRENT_SEASON)
+      .then(setSeatOptions)
+      .catch(() => setSeatOptions(null));
+  }, [token, gridVersion]);
+
+  async function handleAddSeat() {
+    if (!token || !subDriver || !subTeam) return;
+    setSubBusy(true);
+    setSubError(null);
+    setSubMessage(null);
+    try {
+      const created = await adminApi.createSeat(token, CURRENT_SEASON, {
+        driver_id: Number(subDriver),
+        team_season_id: Number(subTeam),
+        car_number: subCar !== "" ? parseInt(subCar, 10) : null,
+      });
+      setSubMessage(`${created.driver} added at ${created.team}. Tick them in below.`);
+      setSubDriver("");
+      setSubCar("");
+      setGridVersion((v) => v + 1);
+    } catch (err) {
+      const payload = err instanceof ApiError ? (err.payload as { detail?: string } | null) : null;
+      setSubError(payload?.detail ?? "Could not add that seat.");
+    } finally {
+      setSubBusy(false);
+    }
+  }
+
   const gridMap = Object.fromEntries(grid.map((d) => [d.driver_season_id, d]));
+
+  // Pole, fastest lap and driver of the day belong to exactly one driver per
+  // race, so once one is taken the box is locked everywhere else — untick the
+  // holder to move it.
+  const exclusiveHolder = (flag: "polePosition" | "fastestLap" | "dotd") => {
+    const held = order.find((id) => placements[id]?.[flag]);
+    return held ?? null;
+  };
+  const holders = {
+    polePosition: exclusiveHolder("polePosition"),
+    fastestLap: exclusiveHolder("fastestLap"),
+    dotd: exclusiveHolder("dotd"),
+  };
 
   function updatePlacement(dsId: number, patch: Partial<Placement>) {
     setPlacements((prev) => ({ ...prev, [dsId]: { ...prev[dsId], ...patch } }));
@@ -330,6 +383,69 @@ export function AdminPage() {
           )}
         </div>
 
+        {seatOptions && (
+          <div className="adm-panel">
+            <label className="adm-label">Add a substitute</label>
+            <p className="adm-hint">
+              Gives a driver a seat at a team for the whole season. They sit out by
+              default — tick them in on the races they actually drove, and untick
+              whoever they replaced.
+            </p>
+            <div className="adm-sub">
+              <select
+                className="adm-select adm-sub-field"
+                value={subDriver}
+                onChange={(e) => setSubDriver(e.target.value)}
+                aria-label="Substitute driver"
+              >
+                <option value="">— driver —</option>
+                {seatOptions.drivers.map((d) => (
+                  <option
+                    key={d.id}
+                    value={d.id}
+                    disabled={subTeam !== "" && d.seated_team_season_ids.includes(Number(subTeam))}
+                  >
+                    {d.name}{d.human ? "" : " (AI)"}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="adm-select adm-sub-field"
+                value={subTeam}
+                onChange={(e) => setSubTeam(e.target.value)}
+                aria-label="Team"
+              >
+                <option value="">— team —</option>
+                {seatOptions.teams.map((t) => (
+                  <option key={t.team_season_id} value={t.team_season_id}>{t.name}</option>
+                ))}
+              </select>
+
+              <input
+                className="adm-num adm-sub-car"
+                type="number"
+                min={1}
+                max={99}
+                value={subCar}
+                onChange={(e) => setSubCar(e.target.value)}
+                placeholder="No."
+                aria-label="Car number"
+              />
+
+              <button
+                className="adm-submit adm-sub-add"
+                onClick={handleAddSeat}
+                disabled={subBusy || !subDriver || !subTeam}
+              >
+                {subBusy ? "Adding…" : "Add seat"}
+              </button>
+            </div>
+            {subMessage && <p className="adm-ok adm-sub-msg">{subMessage}</p>}
+            {subError && <p className="adm-err adm-sub-msg">{subError}</p>}
+          </div>
+        )}
+
         {selectedRace && (
           <div className="adm-panel">
             {loadingExisting ? (
@@ -449,10 +565,22 @@ export function AdminPage() {
                             </select>
                           </span>
 
-                          {/* Exclusive: only one driver per race can hold these */}
-                          <FlagCell checked={p.polePosition}   disabled={!p.competing} onChange={(v) => setExclusiveFlag(dsId, "polePosition", v)} />
-                          <FlagCell checked={p.fastestLap}     disabled={!p.competing} onChange={(v) => setExclusiveFlag(dsId, "fastestLap", v)} />
-                          <FlagCell checked={p.dotd}           disabled={!p.competing} onChange={(v) => setExclusiveFlag(dsId, "dotd", v)} />
+                          {/* Exclusive: locked out once another driver holds it */}
+                          <FlagCell
+                            checked={p.polePosition}
+                            disabled={!p.competing || (holders.polePosition !== null && holders.polePosition !== dsId)}
+                            onChange={(v) => setExclusiveFlag(dsId, "polePosition", v)}
+                          />
+                          <FlagCell
+                            checked={p.fastestLap}
+                            disabled={!p.competing || (holders.fastestLap !== null && holders.fastestLap !== dsId)}
+                            onChange={(v) => setExclusiveFlag(dsId, "fastestLap", v)}
+                          />
+                          <FlagCell
+                            checked={p.dotd}
+                            disabled={!p.competing || (holders.dotd !== null && holders.dotd !== dsId)}
+                            onChange={(v) => setExclusiveFlag(dsId, "dotd", v)}
+                          />
                           <FlagCell checked={p.cleanestDriver} disabled={!p.competing} onChange={(v) => updatePlacement(dsId, { cleanestDriver: v })} />
                           <FlagCell checked={p.mostOvertakes}  disabled={!p.competing} onChange={(v) => updatePlacement(dsId, { mostOvertakes: v })} />
                         </div>
