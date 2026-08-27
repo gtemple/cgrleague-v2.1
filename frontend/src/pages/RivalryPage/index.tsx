@@ -1,6 +1,12 @@
 import { useMemo } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import { useRivalry, type RivalryData, type RivalryTotals } from "../../hooks/useRivalry";
+import {
+  useRivalry,
+  type RivalryData,
+  type RivalryTimelineEntry,
+  type RivalryTotals,
+  type RivalryTrack,
+} from "../../hooks/useRivalry";
 import { useDriversList } from "../../hooks/useDriverList";
 import { resolveRivalryColors } from "../../utils/rivalryColors";
 import { shortDriverName } from "../../utils/driverName";
@@ -184,6 +190,41 @@ function buildFacts(
     facts.push({
       value: String(Math.abs(swing.a_points - swing.b_points)),
       label: <>point swing in one race, at {swing.track}</>,
+    });
+  }
+
+  // Their joint high and low water marks: the rounds where the two finishing
+  // positions added together were smallest and largest.
+  const combined = (t: RivalryTimelineEntry) => t.a_finish + t.b_finish;
+  const bestRace = timeline.reduce((lo, t) => (combined(t) < combined(lo) ? t : lo), timeline[0]);
+  const worstRace = timeline.reduce((hi, t) => (combined(t) > combined(hi) ? t : hi), timeline[0]);
+  if (bestRace) {
+    facts.push({
+      value: String(combined(bestRace)),
+      label: <>combined finish at their best shared race, {bestRace.track} (S{bestRace.season_id})</>,
+    });
+  }
+  if (worstRace && worstRace !== bestRace) {
+    facts.push({
+      value: String(combined(worstRace)),
+      label: <>combined finish at their worst, {worstRace.track} (S{worstRace.season_id})</>,
+    });
+  }
+
+  // A bogey track only means something once they've met there more than once.
+  const bogey = data.tracks
+    .filter((t) => t.races > 1 && (t.a_ahead === 0 || t.b_ahead === 0))
+    .reduce<RivalryTrack | null>((most, t) => (!most || t.races > most.races ? t : most), null);
+  if (bogey) {
+    const shutOut = bogey.a_ahead === 0;
+    facts.push({
+      value: String(bogey.races),
+      label: (
+        <>
+          meetings at {bogey.name} without{" "}
+          <b style={{ color: shutOut ? colorA : colorB }}>{shutOut ? nameA : nameB}</b> ever finishing ahead
+        </>
+      ),
     });
   }
 

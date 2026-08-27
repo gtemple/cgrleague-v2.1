@@ -416,6 +416,7 @@
   font-size: 14px;
   color: var(--cgr-text-on-dark-muted);
 }
+.rv-record-label b { font-weight: 700; }
 
 @media (max-width: 900px) {
   .rv-record { padding: 24px 20px 26px; }
