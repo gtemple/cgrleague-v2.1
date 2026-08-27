@@ -38,6 +38,9 @@ class SeasonResultsMatrixView(APIView):
             DriverSeason.objects
             .filter(season_id=season_id)
             .select_related("driver", "team_season__team")
+            .annotate(n_results=Count("results"))
+            # A reserve who has not driven has no row here.
+            .exclude(is_reserve=True, n_results=0)
             .order_by("driver__last_name", "driver__first_name", "id")
         )
 

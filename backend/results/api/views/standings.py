@@ -90,6 +90,8 @@ def _driver_trend_map(season_id: int, current_positions: Dict[int, int]) -> Dict
                 output_field=FloatField(),
             )
         )
+        .annotate(n_results=Count("results"))
+        .exclude(is_reserve=True, n_results=0)
         .annotate(
             classified=Count(
                 "results",
@@ -233,6 +235,10 @@ class SeasonStandingsView(APIView):
                     output_field=FloatField(),
                 )
             )
+            .annotate(n_results=Count("results"))
+            # A reserve who has not driven is not in the championship. A regular
+            # entrant who never raced stays listed, as they always have been.
+            .exclude(is_reserve=True, n_results=0)
             .annotate(
                 classified=Count("results", filter=Q(results__finish_position__isnull=False))
             )

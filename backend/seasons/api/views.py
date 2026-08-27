@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from django.core.cache import cache
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.db.models.functions import Coalesce
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -68,6 +68,9 @@ def championship_timeline(request, season_id):
         DriverSeason.objects
         .filter(season=season)
         .select_related("driver", "team_season__team")
+        .annotate(n_results=Count("results"))
+        # A reserve who has not driven has no line on the chart.
+        .exclude(is_reserve=True, n_results=0)
     )
 
     seats_by_driver = defaultdict(list)
