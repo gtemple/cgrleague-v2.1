@@ -30,10 +30,10 @@ function highlight(text: string, query: string) {
 }
 
 const TYPE_ICON: Record<ResultItem["type"], string> = {
-  driver:  "👤",
-  team:    "🏎",
-  track:   "🏁",
-  article: "📰",
+  driver:  "DRV",
+  team:    "TM",
+  track:   "TRK",
+  article: "ART",
 };
 
 const TYPE_LABEL: Record<ResultItem["type"], string> = {
@@ -210,7 +210,7 @@ export function SearchModal({ open, onClose }: Props) {
           {groups.map(({ type, items, startIdx }) => (
             <div key={type} className="srch-group">
               <div className="srch-group-label">
-                {TYPE_ICON[type]} {TYPE_LABEL[type]}
+                {TYPE_LABEL[type]}
               </div>
               {items.map((item, i) => {
                 const flatIdx = startIdx + i;
