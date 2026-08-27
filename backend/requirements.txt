@@ -4,6 +4,7 @@ asgiref==3.9.1
 dj-database-url==3.0.1
 Django==5.2.6
 django-cors-headers==4.7.0
+httpx>=0.27.0
 djangorestframework==3.16.1
 psycopg==3.2.9
 psycopg-binary==3.2.9

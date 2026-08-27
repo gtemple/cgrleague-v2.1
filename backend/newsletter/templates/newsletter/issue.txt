@@ -1,0 +1,34 @@
+CGR LEAGUE — SEASON {{ season.id }}, ROUND {{ race.round }}
+{{ track.name|upper }}{% if track.city or track.country %}
+{{ track.city }}{% if track.city and track.country %}, {% endif %}{{ track.country }}{% endif %}
+{% if recap %}
+RACE RECAP
+{{ recap.title }}
+
+{{ recap.teaser }}
+
+Read the full recap: {{ site_url }}/articles/{{ recap.id }}
+{% endif %}{% if podium %}
+PODIUM{% for row in podium %}
+  {{ row.position }}. {{ row.driver }} — {{ row.team }} ({{ row.points }} pts){% endfor %}
+{% endif %}{% if fastest_lap %}
+Fastest lap: {{ fastest_lap }}{% endif %}{% if dotd %}
+Driver of the day: {{ dotd }}{% endif %}
+{% if standings %}
+CHAMPIONSHIP{% for row in standings %}
+  {{ row.position }}. {{ row.driver }} — {{ row.points }} pts{% if row.gap %} ({{ row.gap }}){% endif %}{% endfor %}
+
+Full standings: {{ site_url }}/seasons/{{ season.id }}
+{% endif %}{% if next_race %}
+UP NEXT — ROUND {{ next_race.round }}
+{{ next_race.track.name|upper }}{% if next_race.started_at %}
+{{ next_race.started_at|date:"D j M Y, H:i" }} UTC{% endif %}{% if preview %}
+
+{{ preview.teaser }}
+
+Read the preview: {{ site_url }}/articles/{{ preview.id }}{% endif %}
+{% endif %}
+---
+{{ site_url }}
+You're getting this because you subscribed to the CGR League newsletter.
+Unsubscribe: {{ unsubscribe_url }}

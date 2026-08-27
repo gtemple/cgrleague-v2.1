@@ -1,0 +1,8 @@
+CGR LEAGUE — CONFIRM YOUR SUBSCRIPTION
+
+Open the link below and you'll get the race recap, championship standings and
+what's coming up next, straight after every round.
+
+{{ confirm_url }}
+
+Didn't sign up? Ignore this email and nothing else will be sent.

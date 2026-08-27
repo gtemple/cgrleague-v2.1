@@ -32,4 +32,5 @@ urlpatterns = [
     path("api/", include("drivers.api.urls")),
     path("api/", include("articles.api.urls")),
     path("api/", include("seasons.api.urls")),
+    path("api/", include("newsletter.api.urls")),
 ]

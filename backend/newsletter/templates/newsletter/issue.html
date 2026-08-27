@@ -1,0 +1,136 @@
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ecebe5;margin:0;padding:0;">
+<tr><td align="center" style="padding:24px 12px;">
+
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#ffffff;border:1px solid #d9d6cd;border-radius:5px;overflow:hidden;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+
+  <!-- Masthead -->
+  <tr><td style="background:#16140f;padding:22px 26px;border-bottom:3px solid #e8232c;">
+    <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#8a8579;padding-bottom:6px;">
+      CGR League &middot; Season {{ season.id }} &middot; Round {{ race.round }}
+    </div>
+    <div style="font-size:30px;line-height:1.05;font-weight:800;letter-spacing:-0.01em;text-transform:uppercase;color:#f7f5ef;">
+      {{ track.name }}
+    </div>
+    {% if track.city or track.country %}
+    <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:11px;letter-spacing:0.1em;color:#b3afa4;padding-top:8px;">
+      {{ track.city }}{% if track.city and track.country %}, {% endif %}{{ track.country }}
+    </div>
+    {% endif %}
+  </td></tr>
+
+  <!-- Recap -->
+  {% if recap %}
+  <tr><td style="padding:26px 26px 4px;">
+    <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#9b988d;padding-bottom:10px;">Race Recap</div>
+    <div style="font-size:22px;line-height:1.2;font-weight:700;color:#16140f;padding-bottom:12px;">{{ recap.title }}</div>
+    <div style="font-size:15px;line-height:1.6;color:#33312a;">{{ recap.teaser }}</div>
+    <div style="padding-top:18px;">
+      <a href="{{ site_url }}/articles/{{ recap.id }}" style="display:inline-block;background:#e8232c;color:#ffffff;text-decoration:none;font-family:'SFMono-Regular',Consolas,monospace;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:11px 16px;border-radius:3px;">Read the full recap</a>
+    </div>
+  </td></tr>
+  {% endif %}
+
+  <!-- Podium -->
+  {% if podium %}
+  <tr><td style="padding:26px 26px 0;">
+    <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#9b988d;padding-bottom:10px;">Podium</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #d9d6cd;border-radius:5px;">
+      {% for row in podium %}
+      <tr>
+        <td width="6" style="background:{{ row.color|default:"#16140f" }};"></td>
+        <td width="40" style="padding:12px 0 12px 14px;font-family:'SFMono-Regular',Consolas,monospace;font-size:16px;font-weight:700;color:#16140f;">{{ row.position }}</td>
+        <td style="padding:12px 8px;">
+          <div style="font-size:16px;font-weight:700;color:#16140f;">{{ row.driver }}</div>
+          <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#7a766b;padding-top:2px;">{{ row.team }}</div>
+        </td>
+        <td align="right" style="padding:12px 14px;font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;font-weight:700;color:#16140f;white-space:nowrap;">{{ row.points }} PTS</td>
+      </tr>
+      {% if not forloop.last %}<tr><td colspan="4" style="border-top:1px solid #ece9e1;font-size:0;line-height:0;">&nbsp;</td></tr>{% endif %}
+      {% endfor %}
+    </table>
+  </td></tr>
+  {% endif %}
+
+  <!-- Awards -->
+  {% if fastest_lap or dotd %}
+  <tr><td style="padding:14px 26px 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        {% if fastest_lap %}
+        <td width="50%" style="padding-right:6px;">
+          <div style="background:#e3e1d8;border:1px solid #e2dfd6;border-radius:3px;padding:11px 13px;">
+            <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a766b;">Fastest Lap</div>
+            <div style="font-size:15px;font-weight:700;color:#16140f;padding-top:3px;">{{ fastest_lap }}</div>
+          </div>
+        </td>
+        {% endif %}
+        {% if dotd %}
+        <td width="50%" style="padding-left:6px;">
+          <div style="background:#e3e1d8;border:1px solid #e2dfd6;border-radius:3px;padding:11px 13px;">
+            <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a766b;">Driver of the Day</div>
+            <div style="font-size:15px;font-weight:700;color:#16140f;padding-top:3px;">{{ dotd }}</div>
+          </div>
+        </td>
+        {% endif %}
+      </tr>
+    </table>
+  </td></tr>
+  {% endif %}
+
+  <!-- Standings -->
+  {% if standings %}
+  <tr><td style="padding:26px 26px 0;">
+    <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#9b988d;padding-bottom:10px;">Championship &middot; Top {{ standings|length }}</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      {% for row in standings %}
+      <tr>
+        <td width="28" style="padding:7px 0;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;color:#7a766b;">{{ row.position }}</td>
+        <td style="padding:7px 0;font-size:15px;font-weight:600;color:#16140f;">{{ row.driver }}</td>
+        <td align="right" style="padding:7px 0;font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;color:#7a766b;white-space:nowrap;">{% if row.gap %}{{ row.gap }}{% else %}&mdash;{% endif %}</td>
+        <td align="right" width="60" style="padding:7px 0;font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;font-weight:700;color:#16140f;white-space:nowrap;">{{ row.points }}</td>
+      </tr>
+      {% if not forloop.last %}<tr><td colspan="4" style="border-top:1px solid #f0ede5;font-size:0;line-height:0;">&nbsp;</td></tr>{% endif %}
+      {% endfor %}
+    </table>
+    <div style="padding-top:12px;">
+      <a href="{{ site_url }}/seasons/{{ season.id }}" style="font-family:'SFMono-Regular',Consolas,monospace;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#e8232c;text-decoration:none;">Full standings &rarr;</a>
+    </div>
+  </td></tr>
+  {% endif %}
+
+  <!-- Up next -->
+  {% if next_race %}
+  <tr><td style="padding:26px 26px 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#16140f;border-radius:5px;">
+      <tr><td style="padding:20px 22px;">
+        <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#e8232c;padding-bottom:7px;">Up Next &middot; Round {{ next_race.round }}</div>
+        <div style="font-size:21px;font-weight:800;text-transform:uppercase;color:#f7f5ef;line-height:1.1;">{{ next_race.track.name }}</div>
+        {% if next_race.started_at %}
+        <div style="font-family:'SFMono-Regular',Consolas,monospace;font-size:11px;letter-spacing:0.1em;color:#b3afa4;padding-top:7px;">{{ next_race.started_at|date:"D j M Y, H:i" }} UTC</div>
+        {% endif %}
+        {% if preview %}
+        <div style="font-size:14px;line-height:1.55;color:#b3afa4;padding-top:11px;">{{ preview.teaser }}</div>
+        <div style="padding-top:14px;">
+          <a href="{{ site_url }}/articles/{{ preview.id }}" style="font-family:'SFMono-Regular',Consolas,monospace;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#f7f5ef;text-decoration:none;border-bottom:2px solid #e8232c;padding-bottom:2px;">Read the preview &rarr;</a>
+        </div>
+        {% endif %}
+      </td></tr>
+    </table>
+  </td></tr>
+  {% endif %}
+
+  <!-- Footer -->
+  <tr><td style="padding:28px 26px 24px;">
+    <div style="border-top:1px solid #d9d6cd;padding-top:16px;font-family:'SFMono-Regular',Consolas,monospace;font-size:10px;line-height:1.7;letter-spacing:0.08em;color:#9b988d;">
+      <div><a href="{{ site_url }}" style="color:#7a766b;text-decoration:none;">CGR-LEAGUE.NET</a></div>
+      <div style="padding-top:6px;">
+        You're getting this because you subscribed to the CGR League newsletter.
+        <a href="{{ unsubscribe_url }}" style="color:#7a766b;text-decoration:underline;">Unsubscribe</a>.
+      </div>
+    </div>
+  </td></tr>
+
+</table>
+
+</td></tr>
+</table>

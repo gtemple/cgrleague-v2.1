@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "entries",
     "results",
     "articles",
+    "newsletter",
 ]
 
 REST_FRAMEWORK = {
@@ -152,6 +153,22 @@ TEMPLATES = [
 ]
 
 STATIC_URL = "static/"
+
+# --- Email / newsletter ---
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+
+# Falls back to printing mail to the console, so local dev needs no credentials.
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    "newsletter.backends.ResendEmailBackend"
+    if RESEND_API_KEY
+    else "django.core.mail.backends.console.EmailBackend",
+)
+DEFAULT_FROM_EMAIL = os.getenv("NEWSLETTER_FROM", "CGR League <news@cgr-league.net>")
+NEWSLETTER_REPLY_TO = os.getenv("NEWSLETTER_REPLY_TO", "")
+
+# Public site the links in an email point at.
+SITE_URL = os.getenv("SITE_URL", "https://cgr-league.net").rstrip("/")
 
 CACHES = {
     "default": {
