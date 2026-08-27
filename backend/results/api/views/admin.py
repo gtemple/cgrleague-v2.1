@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from results.cache import invalidate_for_result
 from results.models import Race, RaceResult
 
 VALID_STATUSES = {"FIN", "DNF", "DNS", "DSQ", "DNQ"}
@@ -85,5 +86,10 @@ class BulkUpsertResultsView(APIView):
         with transaction.atomic():
             RaceResult.objects.filter(race=race).delete()
             RaceResult.objects.bulk_create(to_create)
+
+        # bulk_create fires no post_save, and the delete above fires no
+        # post_delete when the race had no results yet, so invalidate directly.
+        for rr in to_create:
+            invalidate_for_result(rr)
 
         return Response({"created": len(to_create)}, status=201)
