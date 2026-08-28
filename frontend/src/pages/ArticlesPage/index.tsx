@@ -35,8 +35,8 @@ function tagClass(type: ArticleSummary["type"]) {
     case "PREVIEW": return "atag-blue";
     case "POWER_RANKINGS": return "atag-gold";
     case "SESSION": return "atag-green";
-    case "SEASON_PREVIEW":
-    case "SEASON_RECAP": return "atag-purple";
+    case "SEASON_PREVIEW": return "atag-purple";
+    case "SEASON_RECAP": return "atag-magenta";
   }
 }
 

@@ -877,6 +877,7 @@
 .tag-purple { background: var(--cgr-purple); }
 .tag-gold   { background: var(--cgr-gold); color: var(--cgr-gold-text); }
 .tag-green  { background: var(--cgr-teal); }
+.tag-magenta{ background: var(--cgr-magenta); }
 
 .coverage-body {
   padding: 16px;
