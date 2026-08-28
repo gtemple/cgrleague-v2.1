@@ -4,7 +4,7 @@ import { useArticleDetail } from "../../hooks/useArticles";
 import type { PreviewSidebar, RankingsData, RankingsEntry } from "../../hooks/useArticles";
 import { formatArticleDateLong, articleTypeLabel } from "../../utils/articleUtils";
 import { readingTime } from "../../utils/readingTime";
-import { displayImage } from "../../utils/displayImage";
+import { articleTrackImage, displayImage } from "../../utils/displayImage";
 import { highlightDrivers } from "../../utils/highlightDrivers";
 import { PowerRankingsHistory } from "./PowerRankingsHistory";
 import { SessionPanels } from "./SessionPanels";
@@ -132,7 +132,7 @@ export function ArticleDetailPage() {
   const { data: article, isLoading, error } = useArticleDetail(articleId!);
 
   const trackImg = article?.race?.track.img
-    ? displayImage(article.race.track.img, "trackImage")
+    ? articleTrackImage(article.race.track.img, article.type, article.id)
     : null;
 
   useEffect(() => {

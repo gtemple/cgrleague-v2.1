@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTrackStats, type OrderBy } from "../../hooks/useTrackStats";
-import { displayImage } from "../../utils/displayImage";
+import { displayImage, randomTrackImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./style.css";
 
@@ -48,7 +48,7 @@ export const TrackPage = () => {
     return { totalRaces, topWinner, totalLaps, driverCount: drivers.length, distinctWinners };
   }, [data]);
 
-  const trackImg = track?.image ? displayImage(track.image, "trackImage") : null;
+  const trackImg = track?.image ? randomTrackImage(track.image) : null;
   const km = track?.distance ? (track.distance / 1000).toFixed(3) : null;
 
   return (

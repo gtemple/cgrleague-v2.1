@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTracksHomepage } from "../../hooks/useTracksHomepage";
 import type { TrackEntry, TrackRecord } from "../../hooks/useTracksHomepage";
-import { displayImage } from "../../utils/displayImage";
+import { displayImage, randomTrackImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import "./TracksIndex.css";
 
@@ -15,7 +15,7 @@ const RECORD_LABELS: Record<string, string> = {
 
 function RecordTile({ stat, entry }: { stat: string; entry: TrackRecord }) {
   const { track, value } = entry;
-  const imgUrl = track.image ? displayImage(track.image, "trackImage") : null;
+  const imgUrl = track.image ? randomTrackImage(track.image) : null;
   const flagUrl = track.country ? displayImage(track.country, "flags") : null;
 
   return (
@@ -41,7 +41,7 @@ function RecordTile({ stat, entry }: { stat: string; entry: TrackRecord }) {
 
 function TrackGridCard({ entry }: { entry: TrackEntry }) {
   const { id, name, city, country, image, races_count } = entry;
-  const imgUrl = image ? displayImage(image, "trackImage") : null;
+  const imgUrl = image ? randomTrackImage(image) : null;
   const flagUrl = country ? displayImage(country, "flags") : null;
   const location = [city, country].filter(Boolean).join(", ");
 

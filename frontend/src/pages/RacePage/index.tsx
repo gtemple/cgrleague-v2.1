@@ -10,7 +10,7 @@ import {
   TeammateBattles,
 } from "./RacePanels";
 import { articleTypeLabel } from "../../utils/articleUtils";
-import { displayImage } from "../../utils/displayImage";
+import { displayImage, randomTrackImage } from "../../utils/displayImage";
 import { Loader } from "../../components/Loader";
 import { PreRaceCentre } from "./PreRaceCentre";
 import { useRacePrediction } from "../../hooks/useRacePrediction";
@@ -69,7 +69,7 @@ export const RacePage = () => {
   });
   const is404 = !!error && (error as { status?: number }).status === 404;
 
-  const trackImg = race?.track.image ? displayImage(race.track.image, "trackImage") : null;
+  const trackImg = race?.track.image ? randomTrackImage(race.track.image) : null;
   const flagImg = race?.track.country ? displayImage(race.track.country, "flags") : null;
   const location = race ? [race.track.city, race.track.country].filter(Boolean).join(", ") : "";
 

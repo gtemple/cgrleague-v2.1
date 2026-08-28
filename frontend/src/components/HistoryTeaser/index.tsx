@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useHistoryTeaser } from "../../hooks/useHistoryTeaser";
-import { displayImage } from "../../utils/displayImage";
+import { displayImage, randomTrackImage } from "../../utils/displayImage";
 import "./style.css";
 
 export function HistoryTeaser() {
@@ -13,7 +13,7 @@ export function HistoryTeaser() {
   if (!winner) return null;
 
   const trackImg = race.track.image
-    ? displayImage(race.track.image, "trackImage")
+    ? randomTrackImage(race.track.image)
     : null;
   const flagImg = race.track.country
     ? displayImage(race.track.country, "flags")

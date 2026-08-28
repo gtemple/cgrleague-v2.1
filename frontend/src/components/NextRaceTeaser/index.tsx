@@ -3,7 +3,7 @@ import { useNextRaceTeaser,
   type UpcomingRaceBlock,
   type RecentWinnerItem
 } from "../../hooks/useNextRaceTeaser";
-import { displayImage } from "../../utils/displayImage";
+import { displayImage, randomTrackImage } from "../../utils/displayImage";
 import "./style.css";
 
 export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: boolean }) {
@@ -62,7 +62,7 @@ export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: bo
 
   const { race, track } = upcoming_race;
 
-  const trackImg = track.image ? displayImage(track.image, "trackImage") : null;
+  const trackImg = track.image ? randomTrackImage(track.image) : null;
   const flagImg = track.country ? displayImage(track.country, "flags") : null;
 
   return (
@@ -134,7 +134,7 @@ export function NextRaceTeaser({ includeSprints = false }: { includeSprints?: bo
           <div className="nexttwo-list">
             {nextTwo.map(({ event, last_winner }) => {
               const t = event.track;
-              const tImg = t.image ? displayImage(t.image, "trackImage") : null;
+              const tImg = t.image ? randomTrackImage(t.image) : null;
               const fImg = t.country ? displayImage(t.country, "flags") : null;
 
               const winnerAvatar = last_winner?.driver?.profile_image

@@ -11,7 +11,7 @@ import { useLatestSeasonId } from "../../hooks/useLatestSeasonId";
 import { HistoryTeaser } from "../../components/HistoryTeaser/index";
 import { NewsletterSignup } from "../../components/NewsletterSignup";
 import { StatusTicker } from "../../components/StatusTicker";
-import { displayImage } from "../../utils/displayImage";
+import { articleTrackImage, displayImage, randomTrackImage } from "../../utils/displayImage";
 import { articleTypeLabel, formatArticleDate } from "../../utils/articleUtils";
 import { teamCode } from "../../utils/teamCode";
 import "./style.css";
@@ -76,7 +76,7 @@ export const HomePage = () => {
   const upcoming = teaser?.upcoming_race ?? null;
   const track = upcoming?.track ?? null;
   const race = upcoming?.race ?? null;
-  const trackImg = track?.image ? displayImage(track.image, "trackImage") : null;
+  const trackImg = track?.image ? randomTrackImage(track.image) : null;
   const flagImg = track?.country ? displayImage(track.country, "flags") : null;
   const km = track?.distance ? (track.distance / 1000).toFixed(3) : null;
   const countdown = useCountdown(race?.started_at ?? null);
@@ -529,7 +529,9 @@ export const HomePage = () => {
               ))
             ) : (
               articles.map((a) => {
-                const img = a.race?.track.img ? displayImage(a.race.track.img, "trackImage") : null;
+                const img = a.race?.track.img
+                  ? articleTrackImage(a.race.track.img, a.type, a.id)
+                  : null;
                 return (
                   <Link key={a.id} to={`/articles/${a.id}`} className="coverage-card">
                     <div className="coverage-thumb">

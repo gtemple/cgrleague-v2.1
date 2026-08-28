@@ -6,7 +6,7 @@ import { useNextRaceTeaser } from "../../hooks/useNextRaceTeaser";
 import { useSeasonStandings } from "../../hooks/useSeasonStandings";
 import { formatArticleDate, articleTypeLabel } from "../../utils/articleUtils";
 import { readingTime } from "../../utils/readingTime";
-import { displayImage } from "../../utils/displayImage";
+import { articleTrackImage } from "../../utils/displayImage";
 import { StatusTicker } from "../../components/StatusTicker";
 import "./style.css";
 
@@ -57,7 +57,9 @@ function articleMeta(article: ArticleSummary): string {
 // ─── card ─────────────────────────────────────────────────────────────────────
 
 function ArticleCard({ article }: { article: ArticleSummary }) {
-  const img = article.race?.track.img ? displayImage(article.race.track.img, "trackImage") : null;
+  const img = article.race?.track.img
+    ? articleTrackImage(article.race.track.img, article.type, article.id)
+    : null;
 
   return (
     <Link to={`/articles/${article.id}`} className="acard">
