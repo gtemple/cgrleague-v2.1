@@ -25,13 +25,21 @@ ANTHROPIC_MODEL = "claude-opus-4-8"
 # roughly an order of magnitude under Opus on output tokens.
 DEEPSEEK_MODEL = "deepseek-v4-pro"
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-# DeepSeek enables thinking by default at effort "high". These prompts hand the
-# model every fact it needs and ask for prose, so reasoning buys nothing here and
-# costs a great deal: on a race recap it ran 3.7k-6.6k reasoning tokens, pushed
-# latency from ~24s to 80-170s, and — because max_tokens covers reasoning AND
-# output — sometimes consumed the whole budget and returned empty content.
-# Override with DEEPSEEK_REASONING_EFFORT=low|high|max if a prompt ever needs it.
-DEEPSEEK_REASONING_EFFORT = "none"
+# Reasoning was off here on the theory that these prompts hand the model every
+# fact it needs and only ask for prose. The prose was never the problem. With
+# thinking disabled, a Chinese GP recap put Verstappen five points ahead of a
+# driver he led by 22, called an 11th a driver's first scoreless race of a
+# season that already held a 20th, and read a 98-point total as a 98-point
+# lead. Every one of those is arithmetic over a table that was sitting in the
+# prompt. At effort "low" they went away.
+# The cost is real — a recap runs 80-170s instead of ~24s — so "low" rather
+# than the "high" DeepSeek would pick for itself. Set DEEPSEEK_REASONING_EFFORT
+# =none to go back to prose-only speed for a bulk regeneration.
+DEEPSEEK_REASONING_EFFORT = "low"
+# Reasoning tokens come out of max_tokens, so a budget sized for prose alone
+# truncates the moment thinking is switched on. Callers size max_tokens for the
+# article they want; this is the trace's share on top of it.
+DEEPSEEK_REASONING_HEADROOM = 8000
 
 _override = None
 
@@ -156,6 +164,7 @@ def _deepseek_json(user_prompt, schema, *, system, max_tokens):
         thinking = {"thinking": {"type": "disabled"}}
     else:
         thinking = {"thinking": {"type": "enabled"}, "reasoning_effort": effort}
+        max_tokens += DEEPSEEK_REASONING_HEADROOM
 
     client = OpenAI(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
 

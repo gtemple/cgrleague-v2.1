@@ -560,9 +560,16 @@ def _fmt_driver_track_history(by_driver):
 
 
 def _get_recent_form(season, up_to_round, last_n=5):
-    """{driver_name: ["P3", "P1", "DNF", ...]} last N GP finishes (oldest→newest)
-    for the human drivers, through up_to_round. Momentum going into the next race."""
-    from django.db.models import F as _F
+    """
+    {driver_name: ["R4 Belgian Grand Prix: P1", ...]} last N GP finishes
+    (oldest→newest) for the human drivers, through up_to_round.
+
+    Each finish carries its round and track. A bare list of positions reads as
+    momentum to a human but is unattributed to the model, which then pairs the
+    figures off against the calendar itself and gets it wrong — it put C.
+    Reynolds' Imola 20th in Saudi Arabia and moved two of his wins to races he
+    had not won.
+    """
     ds_list = (
         _season_seats(season, driver__human=True)
         .select_related("driver")
@@ -572,10 +579,12 @@ def _get_recent_form(season, up_to_round, last_n=5):
         rows = (
             RaceResult.objects
             .filter(driver_season=ds, race__round__lte=up_to_round, race__is_sprint=False)
+            .select_related("race__track")
             .order_by("-race__round")[:last_n]
         )
         form = [
-            (f"P{r.finish_position}" if r.finish_position else (r.status or "DNF"))
+            f"R{r.race.round} {r.race.track.name}: "
+            + (f"P{r.finish_position}" if r.finish_position else (r.status or "DNF"))
             for r in rows
         ]
         out[_name(ds.driver)] = list(reversed(form))
@@ -583,10 +592,13 @@ def _get_recent_form(season, up_to_round, last_n=5):
 
 
 def _fmt_recent_form(by_driver):
-    lines = [
-        f"  {name}: {', '.join(form) if form else 'no races yet'}"
-        for name, form in sorted(by_driver.items())
-    ]
+    lines = []
+    for name, form in sorted(by_driver.items()):
+        if not form:
+            lines.append(f"  {name}: no races yet")
+            continue
+        lines.append(f"  {name}:")
+        lines.extend(f"    - {entry}" for entry in form)
     return "\n".join(lines) if lines else "  No recent form available."
 
 
@@ -706,6 +718,15 @@ def generate_recap(race):
         _get_prior_titles(season, before_round=race.round, include_same_round_preview=True)
     )
     flags = _tracked_flags(race)
+    # The recap used to see only the standings either side of the race, which is
+    # not enough to rank this result against the season: it called an 11th "his
+    # worst result of the season" for a driver who had finished 20th at Imola.
+    season_form = _get_recent_form(season, race.round, last_n=race.round)
+    form_block = (
+        "\nEACH HUMAN DRIVER'S SEASON SO FAR (every GP finish, oldest→newest, "
+        "including this race — use this before calling any result a best or worst):\n"
+        f"{_fmt_recent_form(season_form)}\n"
+    )
     lineups_block = _fmt_lineups(season)
     flags_block = f"\n- Highlight key moments: {', '.join(flags)}" if flags else ""
     headline_rule = HEADLINE_ECHO_RULE if prior_titles_block else ""
@@ -724,7 +745,7 @@ DRIVER CHAMPIONSHIP STANDINGS AFTER THIS RACE:
 
 CONSTRUCTOR CHAMPIONSHIP STANDINGS AFTER THIS RACE:
 {_fmt_constructor_standings(constructor_standings)}
-
+{form_block}
 PREVIOUS RACE WINNERS AT {track.name.upper()}:
 {_fmt_track_winners(track_winners)}
 {lineups_block}{prior_titles_block}
@@ -804,6 +825,7 @@ def generate_preview(next_race, after_race=None):
     is_opener = after_race is None
 
     total_rounds = _round_count(season)
+    rounds_after = total_rounds - next_race.round
     grid_rule = _grid_rule(after_race) if after_race else ""
     track_winners = _get_track_winners(track, exclude_race=next_race, cutoff_race=next_race)
     driver_track_history = _get_driver_track_history(season, track, cutoff_race=next_race)
@@ -829,7 +851,8 @@ def generate_preview(next_race, after_race=None):
             f"{_fmt_standings(standings)}\n\n"
             f"CURRENT CONSTRUCTOR CHAMPIONSHIP STANDINGS (after Round {after_race.round}):\n"
             f"{_fmt_constructor_standings(constructor_standings)}\n\n"
-            f"RECENT FORM — last 5 GP finishes, oldest→newest (human drivers, who's hot going in):\n"
+            f"RECENT FORM — last 5 GP finishes, oldest→newest (human drivers, who's hot going in). "
+            f"Each line names the race it belongs to; never pair a result with any other race:\n"
             f"{_fmt_recent_form(recent_form)}"
         )
         stakes_rules = (
@@ -850,6 +873,7 @@ def generate_preview(next_race, after_race=None):
 
 UPCOMING RACE: Season {season.id} — Round {next_race.round} of {total_rounds} {kind} at {track.name} \
 ({track.city}, {track.country})
+Rounds still to run after this one: {rounds_after}
 Track length: {track.distance}m
 {notes_block}
 {state_block}
