@@ -11,7 +11,7 @@ import json
 import logging
 import os
 
-from django.db.models import Count, Sum, F, Q, FloatField
+from django.db.models import Avg, Count, Sum, F, Q, FloatField, Value
 from django.db.models.functions import Coalesce
 
 from entries.models import DriverSeason
@@ -259,9 +259,19 @@ def _get_standings(season, up_to_round=None, race_filter=None):
         .annotate(
             base_points=Coalesce(Sum(points_case(), filter=cutoff), 0),
             fl_bonus=Coalesce(Sum(fl_bonus_case(), filter=cutoff), 0),
+            avg_finish=Avg(
+                "results__finish_position",
+                filter=cutoff & Q(results__finish_position__isnull=False),
+                output_field=FloatField(),
+            ),
         )
         .annotate(points=F("base_points") + F("fl_bonus"))
-        .order_by("-points", "driver__last_name")
+        .annotate(avg_finish_norm=Coalesce("avg_finish", Value(1e9)))
+        # Same tie-break as the public standings (results/api/views/standings.py):
+        # points, then average finish. Ordering ties by name instead put drivers
+        # in an order the site does not show, and an article that says a driver
+        # dropped behind someone contradicts the table the reader is looking at.
+        .order_by("-points", "avg_finish_norm", "driver__last_name", "driver__first_name", "id")
     )
     rows = []
     for i, ds in enumerate(qs, 1):
