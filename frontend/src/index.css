@@ -40,6 +40,9 @@
 }
 
 body {
+  /* The UA default is 8px, which framed the whole site and left a strip of
+     background above the sticky nav bar on scroll. */
+  margin: 0;
   display: flex;
   flex-direction: column;
   min-width: 320px;
