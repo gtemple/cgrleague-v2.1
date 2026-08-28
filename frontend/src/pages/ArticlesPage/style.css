@@ -346,3 +346,45 @@
   .art-header-band { padding: 20px 16px 18px; }
   .aarchive-tag { display: none; }
 }
+
+/* ── Archive pagination ── */
+
+.art-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 18px 0 4px;
+}
+
+.art-pager-btn {
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cgr-text-primary);
+  background: var(--cgr-card);
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-chip);
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.art-pager-btn:hover:not(:disabled) {
+  background: var(--cgr-row-hover);
+  border-color: var(--cgr-text-faint);
+}
+
+.art-pager-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.art-pager-state {
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted);
+}

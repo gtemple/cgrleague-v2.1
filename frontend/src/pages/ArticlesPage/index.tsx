@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useArticleList } from "../../hooks/useArticles";
-import type { ArticleSummary } from "../../hooks/useArticles";
+import { useArticleList, useLatestArticles } from "../../hooks/useArticles";
+import type { ArticleRace, ArticleSummary } from "../../hooks/useArticles";
 import { useNextRaceTeaser } from "../../hooks/useNextRaceTeaser";
 import { useSeasonStandings } from "../../hooks/useSeasonStandings";
 import { formatArticleDate, articleTypeLabel } from "../../utils/articleUtils";
@@ -12,7 +12,7 @@ import "./style.css";
 
 type Filter = "ALL" | "RACE" | "SESSION" | "SEASON" | "RANKINGS";
 
-const RECENT_SEASON_COUNT = 2;
+const ARCHIVE_PAGE_SIZE = 25;
 
 const FILTER_LABELS: Record<Filter, string> = {
   ALL: "All",
@@ -119,19 +119,17 @@ function compareArticles(a: ArticleSummary, b: ArticleSummary): number {
   return +new Date(a.generated_at) - +new Date(b.generated_at);
 }
 
-function groupBySeasonDesc(articles: ArticleSummary[]): { seasonId: number; items: ArticleSummary[] }[] {
-  const map = new Map<number, ArticleSummary[]>();
-  for (const a of articles) {
-    const sid = a.season_id ?? 0;
-    if (!map.has(sid)) map.set(sid, []);
-    map.get(sid)!.push(a);
-  }
-  return [...map.entries()]
-    .sort(([a], [b]) => b - a)
-    .map(([seasonId, items]) => ({
-      seasonId,
-      items: [...items].sort(compareArticles),
-    }));
+function compareArchive(a: ArticleSummary, b: ArticleSummary): number {
+  const sa = a.season_id ?? 0;
+  const sb = b.season_id ?? 0;
+  if (sa !== sb) return sb - sa;
+  return compareArticles(a, b);
+}
+
+/** Newer of two races in calendar order. */
+function newerRace(a: ArticleRace, b: ArticleRace): ArticleRace {
+  if (a.season_id !== b.season_id) return a.season_id > b.season_id ? a : b;
+  return a.round >= b.round ? a : b;
 }
 
 // ─── page ─────────────────────────────────────────────────────────────────────
@@ -140,7 +138,10 @@ export function ArticlesPage() {
   const { data: articles, isLoading } = useArticleList();
   const [filter, setFilter] = useState<Filter>("ALL");
 
+  const [page, setPage] = useState(0);
+
   const { data: teaser } = useNextRaceTeaser({ includeSprints: true });
+  const { data: latest } = useLatestArticles();
   const seasonId = teaser?.season_id ?? null;
   const { data: driverStandings } = useSeasonStandings(seasonId ?? 0);
 
@@ -150,14 +151,46 @@ export function ArticlesPage() {
     return [...recaps].sort((a, b) => +new Date(b.generated_at) - +new Date(a.generated_at))[0];
   }, [articles]);
 
+  // The two races either side of now. The upcoming one comes from the teaser;
+  // the last one raced comes from /articles/latest/, which is the only place
+  // that knows which races actually have results.
+  const featuredRaces = useMemo(() => {
+    const upcoming = teaser?.upcoming_race
+      ? { id: teaser.upcoming_race.race.id, round: teaser.upcoming_race.race.round,
+          name: teaser.upcoming_race.track.name }
+      : null;
+    const completed = [latest?.recap, latest?.rankings, latest?.session]
+      .map((a) => a?.race)
+      .filter((r): r is ArticleRace => !!r);
+    const last = completed.length ? completed.reduce(newerRace) : null;
+    return {
+      ids: new Set([upcoming?.id, last?.id].filter((id): id is number => id != null)),
+      upcoming,
+      last: last ? { id: last.id, round: last.round, name: last.track.name } : null,
+    };
+  }, [teaser, latest]);
+
   const visible = useMemo(() =>
     (articles ?? []).filter((a) => filter === "ALL" || articleCategory(a.type) === filter)
   , [articles, filter]);
 
-  const groups = useMemo(() => groupBySeasonDesc(visible), [visible]);
-  const recentGroups = groups.slice(0, RECENT_SEASON_COUNT);
-  const archiveGroups = groups.slice(RECENT_SEASON_COUNT);
-  const archiveArticles = archiveGroups.flatMap((g) => g.items);
+  const featured = useMemo(
+    () => visible.filter((a) => a.race && featuredRaces.ids.has(a.race.id)).sort(compareArticles),
+    [visible, featuredRaces],
+  );
+
+  const archiveArticles = useMemo(
+    () => visible.filter((a) => !(a.race && featuredRaces.ids.has(a.race.id))).sort(compareArchive),
+    [visible, featuredRaces],
+  );
+
+  const pageCount = Math.max(1, Math.ceil(archiveArticles.length / ARCHIVE_PAGE_SIZE));
+  // A filter change can leave the reader past the end of the shorter list.
+  const currentPage = Math.min(page, pageCount - 1);
+  const pageItems = archiveArticles.slice(
+    currentPage * ARCHIVE_PAGE_SIZE,
+    currentPage * ARCHIVE_PAGE_SIZE + ARCHIVE_PAGE_SIZE,
+  );
 
   const leader = driverStandings?.[0];
   const runnerUp = driverStandings?.[1];
@@ -177,7 +210,7 @@ export function ArticlesPage() {
               <button
                 key={f}
                 className={`art-tab${filter === f ? " art-tab-active" : ""}`}
-                onClick={() => setFilter(f)}
+                onClick={() => { setFilter(f); setPage(0); }}
               >
                 {FILTER_LABELS[f]}
               </button>
@@ -216,31 +249,56 @@ export function ArticlesPage() {
           </p>
         ) : (
           <>
-            {recentGroups.map((group) => (
-              <div key={group.seasonId} className="art-season-group">
+            {featured.length > 0 && (
+              <div className="art-season-group">
                 <div className="art-season-header">
-                  <span className="art-season-chip">S{group.seasonId}</span>
-                  <span className="art-season-label">Season {group.seasonId}</span>
-                  <span className="art-season-count">{group.items.length} ARTICLES</span>
+                  <span className="art-season-chip">NOW</span>
+                  <span className="art-season-label">
+                    {[featuredRaces.last && `Last: R${featuredRaces.last.round} ${featuredRaces.last.name}`,
+                      featuredRaces.upcoming && `Next: R${featuredRaces.upcoming.round} ${featuredRaces.upcoming.name}`]
+                      .filter(Boolean)
+                      .join("  ·  ") || "Latest"}
+                  </span>
+                  <span className="art-season-count">{featured.length} ARTICLES</span>
                 </div>
                 <div className="art-grid">
-                  {group.items.map((a) => <ArticleCard key={a.id} article={a} />)}
+                  {featured.map((a) => <ArticleCard key={a.id} article={a} />)}
                 </div>
               </div>
-            ))}
+            )}
 
             {archiveArticles.length > 0 && (
               <div className="art-season-group">
                 <div className="art-season-header">
-                  <span className="art-season-chip art-season-chip--archive">
-                    S{archiveGroups[archiveGroups.length - 1].seasonId}–S{archiveGroups[0].seasonId}
-                  </span>
+                  <span className="art-season-chip art-season-chip--archive">ALL</span>
                   <span className="art-season-label">Archive</span>
                   <span className="art-season-count">{archiveArticles.length} ARTICLES</span>
                 </div>
                 <div className="aarchive-list">
-                  {archiveArticles.map((a) => <ArchiveRow key={a.id} article={a} />)}
+                  {pageItems.map((a) => <ArchiveRow key={a.id} article={a} />)}
                 </div>
+
+                {pageCount > 1 && (
+                  <div className="art-pager">
+                    <button
+                      className="art-pager-btn"
+                      onClick={() => setPage(currentPage - 1)}
+                      disabled={currentPage === 0}
+                    >
+                      ← Prev
+                    </button>
+                    <span className="art-pager-state">
+                      Page {currentPage + 1} of {pageCount}
+                    </span>
+                    <button
+                      className="art-pager-btn"
+                      onClick={() => setPage(currentPage + 1)}
+                      disabled={currentPage >= pageCount - 1}
+                    >
+                      Next →
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </>
