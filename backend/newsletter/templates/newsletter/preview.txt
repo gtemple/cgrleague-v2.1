@@ -1,4 +1,4 @@
-CGR LEAGUE — UP NEXT: SEASON {{ season.id }}, ROUND {{ race.round }}{% if race.is_sprint %} SPRINT{% endif %}
+{% autoescape off %}CGR LEAGUE — UP NEXT: SEASON {{ season.id }}, ROUND {{ race.round }}{% if race.is_sprint %} SPRINT{% endif %}
 {{ track.name|upper }}{% if track.city or track.country %}
 {{ track.city }}{% if track.city and track.country %}, {% endif %}{{ track.country }}{% endif %}
 
@@ -41,3 +41,4 @@ LAST TIME OUT — {{ last_race.track.name|upper }}{% for row in last_podium %}
 {{ site_url }}
 You're getting this because you subscribed to the CGR League newsletter.
 Unsubscribe: {{ unsubscribe_url }}
+{% endautoescape %}

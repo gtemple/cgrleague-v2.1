@@ -50,10 +50,16 @@ class Issue(models.Model):
 
     RECAP = "RECAP"
     PREVIEW = "PREVIEW"
-    KIND_CHOICES = [(RECAP, "Race recap"), (PREVIEW, "Race preview")]
+    SESSION = "SESSION"
+    KIND_CHOICES = [
+        (RECAP, "Race recap"),
+        (PREVIEW, "Race preview"),
+        (SESSION, "Session summary"),
+    ]
 
-    # A recap goes out after a race; a preview goes out ahead of one. Both hang
-    # off the race they are about, so a round can have one of each.
+    # A recap goes out after a race; a preview goes out ahead of one; a session
+    # summary goes out after a run of races and hangs off the last of them. All
+    # three key off a race, so a round can have one of each.
     kind = models.CharField(max_length=10, choices=KIND_CHOICES, default=RECAP)
     race = models.ForeignKey(
         "results.Race",

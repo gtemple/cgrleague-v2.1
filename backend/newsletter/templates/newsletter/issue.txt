@@ -1,4 +1,4 @@
-CGR LEAGUE — SEASON {{ season.id }}, ROUND {{ race.round }}
+{% autoescape off %}CGR LEAGUE — SEASON {{ season.id }}, ROUND {{ race.round }}
 {{ track.name|upper }}{% if track.city or track.country %}
 {{ track.city }}{% if track.city and track.country %}, {% endif %}{{ track.country }}{% endif %}
 {% if recap %}
@@ -32,3 +32,4 @@ Read the preview: {{ site_url }}/articles/{{ preview.id }}{% endif %}
 {{ site_url }}
 You're getting this because you subscribed to the CGR League newsletter.
 Unsubscribe: {{ unsubscribe_url }}
+{% endautoescape %}

@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from results.models import Race
 
-from .content import build_preview_issue, build_recap_issue
+from .content import build_preview_issue, build_recap_issue, build_session_issue
 from .models import Issue, Subscriber
 
 logger = logging.getLogger(__name__)
@@ -19,10 +19,11 @@ logger = logging.getLogger(__name__)
 # whole list, then is swapped for each recipient's own link.
 UNSUB_PLACEHOLDER = "__CGR_UNSUBSCRIBE_URL__"
 
-# Everything that differs between the two kinds of issue, in one place.
+# Everything that differs between the kinds of issue, in one place.
 KINDS = {
     Issue.RECAP: {"build": build_recap_issue, "template": "issue"},
     Issue.PREVIEW: {"build": build_preview_issue, "template": "preview"},
+    Issue.SESSION: {"build": build_session_issue, "template": "session"},
 }
 
 

@@ -20,9 +20,12 @@ class Command(BaseCommand):
 
         parser.add_argument(
             "--kind",
-            choices=["recap", "preview"],
+            choices=["recap", "preview", "session"],
             default="recap",
-            help="Which issue to build: the post-race recap or the pre-race preview",
+            help=(
+                "Which issue to build: the post-race recap, the pre-race preview, or "
+                "the summary of a session (pass the session's last race)"
+            ),
         )
         parser.add_argument(
             "--dry-run",

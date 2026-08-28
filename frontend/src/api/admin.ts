@@ -66,7 +66,7 @@ export type SeatOptions = {
   drivers: { id: number; name: string; human: boolean; seated_team_season_ids: number[] }[];
 };
 
-export type NewsletterKind = "RECAP" | "PREVIEW";
+export type NewsletterKind = "RECAP" | "PREVIEW" | "SESSION";
 
 export type NewsletterIssueState = {
   has_article: boolean;
@@ -82,6 +82,7 @@ export type NewsletterRace = {
   track: { id: number; name: string };
   recap: NewsletterIssueState;
   preview: NewsletterIssueState;
+  session: NewsletterIssueState;
 };
 
 export type NewsletterOverview = {

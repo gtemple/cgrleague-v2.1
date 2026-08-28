@@ -1,0 +1,39 @@
+{% autoescape off %}CGR LEAGUE — SEASON {{ season.id }}, {{ round_span|upper }}
+THE SESSION — {{ race_count }} RACES, BACK TO BACK
+{% if article %}
+SESSION REPORT
+{{ article.title }}
+
+{{ article.teaser }}
+
+Read the full report: {{ site_url }}/articles/{{ article.id }}
+{% endif %}{% if races %}
+RACE BY RACE{% for r in races %}
+
+  Round {{ r.round }}{% if r.is_sprint %} (Sprint){% endif %} — {{ r.track_name }}{% if r.winner %}
+  Won by {{ r.winner }}{% endif %}{% if r.beat %}
+  {{ r.beat }}{% endif %}{% endfor %}
+{% endif %}{% if session_points %}
+POINTS WON — THIS SESSION ONLY{% for row in session_points %}
+  {{ forloop.counter }}. {{ row.name }} — {{ row.points }} pts{% if row.wins %} ({{ row.wins }} win{{ row.wins|pluralize }}{% if row.podiums %}, {{ row.podiums }} podium{{ row.podiums|pluralize }}{% endif %}){% elif row.podiums %} ({{ row.podiums }} podium{{ row.podiums|pluralize }}){% endif %}{% endfor %}
+{% endif %}{% if driver_of_the_session %}
+DRIVER OF THE SESSION — {{ driver_of_the_session.name }}
+{{ driver_of_the_session.reason }}
+{% endif %}{% if movers %}
+BIGGEST MOVERS{% for row in movers %}
+  {{ row.name }}: P{{ row.prev_pos }} -> P{{ row.pos }} ({% if row.gained %}up{% else %}down{% endif %} {{ row.places }}, +{{ row.points_gained }} pts){% endfor %}
+{% endif %}{% if standings %}
+CHAMPIONSHIP AFTER THE SESSION{% for row in standings %}
+  {{ row.position }}. {{ row.driver }} — {{ row.points }} pts{% if row.gap %} ({{ row.gap }}){% endif %}{% endfor %}
+
+Full standings: {{ site_url }}/seasons/{{ season.id }}
+{% endif %}{% if next_race %}
+UP NEXT — ROUND {{ next_race.round }}
+{{ next_race.track.name|upper }}{% if next_race.started_at %}
+{{ next_race.started_at|date:"D j M Y, H:i" }} UTC{% endif %}
+{% endif %}
+---
+{{ site_url }}
+You're getting this because you subscribed to the CGR League newsletter.
+Unsubscribe: {{ unsubscribe_url }}
+{% endautoescape %}

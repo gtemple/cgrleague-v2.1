@@ -15,6 +15,10 @@ from results.predictions import calculate_race_prediction
 
 STANDINGS_ROWS = 5
 ODDS_ROWS = 5
+# The session scoreboard and the movers list are the two tables unique to a
+# session issue. Both are trimmed for the inbox — the full ones are on the site.
+SESSION_POINTS_ROWS = 6
+SESSION_MOVER_ROWS = 3
 
 
 def latest_completed_race() -> Optional[Race]:
@@ -214,4 +218,51 @@ def build_preview_issue(race: Race) -> Dict[str, Any]:
         "last_race": last_race,
         "last_podium": _podium(last_race) if last_race else [],
         "subject": preview.title if preview else f"{race.track.name} — Round {race.round} preview",
+    }
+
+
+def session_article_for(race: Race) -> Optional[Article]:
+    """The session article a race closes out, if it closes one out at all."""
+    return (
+        Article.objects
+        .filter(race=race, type=Article.SESSION)
+        .order_by("-generated_at")
+        .first()
+    )
+
+
+def build_session_issue(race: Race) -> Dict[str, Any]:
+    """Everything the session template needs: the day race by race, the points it
+    paid out, and where it left the championship.
+
+    `race` is the last race of the session — the one the article is filed under —
+    so the standings and the up-next block are the picture after the whole sitting.
+    """
+    article = session_article_for(race)
+    data = (article.session_data if article else None) or {}
+
+    points = data.get("session_points") or []
+    swing = data.get("standings_swing") or []
+    movers = sorted(
+        (row for row in swing if row.get("pos_delta")),
+        key=lambda row: -abs(row["pos_delta"]),
+    )[:SESSION_MOVER_ROWS]
+    # The template only has to pick an arrow and print a number, so the sign is
+    # resolved here — a Django filter cannot take the absolute value of an int.
+    movers = [{**row, "gained": row["pos_delta"] > 0, "places": abs(row["pos_delta"])} for row in movers]
+
+    return {
+        "race": race,
+        "season": race.season,
+        "track": race.track,
+        "article": article,
+        "round_span": data.get("round_span") or f"Round {race.round}",
+        "race_count": data.get("race_count") or 0,
+        "races": data.get("races") or [],
+        "session_points": points[:SESSION_POINTS_ROWS],
+        "movers": movers,
+        "driver_of_the_session": data.get("driver_of_the_session"),
+        "standings": _standings(race.season_id, race.round),
+        "next_race": _next_race(race),
+        "subject": article.title if article else f"Season {race.season_id} — {data.get('round_span') or 'session'}",
     }

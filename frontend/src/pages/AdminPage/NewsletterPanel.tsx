@@ -12,6 +12,7 @@ import { ApiError } from "../../api/client";
 const KINDS: { kind: NewsletterKind; title: string; blurb: string }[] = [
   { kind: "PREVIEW", title: "Preview", blurb: "Goes out before the race — preview article, head to head, drivers to watch." },
   { kind: "RECAP", title: "Recap", blurb: "Goes out after the race — recap article, podium, championship, what's next." },
+  { kind: "SESSION", title: "Session summary", blurb: "Goes out after a run of races — the day race by race, the points it paid, and the championship swing." },
 ];
 
 function errorText(err: unknown): string {
@@ -27,6 +28,10 @@ function formatSent(at: string): string {
   return new Date(at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
+function kindNoun(kind: NewsletterKind): string {
+  return kind === "SESSION" ? "session summary" : kind.toLowerCase();
+}
+
 function raceLabel(r: NewsletterRace): string {
   return `R${r.round}${r.is_sprint ? " Sprint" : ""} — ${r.track.name}`;
 }
@@ -34,10 +39,10 @@ function raceLabel(r: NewsletterRace): string {
 type Fact = { tone: "is-ok" | "is-warn" | ""; mark: string; text: string };
 
 function articleFact(kind: NewsletterKind, state: NewsletterIssueState): Fact {
-  const label = kind.toLowerCase();
+  const label = kind === "SESSION" ? "session report" : kind.toLowerCase();
   return state.has_article
-    ? { tone: "is-ok", mark: "✓", text: `${label} article generated` }
-    : { tone: "is-warn", mark: "!", text: `no ${label} article — the issue will go out without it` };
+    ? { tone: "is-ok", mark: "✓", text: `${label} generated` }
+    : { tone: "is-warn", mark: "!", text: `no ${label} — the issue will go out without it` };
 }
 
 /** A recap of a race with no results is an empty podium; a preview of one
@@ -45,6 +50,11 @@ function articleFact(kind: NewsletterKind, state: NewsletterIssueState): Fact {
  *  be visible before you make one. */
 function timingFact(kind: NewsletterKind, race: NewsletterRace): Fact {
   const raced = race.result_count > 0;
+  if (kind === "SESSION") {
+    return race.session.has_article
+      ? { tone: "is-ok", mark: "✓", text: "a session ends on this race" }
+      : { tone: "is-warn", mark: "!", text: "no session is filed under this race — generate one above first" };
+  }
   if (kind === "RECAP") {
     return raced
       ? { tone: "is-ok", mark: "✓", text: `${race.result_count} results entered` }
@@ -131,8 +141,8 @@ export function NewsletterPanel({ token, seasonId }: { token: string; seasonId: 
     const warnings = [timingFact(kind, race), articleFact(kind, state)].filter((f) => f.tone === "is-warn");
     const question = [
       resend
-        ? `This ${kind.toLowerCase()} already went out on ${formatSent(state.sent_at!)}. Send it again to all ${subscribers} subscriber(s)?`
-        : `Send the ${race.track.name} ${kind.toLowerCase()} to all ${subscribers} subscriber(s)? This cannot be undone.`,
+        ? `This ${kindNoun(kind)} already went out on ${formatSent(state.sent_at!)}. Send it again to all ${subscribers} subscriber(s)?`
+        : `Send the ${kind === "SESSION" ? "session summary" : `${race.track.name} ${kindNoun(kind)}`} to all ${subscribers} subscriber(s)? This cannot be undone.`,
       ...warnings.map((w) => `\n· ${w.text}`),
     ].join("");
     if (!window.confirm(question)) return;
@@ -196,8 +206,9 @@ export function NewsletterPanel({ token, seasonId }: { token: string; seasonId: 
 
           {race && (
             <div className="adm-news-cards">
-              {KINDS.map(({ kind, title, blurb }) => {
-                const state = kind === "RECAP" ? race.recap : race.preview;
+              {KINDS.filter((k) => k.kind !== "SESSION" || race.session.has_article).map(({ kind, title, blurb }) => {
+                const state =
+                  kind === "RECAP" ? race.recap : kind === "PREVIEW" ? race.preview : race.session;
                 const note = notes[kind];
                 const isBusy = busy?.startsWith(`${kind}:`);
                 return (

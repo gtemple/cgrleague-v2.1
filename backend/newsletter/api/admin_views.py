@@ -12,14 +12,19 @@ from results.models import Race
 from .. import sender
 from ..models import Issue, Subscriber
 
-KINDS = {Issue.RECAP: Article.RECAP, Issue.PREVIEW: Article.PREVIEW}
+KINDS = {
+    Issue.RECAP: Article.RECAP,
+    Issue.PREVIEW: Article.PREVIEW,
+    Issue.SESSION: Article.SESSION,
+}
 
 
 def _resolve(request, data) -> tuple:
     """(race, kind) from a request, or (None, error Response)."""
     kind = (data.get("kind") or Issue.RECAP).upper()
     if kind not in KINDS:
-        return None, Response({"detail": "kind must be RECAP or PREVIEW."}, status=status.HTTP_400_BAD_REQUEST)
+        allowed = ", ".join(KINDS)
+        return None, Response({"detail": f"kind must be one of {allowed}."}, status=status.HTTP_400_BAD_REQUEST)
 
     race_id = data.get("race_id") or data.get("race")
     race = Race.objects.select_related("season", "track").filter(pk=race_id).first()
@@ -77,6 +82,7 @@ class NewsletterOverviewView(APIView):
                     "track": {"id": r.track_id, "name": r.track.name},
                     "recap": state(r, Issue.RECAP),
                     "preview": state(r, Issue.PREVIEW),
+                    "session": state(r, Issue.SESSION),
                 }
                 for r in races
             ],
