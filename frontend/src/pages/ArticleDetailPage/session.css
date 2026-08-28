@@ -209,12 +209,22 @@
 
 .ses-points-row {
   display: grid;
-  grid-template-columns: 20px 26px minmax(0, 1fr) 60px auto 34px;
+  grid-template-columns: 20px 26px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "rank avatar driver value"
+    "bar  bar    bar    bar";
   align-items: center;
-  gap: 10px;
-  padding: 6px 0;
+  column-gap: 10px;
+  row-gap: 7px;
+  padding: 9px 0;
   border-bottom: 1px solid var(--cgr-border-card);
 }
+
+.ses-points-rank { grid-area: rank; }
+.ses-points-avatar { grid-area: avatar; }
+.ses-points-driver { grid-area: driver; }
+.ses-points-value { grid-area: value; }
+.ses-points-bar { grid-area: bar; }
 
 .ses-points-row:last-child {
   border-bottom: none;
@@ -256,6 +266,14 @@
   text-overflow: ellipsis;
 }
 
+.ses-points-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding-top: 2px;
+}
+
 .ses-points-team {
   font-family: var(--cgr-font-mono);
   font-size: 9px;
@@ -268,6 +286,7 @@
 
 .ses-points-bar {
   height: 5px;
+  width: 100%;
   border-radius: 3px;
   background: var(--cgr-row-hover);
   overflow: hidden;
@@ -278,12 +297,8 @@
   height: 100%;
 }
 
-.ses-points-tally {
-  display: flex;
-  gap: 4px;
-}
-
 .ses-tally-chip {
+  flex-shrink: 0;
   font-family: var(--cgr-font-mono);
   font-size: 9px;
   letter-spacing: 0.06em;

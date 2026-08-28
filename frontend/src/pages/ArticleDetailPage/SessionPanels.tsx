@@ -57,7 +57,9 @@ function RaceChapter({
 }
 
 function PointsRow({ entry, rank, best }: { entry: SessionDriverEntry; rank: number; best: number }) {
-  const width = best > 0 ? Math.max((entry.points / best) * 100, 2) : 0;
+  // A scoreless driver gets no bar at all — the 2% floor is there to keep a
+  // small score visible, not to draw a stub for zero.
+  const width = best > 0 && entry.points > 0 ? Math.max((entry.points / best) * 100, 2) : 0;
   const avatar = entry.profile_image ? displayImage(entry.profile_image, "driver") : null;
   const color = entry.team_color || "var(--cgr-text-faint)";
 
@@ -72,16 +74,18 @@ function PointsRow({ entry, rank, best }: { entry: SessionDriverEntry; rank: num
           {entry.name}
           {entry.is_human && <span className="ses-human-dot" />}
         </span>
-        <span className="ses-points-team" style={{ color }}>{entry.team}</span>
+        <span className="ses-points-sub">
+          <span className="ses-points-team" style={{ color }}>{entry.team}</span>
+          {entry.wins > 0 && <span className="ses-tally-chip ses-tally-chip--win">{entry.wins}W</span>}
+          {entry.podiums > 0 && <span className="ses-tally-chip">{entry.podiums}P</span>}
+        </span>
       </span>
+      <span className="ses-points-value">{entry.points}</span>
+      {/* Its own full-width row: the bar is a gauge, so every one has to start
+          and end at the same x or the lengths cannot be read against each other. */}
       <span className="ses-points-bar">
         <span className="ses-points-fill" style={{ width: `${width}%`, background: color }} />
       </span>
-      <span className="ses-points-tally">
-        {entry.wins > 0 && <span className="ses-tally-chip ses-tally-chip--win">{entry.wins}W</span>}
-        {entry.podiums > 0 && <span className="ses-tally-chip">{entry.podiums}P</span>}
-      </span>
-      <span className="ses-points-value">{entry.points}</span>
     </li>
   );
 }

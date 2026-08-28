@@ -1707,7 +1707,12 @@ def _session_stats(races):
             entry = per_driver[ds.id] = {
                 "driver_id": driver.id,
                 "name": _name(driver),
-                "team": team_season.team.team_name if team_season and team_season.team else "—",
+                # display_name is the per-season name the rest of the site shows
+                # ("Sauber", not "Sauber Kick"); fall back to the team's own.
+                "team": (
+                    (team_season.display_name or team_season.team.team_name)
+                    if team_season and team_season.team else "—"
+                ),
                 "team_color": (team_season.color if team_season else "") or "",
                 "profile_image": driver.profile_image or "",
                 "is_human": driver.human,
