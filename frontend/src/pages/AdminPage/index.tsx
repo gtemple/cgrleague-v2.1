@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { adminApi, type GridDriver, type RaceInfo, type SeasonInfo, type SeatOptions } from "../../api/admin";
-import { NewsletterPanel } from "./NewsletterPanel";
-import { SessionPanel } from "./SessionPanel";
+import { adminApi, type GridDriver, type RaceInfo } from "../../api/admin";
 import { pointsForRow } from "./scoring";
 import { ApiError } from "../../api/client";
+import { useAdmin } from "./adminContext";
 import "./style.css";
 
 
@@ -47,11 +44,7 @@ function defaultPlacement(competing = true): Placement {
 }
 
 export function AdminPage() {
-  const { token, username, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const [seasons, setSeasons] = useState<SeasonInfo[]>([]);
-  const [seasonId, setSeasonId] = useState<number | null>(null);
+  const { token, seasonId } = useAdmin();
 
   const [races, setRaces] = useState<RaceInfo[]>([]);
   const [grid, setGrid] = useState<GridDriver[]>([]);
@@ -66,15 +59,6 @@ export function AdminPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Substitute seats
-  const [seatOptions, setSeatOptions] = useState<SeatOptions | null>(null);
-  const [subDriver, setSubDriver] = useState("");
-  const [subTeam, setSubTeam] = useState("");
-  const [subCar, setSubCar] = useState("");
-  const [subBusy, setSubBusy] = useState(false);
-  const [subMessage, setSubMessage] = useState<string | null>(null);
-  const [subError, setSubError] = useState<string | null>(null);
-  const [gridVersion, setGridVersion] = useState(0);
   // Points this race already contributes, so the standings preview shows the
   // effect of the edit rather than counting the race twice.
   const [existingPoints, setExistingPoints] = useState<Record<number, number>>({});
@@ -84,16 +68,10 @@ export function AdminPage() {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!token) return;
-    adminApi.getSeasons(token)
-      .then((list) => {
-        setSeasons(list);
-        // Default to the season still being raced, else the newest.
-        const live = list.find((s) => s.races_entered < s.race_count);
-        setSeasonId((live ?? list[0])?.id ?? null);
-      })
-      .catch((err) => setLoadError(describeLoadError(err)));
-  }, [token]);
+    setSelectedRaceId(null);
+    setSubmitState("idle");
+    setLoadError(null);
+  }, [seasonId]);
 
   // Load races for the season
   useEffect(() => {
@@ -132,7 +110,7 @@ export function AdminPage() {
         setLoadError(describeLoadError(err));
       })
       .finally(() => setLoadingGrid(false));
-  }, [token, seasonId, gridVersion]);
+  }, [token, seasonId]);
 
   // When a race is selected, load existing results to pre-populate
   useEffect(() => {
@@ -212,36 +190,6 @@ export function AdminPage() {
       .finally(() => setLoadingExisting(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRaceId, seasonId]);
-
-  useEffect(() => {
-    if (!token || seasonId == null) return;
-    adminApi.getSeatOptions(token, seasonId)
-      .then(setSeatOptions)
-      .catch(() => setSeatOptions(null));
-  }, [token, seasonId, gridVersion]);
-
-  async function handleAddSeat() {
-    if (!token || seasonId == null || !subDriver || !subTeam) return;
-    setSubBusy(true);
-    setSubError(null);
-    setSubMessage(null);
-    try {
-      const created = await adminApi.createSeat(token, seasonId, {
-        driver_id: Number(subDriver),
-        team_season_id: Number(subTeam),
-        car_number: subCar !== "" ? parseInt(subCar, 10) : null,
-      });
-      setSubMessage(`${created.driver} added at ${created.team}. Tick them in below.`);
-      setSubDriver("");
-      setSubCar("");
-      setGridVersion((v) => v + 1);
-    } catch (err) {
-      const payload = err instanceof ApiError ? (err.payload as { detail?: string } | null) : null;
-      setSubError(payload?.detail ?? "Could not add that seat.");
-    } finally {
-      setSubBusy(false);
-    }
-  }
 
   const gridMap = Object.fromEntries(grid.map((d) => [d.driver_season_id, d]));
 
@@ -423,45 +371,13 @@ export function AdminPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   if (loadingRaces || loadingGrid) {
-    return <div className="adm-page"><p className="adm-loading">Loading…</p></div>;
+    return <p className="adm-loading">Loading race control…</p>;
   }
 
   const selectedRace = races.find((r) => r.id === selectedRaceId);
 
   return (
-    <div className="adm-page">
-      <div className="adm-band">
-        <div className="adm-band-inner">
-          <div>
-            <span className="adm-eyebrow">CGR League · Admin</span>
-            <h1 className="adm-title">Results entry</h1>
-          </div>
-          <span className="adm-user">
-            <select
-              className="adm-season"
-              value={seasonId ?? ""}
-              onChange={(e) => {
-                setSeasonId(Number(e.target.value));
-                setSelectedRaceId(null);
-                setSubmitState("idle");
-              }}
-              aria-label="Season"
-            >
-              {seasons.map((s) => (
-                <option key={s.id} value={s.id}>
-                  Season {s.id} · {s.game} · {s.races_entered}/{s.race_count} entered
-                </option>
-              ))}
-            </select>
-            {username}
-            <button className="adm-logout" onClick={() => logout().then(() => navigate("/login"))}>
-              Log out
-            </button>
-          </span>
-        </div>
-      </div>
-
-      <div className="adm-inner">
+    <div className="adm-results-page">
         {loadError && (
           <div className="adm-panel adm-alert">
             Couldn’t load Season {seasonId}: {loadError}
@@ -469,98 +385,38 @@ export function AdminPage() {
         )}
 
         <div className="adm-panel">
-          <label className="adm-label" htmlFor="adm-race">Select race</label>
-          <select
-            id="adm-race"
-            className="adm-select"
-            value={selectedRaceId ?? ""}
-            onChange={(e) => {
-              setSelectedRaceId(e.target.value ? parseInt(e.target.value, 10) : null);
-              setSubmitState("idle");
-            }}
-          >
-            <option value="">— choose a race —</option>
-            {races.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.result_count ? "\u2713 " : "\u00b7 "}
-                R{r.round}{r.is_sprint ? " Sprint" : ""} — {r.track.name}
-                {r.result_count ? ` (${r.result_count} entered)` : ""}
-              </option>
+          <div className="adm-section-head">
+            <div>
+              <h2 className="adm-section-title">Choose a race</h2>
+              <p className="adm-hint">Completed rounds remain editable. Unentered rounds are marked as pending.</p>
+            </div>
+            <span className="adm-count-chip">{races.filter((race) => race.result_count > 0).length}/{races.length} entered</span>
+          </div>
+          <div className="adm-race-picker" role="list" aria-label="Season races">
+            {races.map((race) => (
+              <button
+                key={race.id}
+                type="button"
+                className={`adm-race-choice${selectedRaceId === race.id ? " is-active" : ""}`}
+                onClick={() => {
+                  setSelectedRaceId(race.id);
+                  setSubmitState("idle");
+                }}
+              >
+                <span className="adm-race-round">R{race.round}{race.is_sprint ? " · Sprint" : ""}</span>
+                <span className="adm-race-track">{race.track.name}</span>
+                <span className={`adm-race-state${race.result_count ? " is-complete" : ""}`}>
+                  {race.result_count ? `✓ ${race.result_count} entered` : "· Pending"}
+                </span>
+              </button>
             ))}
-          </select>
+          </div>
           {!loadError && races.length === 0 && (
             <p className="adm-hint" style={{ margin: "10px 0 0" }}>
               No races found for Season {seasonId}.
             </p>
           )}
         </div>
-
-        {token && seasonId != null && <SessionPanel token={token} seasonId={seasonId} />}
-
-        {token && seasonId != null && <NewsletterPanel token={token} seasonId={seasonId} />}
-
-        {seatOptions && (
-          <div className="adm-panel">
-            <label className="adm-label">Add a substitute</label>
-            <p className="adm-hint">
-              Gives a driver a seat at a team for the whole season. They sit out by
-              default — tick them in on the races they actually drove, and untick
-              whoever they replaced.
-            </p>
-            <div className="adm-sub">
-              <select
-                className="adm-select adm-sub-field"
-                value={subDriver}
-                onChange={(e) => setSubDriver(e.target.value)}
-                aria-label="Substitute driver"
-              >
-                <option value="">— driver —</option>
-                {seatOptions.drivers.map((d) => (
-                  <option
-                    key={d.id}
-                    value={d.id}
-                    disabled={subTeam !== "" && d.seated_team_season_ids.includes(Number(subTeam))}
-                  >
-                    {d.name}{d.human ? "" : " (AI)"}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                className="adm-select adm-sub-field"
-                value={subTeam}
-                onChange={(e) => setSubTeam(e.target.value)}
-                aria-label="Team"
-              >
-                <option value="">— team —</option>
-                {seatOptions.teams.map((t) => (
-                  <option key={t.team_season_id} value={t.team_season_id}>{t.name}</option>
-                ))}
-              </select>
-
-              <input
-                className="adm-num adm-sub-car"
-                type="number"
-                min={1}
-                max={99}
-                value={subCar}
-                onChange={(e) => setSubCar(e.target.value)}
-                placeholder="No."
-                aria-label="Car number"
-              />
-
-              <button
-                className="adm-submit adm-sub-add"
-                onClick={handleAddSeat}
-                disabled={subBusy || !subDriver || !subTeam}
-              >
-                {subBusy ? "Adding…" : "Add seat"}
-              </button>
-            </div>
-            {subMessage && <p className="adm-ok adm-sub-msg">{subMessage}</p>}
-            {subError && <p className="adm-err adm-sub-msg">{subError}</p>}
-          </div>
-        )}
 
         {selectedRace && (
           <div className="adm-panel">
@@ -755,7 +611,6 @@ export function AdminPage() {
             )}
           </div>
         )}
-      </div>
     </div>
   );
 }

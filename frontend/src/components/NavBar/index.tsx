@@ -85,13 +85,13 @@ export function NavBar() {
               <span className="nav-search-kbd">⌘K</span>
             </button>
 
-            {/* Sends you to the login form or straight to results entry, so the
+            {/* Sends you to the login form or straight to admin, so the
                 button is never a dead end once you already have a token. */}
             <NavLink
-              to={isAuthenticated ? "/admin/results" : "/login"}
+              to={isAuthenticated ? "/admin" : "/login"}
               className="nav-admin-btn"
             >
-              {isAuthenticated ? "Results" : "Admin"}
+              Admin
             </NavLink>
           </div>
         </div>

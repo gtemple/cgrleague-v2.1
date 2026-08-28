@@ -19,7 +19,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       await login(username, password);
-      navigate("/admin/results");
+      navigate("/admin");
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setError("Invalid username or password.");

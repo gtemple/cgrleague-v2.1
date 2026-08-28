@@ -1,4 +1,4 @@
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 import { NavBar } from "./components/NavBar/index.tsx";
 import { HomePage }  from "./pages/HomePage/index.tsx";
@@ -21,6 +21,10 @@ import {
   NewsletterUnsubscribePage,
 } from "./pages/NewsletterPage/index.tsx";
 import { AdminPage } from "./pages/AdminPage/index.tsx";
+import { AdminLayout } from "./pages/AdminPage/AdminLayout.tsx";
+import { AdminOverviewPage } from "./pages/AdminPage/OverviewPage.tsx";
+import { NewslettersAdminPage, SessionsAdminPage } from "./pages/AdminPage/PublishingPages.tsx";
+import { SeasonGridPage } from "./pages/AdminPage/SeasonGridPage.tsx";
 import { ProtectedRoute } from "./components/ProtectedRoute.tsx";
 
 
@@ -58,7 +62,16 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         {/* Protected admin routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/admin/results" element={<AdminPage />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminOverviewPage />} />
+            <Route path="races" element={<AdminPage />} />
+            <Route path="results" element={<Navigate to="/admin/races" replace />} />
+            <Route path="publishing" element={<Navigate to="/admin/publishing/newsletters" replace />} />
+            <Route path="publishing/newsletters" element={<NewslettersAdminPage />} />
+            <Route path="publishing/sessions" element={<SessionsAdminPage />} />
+            <Route path="season" element={<Navigate to="/admin/season/grid" replace />} />
+            <Route path="season/grid" element={<SeasonGridPage />} />
+          </Route>
         </Route>
       </Route>
     </Routes>
