@@ -56,40 +56,87 @@ function articleMeta(article: ArticleSummary): string {
 
 // ─── card ─────────────────────────────────────────────────────────────────────
 
-function ArticleCard({ article }: { article: ArticleSummary }) {
-  const img = article.race?.track.img
-    ? articleTrackImage(article.race.track.img, article.type, article.id)
+function articleImage(article: ArticleSummary): string | null {
+  return article.race?.track.img
+    ? articleTrackImage(article.race.track.img, article.type, article.id) ?? null
     : null;
+}
+
+function LeadArticle({ article }: { article: ArticleSummary }) {
+  const img = articleImage(article);
 
   return (
-    <Link to={`/articles/${article.id}`} className="acard">
-      <div className="acard-thumb">
-        {img && <img loading="lazy" src={img} alt="" />}
+    <Link to={`/articles/${article.id}`} className="alead">
+      <div className="alead-media">
+        {img ? <img src={img} alt="" /> : <span className="alead-placeholder">CGR</span>}
         <span className={`acard-tag ${tagClass(article.type)}`}>{articleTypeLabel(article.type).toUpperCase()}</span>
       </div>
-      <div className="acard-body">
-        <div className="acard-meta">{articleMeta(article)}</div>
-        <div className="acard-title">{article.title}</div>
-        <p className="acard-excerpt">{article.teaser}</p>
-        <div className="acard-footer">
-          <span className="acard-date">{formatArticleDate(article.generated_at)} · {readingTime(article.reading_time_minutes)}</span>
-          <span className="acard-cta">READ →</span>
+      <div className="alead-body">
+        <div className="alead-kicker">{articleMeta(article)}</div>
+        <h2 className="alead-title">{article.title}</h2>
+        <p className="alead-excerpt">{article.teaser}</p>
+        <div className="alead-footer">
+          <span>{formatArticleDate(article.generated_at)} · {readingTime(article.reading_time_minutes)}</span>
+          <span className="article-arrow">READ STORY →</span>
         </div>
       </div>
     </Link>
   );
 }
 
+function CoverageArticle({ article }: { article: ArticleSummary }) {
+  const img = articleImage(article);
+
+  return (
+    <Link to={`/articles/${article.id}`} className="acoverage-row">
+      <div className="acoverage-copy">
+        <div className="acoverage-meta">
+          <span className={`acoverage-tag ${tagClass(article.type)}`}>{articleTypeLabel(article.type).toUpperCase()}</span>
+          <span>{articleMeta(article)}</span>
+        </div>
+        <h3 className="acoverage-title">{article.title}</h3>
+        <span className="acoverage-date">{formatArticleDate(article.generated_at)} · {readingTime(article.reading_time_minutes)}</span>
+      </div>
+      {img && <img className="acoverage-thumb" loading="lazy" src={img} alt="" />}
+      <span className="acoverage-arrow" aria-hidden="true">→</span>
+    </Link>
+  );
+}
+
+function ArticleSkeleton() {
+  return (
+    <div className="art-feature-layout art-feature-layout--loading" aria-hidden="true">
+      <div className="alead alead--skeleton" />
+      <div className="acoverage-list">
+        {[0, 1, 2].map((i) => <div key={i} className="acoverage-row acoverage-row--skeleton" />)}
+      </div>
+    </div>
+  );
+}
+
 // ─── archive row ────────────────────────────────────────────────────────────
 
 function ArchiveRow({ article }: { article: ArticleSummary }) {
+  const img = articleImage(article);
+
   return (
     <Link to={`/articles/${article.id}`} className="aarchive-row">
-      <span className="aarchive-season">S{article.season_id}</span>
-      <span className={`aarchive-tag ${tagClass(article.type)}`}>{articleTypeLabel(article.type).toUpperCase()}</span>
-      <span className="aarchive-title">{article.title}</span>
-      <span className="aarchive-date">{formatArticleDate(article.generated_at)} · {readingTime(article.reading_time_minutes)}</span>
-      <span className="aarchive-cta">READ →</span>
+      <div className="aarchive-index">
+        <span className="aarchive-season">S{article.season_id}</span>
+        {img && <img loading="lazy" src={img} alt="" />}
+      </div>
+      <div className="aarchive-copy">
+        <div className="aarchive-meta">
+          <span className={`aarchive-tag ${tagClass(article.type)}`}>{articleTypeLabel(article.type).toUpperCase()}</span>
+          <span>{articleMeta(article)}</span>
+        </div>
+        <span className="aarchive-title">{article.title}</span>
+      </div>
+      <span className="aarchive-date">
+        {formatArticleDate(article.generated_at)}
+        <small>{readingTime(article.reading_time_minutes)}</small>
+      </span>
+      <span className="aarchive-cta" aria-hidden="true">→</span>
     </Link>
   );
 }
@@ -204,6 +251,7 @@ export function ArticlesPage() {
           <div>
             <div className="art-eyebrow">CGR LEAGUE · COVERAGE</div>
             <h1 className="art-title">Articles</h1>
+            <p className="art-intro">Race reports, paddock stories and the form guide for every season.</p>
           </div>
           <div className="art-filter-tabs">
             {(["ALL", "RACE", "SESSION", "SEASON", "RANKINGS"] as Filter[]).map((f) => (
@@ -211,6 +259,7 @@ export function ArticlesPage() {
                 key={f}
                 className={`art-tab${filter === f ? " art-tab-active" : ""}`}
                 onClick={() => { setFilter(f); setPage(0); }}
+                aria-pressed={filter === f}
               >
                 {FILTER_LABELS[f]}
               </button>
@@ -238,9 +287,7 @@ export function ArticlesPage() {
 
       <div className="art-body">
         {isLoading ? (
-          <div className="art-skeleton-grid">
-            {[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="acard acard--skeleton" />)}
-          </div>
+          <ArticleSkeleton />
         ) : visible.length === 0 ? (
           <p className="art-empty">
             {(articles?.length ?? 0) === 0
@@ -252,17 +299,25 @@ export function ArticlesPage() {
             {featured.length > 0 && (
               <div className="art-season-group">
                 <div className="art-season-header">
-                  <span className="art-season-chip">NOW</span>
-                  <span className="art-season-label">
-                    {[featuredRaces.last && `Last: R${featuredRaces.last.round} ${featuredRaces.last.name}`,
-                      featuredRaces.upcoming && `Next: R${featuredRaces.upcoming.round} ${featuredRaces.upcoming.name}`]
-                      .filter(Boolean)
-                      .join("  ·  ") || "Latest"}
-                  </span>
-                  <span className="art-season-count">{featured.length} ARTICLES</span>
+                  <div>
+                    <span className="art-section-eyebrow">CURRENT COVERAGE</span>
+                    <span className="art-season-label">
+                      {[featuredRaces.last && `R${featuredRaces.last.round} ${featuredRaces.last.name}`,
+                        featuredRaces.upcoming && `R${featuredRaces.upcoming.round} ${featuredRaces.upcoming.name}`]
+                        .filter(Boolean)
+                        .join("  /  ") || "Latest"}
+                    </span>
+                  </div>
+                  <span className="art-season-count">{featured.length} {featured.length === 1 ? "STORY" : "STORIES"}</span>
                 </div>
-                <div className="art-grid">
-                  {featured.map((a) => <ArticleCard key={a.id} article={a} />)}
+                <div className={`art-feature-layout${featured.length === 1 ? " art-feature-layout--solo" : ""}`}>
+                  <LeadArticle article={featured[0]} />
+                  {featured.length > 1 && (
+                    <div className="acoverage-list">
+                      <div className="acoverage-list-heading">MORE FROM THE PADDOCK</div>
+                      {featured.slice(1).map((a) => <CoverageArticle key={a.id} article={a} />)}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -270,8 +325,10 @@ export function ArticlesPage() {
             {archiveArticles.length > 0 && (
               <div className="art-season-group">
                 <div className="art-season-header">
-                  <span className="art-season-chip art-season-chip--archive">ALL</span>
-                  <span className="art-season-label">Archive</span>
+                  <div>
+                    <span className="art-section-eyebrow">THE FULL RECORD</span>
+                    <span className="art-season-label">Article archive</span>
+                  </div>
                   <span className="art-season-count">{archiveArticles.length} ARTICLES</span>
                 </div>
                 <div className="aarchive-list">
