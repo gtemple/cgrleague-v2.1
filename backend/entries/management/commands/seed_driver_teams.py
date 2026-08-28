@@ -23,7 +23,7 @@ ASSIGNMENTS = {
         ("Yuki", "Tsunoda"): "Alpha Tauri",
         ("Antonio", "Giovinazzi"): "Alfa Romeo",
         ("Kimi", "Räikkönen"): "Alfa Romeo",
-        ("George", "Russel"): "Williams",   # one 'l' as in your seed
+        ("George", "Russell"): "Williams",
         ("Nicholas", "Latifi"): "Williams",
         ("Esteban", "Ocon"): "Alpine",
         ("Fernando", "Alonso"): "Alpine",
@@ -45,7 +45,7 @@ ASSIGNMENTS = {
         ("Charles", "Leclerc"): "Ferrari",       # team_id 1
         ("Sebastian", "Vettel"): "Aston Martin", # team_id 3
         ("Lance", "Stroll"): "Aston Martin",     # team_id 3
-        ("George", "Russel"): "Williams",        # team_id 9
+        ("George", "Russell"): "Williams",        # team_id 9
         ("Nicholas", "Latifi"): "Williams",      # team_id 9  ("Nic" in your notes)
         ("Esteban", "Ocon"): "Alpine",           # team_id 10
         ("Fernando", "Alonso"): "Alpine",        # team_id 10
@@ -66,7 +66,7 @@ ASSIGNMENTS = {
     ("Charles", "Leclerc"): "Ferrari",        # 1
     ("Sebastian", "Vettel"): "Aston Martin",  # 3
     ("Lance", "Stroll"): "Aston Martin",      # 3
-    ("George", "Russel"): "Williams",         # 9  (one “l” to match your seed)
+    ("George", "Russell"): "Williams",         # 9  (one “l” to match your seed)
     ("Nicholas", "Latifi"): "Williams",       # 9
     ("Esteban", "Ocon"): "Alpine",            # 10
     ("Fernando", "Alonso"): "Alpine",         # 10
@@ -88,7 +88,7 @@ ASSIGNMENTS = {
       ("Mick", "Schumacher"): "Haas",           # 6
       ("Nikita", "Mazepin"): "Haas",            # 6
       ("Sebastian", "Vettel"): "Aston Martin",  # 3
-      ("George", "Russel"): "Williams",         # 9
+      ("George", "Russell"): "Williams",         # 9
       ("Nicholas", "Latifi"): "Williams",       # 9
       ("Esteban", "Ocon"): "Alpine",            # 10
       ("Fernando", "Alonso"): "Alpine",         # 10
@@ -99,7 +99,7 @@ ASSIGNMENTS = {
       ("Cole", "Reynolds"): "Alpha Tauri",      # 7
       ("Ryan", "Reynolds"): "Mclaren",          # 2
       ("Lewis", "Hamilton"): "Mercedes",        # 5
-      ("George", "Russel"): "Mercedes",         # 5
+      ("George", "Russell"): "Mercedes",         # 5
       ("Max", "Verstappen"): "Red Bull",        # 4
       ("Sergio", "Perez"): "Red Bull",          # 4
       ("Carlos", "Sainz"): "Ferrari",           # 1
