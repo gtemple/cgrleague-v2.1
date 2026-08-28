@@ -8,3 +8,4 @@ class ArticleAdmin(admin.ModelAdmin):
     list_filter = ("type",)
     search_fields = ("title", "teaser", "content")
     raw_id_fields = ("race",)
+    filter_horizontal = ("session_races",)

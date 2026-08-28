@@ -251,11 +251,13 @@ TYPE_LABEL = {
     "RECAP":           "Recap",
     "PREVIEW":         "Preview",
     "POWER_RANKINGS":  "Power Rankings",
+    "SESSION":         "Session Report",
 }
 TYPE_EMOJI = {
     "RECAP":           "📋",
     "PREVIEW":         "🔭",
     "POWER_RANKINGS":  "📊",
+    "SESSION":         "🏁",
 }
 
 @tree.command(guild=guild, name="articles", description="Latest articles")
@@ -265,14 +267,20 @@ async def articles(interaction: discord.Interaction):
         latest = await get(s, "/api/articles/latest/")
 
     lines = []
-    for key in ("recap", "preview", "rankings"):
+    for key in ("recap", "preview", "rankings", "session"):
         a = latest.get(key)
         if not a:
             continue
         emoji = TYPE_EMOJI.get(a["type"], "📄")
         label = TYPE_LABEL.get(a["type"], a["type"])
         race  = a.get("race")
-        loc   = f"R{race['round']} · {race['track']['name']}" if race else ""
+        # A session spans several rounds, so its own span reads better than the
+        # single race it is filed under.
+        summary = a.get("session_summary")
+        if summary:
+            loc = f"{summary['round_span']} · {summary['race_count']} races"
+        else:
+            loc = f"R{race['round']} · {race['track']['name']}" if race else ""
         title = a["title"]
         if SITE_URL:
             lines.append(f"{emoji} **{label}**{f'  ·  {loc}' if loc else ''}\n[{title}]({SITE_URL}/articles/{a['id']})")

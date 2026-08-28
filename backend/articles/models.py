@@ -7,12 +7,14 @@ class Article(models.Model):
     SEASON_RECAP = "SEASON_RECAP"
     SEASON_PREVIEW = "SEASON_PREVIEW"
     POWER_RANKINGS = "POWER_RANKINGS"
+    SESSION = "SESSION"
     TYPE_CHOICES = [
         (RECAP, "Race Recap"),
         (PREVIEW, "Race Preview"),
         (SEASON_RECAP, "Season Recap"),
         (SEASON_PREVIEW, "Season Preview"),
         (POWER_RANKINGS, "Power Rankings"),
+        (SESSION, "Session Report"),
     ]
 
     race = models.ForeignKey(
@@ -20,6 +22,15 @@ class Article(models.Model):
         on_delete=models.CASCADE,
         related_name="articles",
         null=True,
+        blank=True,
+    )
+    # A SESSION article covers 2-5 races run back to back in one sitting. `race`
+    # points at the last of them so the hero image, list ordering and season
+    # resolution all keep working off one field; `session_races` is the exact
+    # membership, since a session may include a sprint round.
+    session_races = models.ManyToManyField(
+        "results.Race",
+        related_name="session_articles",
         blank=True,
     )
     season = models.ForeignKey(
@@ -36,6 +47,7 @@ class Article(models.Model):
     rivalry_callout = models.TextField(blank=True, default="")
     preview_sidebar = models.JSONField(null=True, blank=True, default=None)
     rankings_data = models.JSONField(null=True, blank=True, default=None)
+    session_data = models.JSONField(null=True, blank=True, default=None)
     generated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

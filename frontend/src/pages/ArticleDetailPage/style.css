@@ -99,6 +99,7 @@
 .article-badge--recap        { background: var(--cgr-red); }
 .article-badge--preview      { background: var(--cgr-blue); }
 .article-badge--power-rankings { background: var(--cgr-gold); color: var(--cgr-gold-text); }
+.article-badge--session       { background: var(--cgr-teal); }
 .article-badge--season-recap,
 .article-badge--season-preview { background: var(--cgr-purple); }
 

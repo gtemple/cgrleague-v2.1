@@ -7,6 +7,7 @@ import { readingTime } from "../../utils/readingTime";
 import { displayImage } from "../../utils/displayImage";
 import { highlightDrivers } from "../../utils/highlightDrivers";
 import { PowerRankingsHistory } from "./PowerRankingsHistory";
+import { SessionPanels } from "./SessionPanels";
 import "./style.css";
 import "./power-rankings.css";
 
@@ -197,7 +198,10 @@ export function ArticleDetailPage() {
 
   const isSeason = article.type === "SEASON_RECAP" || article.type === "SEASON_PREVIEW";
   const isRankings = article.type === "POWER_RANKINGS";
-  const hasSidebar = article.type === "PREVIEW" && article.preview_sidebar != null;
+  const isSession = article.type === "SESSION";
+  const hasSidebar =
+    (article.type === "PREVIEW" && article.preview_sidebar != null) ||
+    (isSession && article.session_data != null);
 
   const isNarrow = !isRankings && !hasSidebar;
 
@@ -220,6 +224,16 @@ export function ArticleDetailPage() {
           </span>
           {isSeason ? (
             <span className="article-detail-race-meta">Season {article.season_id}</span>
+          ) : isSession && article.session_data ? (
+            <>
+              <span className="article-detail-race-meta">
+                Season {article.season_id} · {article.session_data.round_span} ·{" "}
+                {article.session_data.race_count} races
+              </span>
+              <Link to={`/seasons/${article.season_id}`} className="article-race-link">
+                View season →
+              </Link>
+            </>
           ) : article.race && (
             <>
               <span className="article-detail-race-meta">
@@ -241,7 +255,7 @@ export function ArticleDetailPage() {
             </>
           )}
         </div>
-        {article.race && (
+        {article.race && !isSession && (
           <div className="article-detail-track">
             {flagImg && <img loading="lazy" className="article-detail-flag" src={flagImg} alt={article.race.track.country ?? ""} />}
             {article.race.track.name}
@@ -280,7 +294,11 @@ export function ArticleDetailPage() {
             ))}
           </div>
 
-          {hasSidebar && <PreviewSidebarPanel sidebar={article.preview_sidebar!} />}
+          {isSession && article.session_data ? (
+            <SessionPanels data={article.session_data} seasonId={article.season_id} />
+          ) : (
+            hasSidebar && <PreviewSidebarPanel sidebar={article.preview_sidebar!} />
+          )}
         </div>
       )}
     </div>

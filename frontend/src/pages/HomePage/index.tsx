@@ -44,6 +44,7 @@ function articleTagClass(type: ArticleSummary["type"]) {
     case "RECAP": return "tag-red";
     case "PREVIEW": return "tag-blue";
     case "POWER_RANKINGS": return "tag-gold";
+    case "SESSION": return "tag-green";
     case "SEASON_PREVIEW":
     case "SEASON_RECAP": return "tag-purple";
     default: return "tag-red";
@@ -102,7 +103,12 @@ export const HomePage = () => {
 
   const champions = hof?.season_champions ?? [];
 
-  const articles = [latestArticles?.recap, latestArticles?.preview, latestArticles?.rankings]
+  const articles = [
+    latestArticles?.recap,
+    latestArticles?.preview,
+    latestArticles?.rankings,
+    latestArticles?.session,
+  ]
     .filter((a): a is ArticleSummary => !!a);
 
   const leaderRow = topDrivers[0];

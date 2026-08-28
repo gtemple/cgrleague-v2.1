@@ -10,12 +10,21 @@ import { displayImage } from "../../utils/displayImage";
 import { StatusTicker } from "../../components/StatusTicker";
 import "./style.css";
 
-type Filter = "ALL" | "RACE" | "SEASON" | "RANKINGS";
+type Filter = "ALL" | "RACE" | "SESSION" | "SEASON" | "RANKINGS";
 
 const RECENT_SEASON_COUNT = 2;
 
+const FILTER_LABELS: Record<Filter, string> = {
+  ALL: "All",
+  RACE: "Race",
+  SESSION: "Session",
+  SEASON: "Season",
+  RANKINGS: "Rankings",
+};
+
 function articleCategory(type: ArticleSummary["type"]): Filter {
   if (type === "RECAP" || type === "PREVIEW") return "RACE";
+  if (type === "SESSION") return "SESSION";
   if (type === "SEASON_RECAP" || type === "SEASON_PREVIEW") return "SEASON";
   return "RANKINGS";
 }
@@ -25,12 +34,17 @@ function tagClass(type: ArticleSummary["type"]) {
     case "RECAP": return "atag-red";
     case "PREVIEW": return "atag-blue";
     case "POWER_RANKINGS": return "atag-gold";
+    case "SESSION": return "atag-green";
     case "SEASON_PREVIEW":
     case "SEASON_RECAP": return "atag-purple";
   }
 }
 
 function articleMeta(article: ArticleSummary): string {
+  if (article.type === "SESSION" && article.session_summary) {
+    const { round_span, race_count } = article.session_summary;
+    return `${round_span.toUpperCase()} · ${race_count} RACES`;
+  }
   if (article.type === "POWER_RANKINGS" && article.race) {
     return `AFTER ROUND ${article.race.round}`;
   }
@@ -82,7 +96,7 @@ function ArchiveRow({ article }: { article: ArticleSummary }) {
 
 // Within a season: season preview first, then each round newest→oldest, each
 // round grouped newest-first (power rankings → recap → preview), season review last.
-const WITHIN_ROUND_RANK: Record<string, number> = { POWER_RANKINGS: 0, RECAP: 1, PREVIEW: 2 };
+const WITHIN_ROUND_RANK: Record<string, number> = { SESSION: 0, POWER_RANKINGS: 1, RECAP: 2, PREVIEW: 3 };
 
 function articleSection(a: ArticleSummary): number {
   if (a.type === "SEASON_PREVIEW") return 0;
@@ -157,13 +171,13 @@ export function ArticlesPage() {
             <h1 className="art-title">Articles</h1>
           </div>
           <div className="art-filter-tabs">
-            {(["ALL", "RACE", "SEASON", "RANKINGS"] as Filter[]).map((f) => (
+            {(["ALL", "RACE", "SESSION", "SEASON", "RANKINGS"] as Filter[]).map((f) => (
               <button
                 key={f}
                 className={`art-tab${filter === f ? " art-tab-active" : ""}`}
                 onClick={() => setFilter(f)}
               >
-                {f === "ALL" ? "All" : f === "RACE" ? "Race" : f === "SEASON" ? "Season" : "Rankings"}
+                {FILTER_LABELS[f]}
               </button>
             ))}
           </div>

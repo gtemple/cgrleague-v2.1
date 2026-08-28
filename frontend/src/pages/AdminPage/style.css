@@ -665,3 +665,116 @@
   border: 0;
   background: var(--cgr-paper);
 }
+
+/* ═══════════════════════════════════════
+   SESSION REPORT
+═══════════════════════════════════════ */
+
+.adm-ses-races {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.adm-ses-race {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--cgr-card);
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-chip);
+  cursor: pointer;
+  font-family: var(--cgr-font-body);
+}
+
+.adm-ses-race:hover:not(:disabled) { background: var(--cgr-row-hover); }
+.adm-ses-race:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.adm-ses-race.is-on {
+  border-color: var(--cgr-teal);
+  background: var(--cgr-row-hover);
+}
+
+.adm-ses-race-order {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  color: var(--cgr-text-faint);
+  border: 1px solid var(--cgr-border-card);
+}
+
+.adm-ses-race.is-on .adm-ses-race-order {
+  background: var(--cgr-teal);
+  border-color: var(--cgr-teal);
+  color: #fff;
+}
+
+.adm-ses-race-label {
+  font-size: 14px;
+  color: var(--cgr-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-ses-race-state {
+  grid-column: 2;
+  font-family: var(--cgr-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted-2);
+}
+
+.adm-ses-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.adm-ses-note-label {
+  display: block;
+  font-family: var(--cgr-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cgr-text-muted);
+  margin-bottom: 4px;
+}
+
+.adm-ses-note-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: var(--cgr-font-body);
+  font-size: 14px;
+  color: var(--cgr-text-primary);
+  background: var(--cgr-card);
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-chip);
+  resize: vertical;
+}
+
+.adm-ses-note-input:focus-visible {
+  outline: 2px solid var(--cgr-teal);
+  outline-offset: -1px;
+}
+
+.adm-ses-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.adm-ses-actions .adm-hint { margin: 0; }

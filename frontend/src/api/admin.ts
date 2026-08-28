@@ -89,6 +89,18 @@ export type NewsletterOverview = {
   races: NewsletterRace[];
 };
 
+export type SessionRace = {
+  id: number;
+  round: number;
+  is_sprint: boolean;
+  result_count: number;
+  race_notes: string;
+  track: { id: number; name: string };
+  session_article: { article_id: number; title: string } | null;
+};
+
+export type SessionGenerated = { article_id: number; title: string; teaser: string };
+
 export type RenderedIssue = { subject: string; html: string; text: string };
 
 export type SendOutcome = {
@@ -152,6 +164,24 @@ export const adminApi = {
       method: "POST",
       headers: authedHeaders(token),
       body: JSON.stringify({ results }),
+    });
+  },
+
+  async getSessionRaces(token: string, seasonId: number): Promise<SessionRace[]> {
+    return fetchJson("/api/admin/sessions/", {
+      headers: authedHeaders(token),
+      params: { season: seasonId },
+    });
+  },
+
+  async generateSession(
+    token: string,
+    body: { race_ids: number[]; notes: Record<string, string> },
+  ): Promise<SessionGenerated> {
+    return fetchJson("/api/admin/sessions/generate/", {
+      method: "POST",
+      headers: authedHeaders(token),
+      body: JSON.stringify(body),
     });
   },
 

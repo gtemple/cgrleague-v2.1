@@ -194,6 +194,7 @@
 .atag-blue   { background: var(--cgr-blue); }
 .atag-purple { background: var(--cgr-purple); }
 .atag-gold   { background: var(--cgr-gold); color: var(--cgr-gold-text); }
+.atag-green  { background: var(--cgr-teal); }
 
 .acard-body {
   padding: 15px 16px 16px;

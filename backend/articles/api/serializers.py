@@ -27,6 +27,17 @@ class ArticleListSerializer(serializers.Serializer):
     season_game = serializers.SerializerMethodField()
     reading_time_minutes = serializers.SerializerMethodField()
     biggest_movers = serializers.SerializerMethodField()
+    session_summary = serializers.SerializerMethodField()
+
+    def get_session_summary(self, obj):
+        """Round span and race count, so a session card can label itself without
+        pulling the whole session payload into the list response."""
+        if obj.type != "SESSION" or not obj.session_data:
+            return None
+        return {
+            "race_count": obj.session_data.get("race_count"),
+            "round_span": obj.session_data.get("round_span"),
+        }
 
     def get_race(self, obj):
         if obj.race_id is None:
@@ -66,10 +77,17 @@ class ArticleDetailSerializer(serializers.Serializer):
     rivalry_callout = serializers.CharField()
     preview_sidebar = serializers.JSONField(default=None)
     rankings_data = serializers.JSONField(default=None)
+    session_data = serializers.JSONField(default=None)
     generated_at = serializers.DateTimeField()
     race = serializers.SerializerMethodField()
+    session_races = serializers.SerializerMethodField()
     season_id = serializers.SerializerMethodField()
     reading_time_minutes = serializers.SerializerMethodField()
+
+    def get_session_races(self, obj):
+        if obj.type != "SESSION":
+            return None
+        return RaceSlimSerializer(obj.session_races.all(), many=True).data
 
     def get_race(self, obj):
         if obj.race_id is None:

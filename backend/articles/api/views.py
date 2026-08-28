@@ -68,7 +68,9 @@ class ArticleListView(APIView):
 class ArticleDetailView(APIView):
     def get(self, request, article_id):
         article = get_object_or_404(
-            Article.objects.select_related("race", "race__track", "race__season", "season"),
+            Article.objects
+            .select_related("race", "race__track", "race__season", "season")
+            .prefetch_related("session_races__track"),
             pk=article_id,
         )
         data = ArticleDetailSerializer(article).data
@@ -149,9 +151,17 @@ class LatestArticlesView(APIView):
             .order_by("-race__season_id", "-race__round")
             .first()
         )
+        # A session article hangs off the last race it covers, so the same
+        # "furthest along the calendar" ordering picks the most recent one.
+        session = (
+            qs.filter(type=Article.SESSION, race_id__in=completed_race_ids)
+            .order_by("-race__season_id", "-race__round")
+            .first()
+        )
 
         return Response({
             "recap": ArticleListSerializer(recap).data if recap else None,
             "preview": ArticleListSerializer(preview).data if preview else None,
             "rankings": ArticleListSerializer(rankings).data if rankings else None,
+            "session": ArticleListSerializer(session).data if session else None,
         })

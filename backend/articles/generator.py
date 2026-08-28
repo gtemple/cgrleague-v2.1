@@ -245,17 +245,20 @@ def _season_seats(season, **filters):
     )
 
 
-def _get_standings(season, up_to_round):
+def _get_standings(season, up_to_round=None, race_filter=None):
+    """
+    Championship standings over a slice of the season. By default the slice is
+    every round up to `up_to_round`; `race_filter` overrides it with an explicit
+    Q over `results__race__*`, which a session needs because rounds are not a
+    fine enough cutoff when a sprint and a GP share a round number.
+    """
+    cutoff = race_filter if race_filter is not None else Q(results__race__round__lte=up_to_round)
     qs = (
         _season_seats(season)
         .select_related("driver", "team_season__team")
         .annotate(
-            base_points=Coalesce(
-                Sum(points_case(), filter=Q(results__race__round__lte=up_to_round)), 0
-            ),
-            fl_bonus=Coalesce(
-                Sum(fl_bonus_case(), filter=Q(results__race__round__lte=up_to_round)), 0
-            ),
+            base_points=Coalesce(Sum(points_case(), filter=cutoff), 0),
+            fl_bonus=Coalesce(Sum(fl_bonus_case(), filter=cutoff), 0),
         )
         .annotate(points=F("base_points") + F("fl_bonus"))
         .order_by("-points", "driver__last_name")
@@ -484,11 +487,11 @@ def _grid_rule(race):
     )
 
 
-def _tracked_flags(race):
+def _tracked_flags(*races):
     """
-    Which award flags actually occur in this race. Poles are S3+, Cleanest
-    Driver and Most Overtakes are S7+, so naming all five unconditionally asks
-    the model to highlight awards that were never recorded.
+    Which award flags actually occur across the given races. Poles are S3+,
+    Cleanest Driver and Most Overtakes are S7+, so naming all five
+    unconditionally asks the model to highlight awards that were never recorded.
     """
     checks = [
         ("pole", "pole_position"),
@@ -499,7 +502,7 @@ def _tracked_flags(race):
     ]
     fields = [f for _, f in checks]
     present = set()
-    for row in RaceResult.objects.filter(race=race).values(*fields):
+    for row in RaceResult.objects.filter(race__in=races).values(*fields):
         present.update(f for f in fields if row[f])
     return [label for label, field in checks if field in present]
 
@@ -1523,6 +1526,492 @@ def generate_power_rankings(race):
         rankings_data=rankings_data,
     )
     logger.info("Created POWER_RANKINGS article %d for %s", article.id, race)
+    return article
+
+
+# ─── session report ───────────────────────────────────────────────────────────
+# A session is 2-5 races the league ran back to back in one sitting. Each of
+# them already has its own recap; the session report is the layer above, about
+# the shape of the whole day rather than any single race.
+
+SESSION_MIN_RACES = 2
+SESSION_MAX_RACES = 5
+
+# The prose comes back on ARTICLE_SCHEMA like every other article. This second
+# schema is the structured panel: one line per race, plus the day's standout.
+# Chapters are keyed by race_id rather than round because a session can hold a
+# sprint and a GP that share a round number.
+SESSION_EXTRAS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "chapters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "race_id": {"type": "integer"},
+                    "beat": {"type": "string", "maxLength": 260},
+                },
+                "required": ["race_id", "beat"],
+                "additionalProperties": False,
+            },
+        },
+        "driver_of_the_session": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "reason": {"type": "string", "maxLength": 400},
+            },
+            "required": ["name", "reason"],
+            "additionalProperties": False,
+        },
+    },
+    "required": ["chapters", "driver_of_the_session"],
+    "additionalProperties": False,
+}
+
+
+def _race_label(race):
+    return f"R{race.round}{' Sprint' if race.is_sprint else ''} — {race.track.name}"
+
+
+def _load_session_races(race_ids):
+    """
+    Resolve the races in a session, in running order, or raise ValueError.
+
+    The set has to be a consecutive run inside one season: the points-swing
+    arithmetic below treats everything before the first race as "the standings
+    going in", which is only true when nothing in the middle is missing.
+    """
+    ids = list(dict.fromkeys(race_ids))
+    if not SESSION_MIN_RACES <= len(ids) <= SESSION_MAX_RACES:
+        raise ValueError(
+            f"A session needs {SESSION_MIN_RACES}-{SESSION_MAX_RACES} races, got {len(ids)}"
+        )
+
+    races = list(
+        Race.objects
+        .filter(id__in=ids)
+        .select_related("season", "track")
+        .order_by("round", "is_sprint")
+    )
+    if len(races) != len(ids):
+        missing = sorted(set(ids) - {r.id for r in races})
+        raise ValueError(f"No such race(s): {', '.join(str(m) for m in missing)}")
+
+    seasons = {r.season_id for r in races}
+    if len(seasons) > 1:
+        raise ValueError("All races in a session must belong to the same season")
+
+    season_races = list(
+        Race.objects.filter(season_id=races[0].season_id).order_by("round", "is_sprint")
+    )
+    positions = sorted(
+        next(i for i, r in enumerate(season_races) if r.id == race.id) for race in races
+    )
+    if positions != list(range(positions[0], positions[0] + len(positions))):
+        raise ValueError("The races in a session must be consecutive rounds with no gaps")
+
+    scored = set(
+        RaceResult.objects.filter(race__in=races).values_list("race_id", flat=True).distinct()
+    )
+    unscored = [r for r in races if r.id not in scored]
+    if unscored:
+        raise ValueError(
+            "No results recorded for " + ", ".join(_race_label(r) for r in unscored)
+        )
+
+    return races
+
+
+def _before_session_q(first_race):
+    """Everything in the season that ran before the session started."""
+    return (
+        Q(results__race__round__lt=first_race.round)
+        | Q(results__race__round=first_race.round, results__race__is_sprint__lt=first_race.is_sprint)
+    )
+
+
+def _through_session_q(last_race):
+    """Everything in the season up to and including the session's final race."""
+    return (
+        Q(results__race__round__lt=last_race.round)
+        | Q(results__race__round=last_race.round, results__race__is_sprint__lte=last_race.is_sprint)
+    )
+
+
+def _session_stats(races):
+    """
+    Per-race headlines and per-driver totals over the session alone.
+
+    Returns (per_race, per_driver). `per_driver` is sorted by points won across
+    the day, which is the number the whole article hangs off — a driver can win
+    the session on points without winning any single race in it.
+    """
+    from django.db.models import F as _F
+
+    rows = list(
+        RaceResult.objects
+        .filter(race__in=races)
+        .select_related(
+            "race__track",
+            "driver_season__driver",
+            "driver_season__team_season__team",
+        )
+        .order_by("race__round", "race__is_sprint", _F("finish_position").asc(nulls_last=True))
+    )
+
+    by_race = {r.id: [] for r in races}
+    for row in rows:
+        by_race[row.race_id].append(row)
+
+    per_race = []
+    for race in races:
+        finishers = [r for r in by_race[race.id] if r.finish_position is not None]
+        podium = [_name(r.driver_season.driver) for r in finishers[:3]]
+        awards = {}
+        for r in by_race[race.id]:
+            name = _name(r.driver_season.driver)
+            if r.pole_position: awards["pole"] = name
+            if r.fastest_lap:   awards["fastest_lap"] = name
+            if r.dotd:          awards["dotd"] = name
+        per_race.append({
+            "race_id": race.id,
+            "round": race.round,
+            "is_sprint": race.is_sprint,
+            "track_name": race.track.name,
+            "track_country": race.track.country,
+            "winner": podium[0] if podium else None,
+            "podium": podium,
+            "awards": awards,
+            "beat": "",
+        })
+
+    per_driver = {}
+    for row in rows:
+        ds = row.driver_season
+        driver = ds.driver
+        entry = per_driver.get(ds.id)
+        if entry is None:
+            team_season = ds.team_season
+            entry = per_driver[ds.id] = {
+                "driver_id": driver.id,
+                "name": _name(driver),
+                "team": team_season.team.team_name if team_season and team_season.team else "—",
+                "team_color": (team_season.color if team_season else "") or "",
+                "profile_image": driver.profile_image or "",
+                "is_human": driver.human,
+                "points": 0,
+                "wins": 0,
+                "podiums": 0,
+                "best_finish": None,
+                "finishes": [],
+            }
+        entry["points"] += row.points
+        pos = row.finish_position
+        if pos == 1:
+            entry["wins"] += 1
+        if pos is not None and pos <= 3:
+            entry["podiums"] += 1
+        if pos is not None and (entry["best_finish"] is None or pos < entry["best_finish"]):
+            entry["best_finish"] = pos
+        entry["finishes"].append({"race_id": row.race_id, "position": pos, "status": row.status})
+
+    ordered = sorted(
+        per_driver.values(),
+        key=lambda d: (-d["points"], d["best_finish"] if d["best_finish"] is not None else 99),
+    )
+    return per_race, ordered
+
+
+def _session_swing(season, races):
+    """Each driver's championship position and points either side of the session."""
+    before = {
+        row["name"]: row
+        for row in _get_standings(season, race_filter=_before_session_q(races[0]))
+    }
+    after = _get_standings(season, race_filter=_through_session_q(races[-1]))
+    swing = []
+    for row in after:
+        prev = before.get(row["name"])
+        prev_pos = prev["pos"] if prev else None
+        prev_pts = prev["points"] if prev else 0
+        swing.append({
+            "name": row["name"],
+            "team": row["team"],
+            "is_human": row["is_human"],
+            "pos": row["pos"],
+            "prev_pos": prev_pos,
+            "points": row["points"],
+            "prev_points": prev_pts,
+            "pos_delta": (prev_pos - row["pos"]) if prev_pos is not None else None,
+            "points_gained": row["points"] - prev_pts,
+        })
+    return swing
+
+
+def _fmt_session_races(races):
+    """Full results for every race in the session, in running order."""
+    blocks = []
+    for i, race in enumerate(races, 1):
+        kind = "Sprint" if race.is_sprint else "Grand Prix"
+        header = (
+            f"RACE {i} OF {len(races)} — Round {race.round} {kind} at {race.track.name} "
+            f"({race.track.city}, {race.track.country}):"
+        )
+        blocks.append(header + "\n" + _fmt_results(race))
+    return "\n\n".join(blocks)
+
+
+def _fmt_session_notes(races):
+    """Per-race admin notes, labelled by race so none is applied to the wrong one."""
+    noted = [(r, r.race_notes.strip()) for r in races if r.race_notes.strip()]
+    if not noted:
+        return ""
+    lines = "\n".join(f"  {_race_label(r)}: {notes}" for r, notes in noted)
+    return (
+        "\nRACE NOTES (from the league admin — treat as factual context. Each note belongs "
+        "to the race it is labelled with and to no other):\n" + lines + "\n"
+    )
+
+
+def _fmt_session_points(per_driver):
+    lines = []
+    for i, d in enumerate(per_driver, 1):
+        human_tag = " (Human)" if d["is_human"] else ""
+        extras = []
+        if d["wins"]:
+            extras.append(f"{d['wins']} win{'s' if d['wins'] != 1 else ''}")
+        if d["podiums"]:
+            extras.append(f"{d['podiums']} podium{'s' if d['podiums'] != 1 else ''}")
+        if d["best_finish"] is not None:
+            extras.append(f"best P{d['best_finish']}")
+        extra_str = f" ({', '.join(extras)})" if extras else ""
+        lines.append(f"  {i}. {d['name']}{human_tag} ({d['team']}) — {d['points']} pts{extra_str}")
+    return "\n".join(lines)
+
+
+def _fmt_session_swing(swing):
+    lines = []
+    for row in swing:
+        human_tag = " (Human)" if row["is_human"] else ""
+        if row["prev_pos"] is None:
+            movement = "no championship position before the session"
+        elif row["pos_delta"] == 0:
+            movement = f"held P{row['pos']}"
+        elif row["pos_delta"] > 0:
+            movement = f"P{row['prev_pos']} → P{row['pos']} (up {row['pos_delta']})"
+        else:
+            movement = f"P{row['prev_pos']} → P{row['pos']} (down {abs(row['pos_delta'])})"
+        lines.append(
+            f"  {row['name']}{human_tag}: {row['prev_points']} → {row['points']} pts "
+            f"(+{row['points_gained']}), {movement}"
+        )
+    return "\n".join(lines)
+
+
+def _session_grid_rule(races):
+    """
+    _grid_rule is written for one race; a session can mix races that have grid
+    slots with races that do not, and the model will happily borrow a start
+    from the race next door, so the ones without have to be named.
+    """
+    with_grid = [r for r in races if _has_grid(r)]
+    if not with_grid:
+        return _grid_rule(races[0])
+    without = [r for r in races if r not in with_grid]
+    rule = (
+        "\n- Grid slots are given in the results above for the races that have them. Use those "
+        "exact numbers for anything about where a driver started or how many places they gained"
+    )
+    if without:
+        rule += (
+            ". STARTING POSITIONS WERE NOT RECORDED for "
+            + ", ".join(_race_label(r) for r in without)
+            + " — never write where anyone started in those races, and never carry a grid slot "
+            "across from another race in the session"
+        )
+    return rule
+
+
+def _session_prior_titles(season, races):
+    """
+    Headlines to steer the session title away from. Anything published before
+    the session, plus the recaps of the session's own races — those are exactly
+    the headlines a reader has just seen, so they are the ones worth avoiding.
+    """
+    titles = _get_prior_titles(season, before_round=races[0].round)
+    own = list(
+        Article.objects
+        .filter(race__in=races)
+        .exclude(title="")
+        .order_by("-id")
+        .values_list("title", flat=True)
+    )
+    return list(dict.fromkeys(own + titles))
+
+
+def _generate_session_extras(races, per_race, per_driver, swing):
+    """
+    Second pass: one line per race for the session strip, plus the day's
+    standout driver. Returns (chapters_by_race_id, driver_of_the_session) —
+    ({}, None) if it fails, so a good article is never lost to a bad panel.
+    """
+    race_lines = "\n".join(
+        f"  race_id {r['race_id']} — Race {i} of {len(per_race)}, {_race_label(race)}"
+        f", won by {r['winner'] or 'nobody classified'}"
+        for i, (race, r) in enumerate(zip(races, per_race), 1)
+    )
+    prompt = f"""These {len(races)} CGR League races were run back to back in a single session.
+
+{_fmt_session_races(races)}
+{_fmt_session_notes(races)}
+POINTS WON ACROSS THE SESSION (this session only, not the championship):
+{_fmt_session_points(per_driver)}
+
+CHAMPIONSHIP MOVEMENT ACROSS THE SESSION:
+{_fmt_session_swing(swing)}
+
+THE RACES, WITH THE race_id YOU MUST USE FOR EACH:
+{race_lines}
+
+Produce two things:
+
+1. `chapters` — one entry per race, in running order, using the exact race_id given above. \
+Each `beat` is ONE sentence (max ~30 words) capturing that race's part in the session's story: \
+what it settled, what it set up, or how it changed the day. Read as a sequence — a later beat \
+may refer back to an earlier one. Do not simply restate the winner and the podium.
+
+2. `driver_of_the_session` — the driver whose whole session, across every race, stands out most. \
+Use their exact name as written above. The `reason` is 1-2 sentences citing their results and \
+points across the day. This is about the session as a whole, not one strong race.
+
+{CORE_RULES}{_session_grid_rule(races)}
+- A sprint pays a shorter points table than a Grand Prix (8 for a sprint win against 25), so \
+never compare a sprint haul to a Grand Prix haul as though they were the same prize
+- The best driver of the session is not automatically the one who won the most races — weigh \
+points won and consistency across all {len(races)} of them"""
+    try:
+        data = _call_model(prompt, SESSION_EXTRAS_SCHEMA, system=ANALYST_SYSTEM, max_tokens=3000)
+    except Exception:
+        logger.warning("Session extras generation failed for races %s", [r.id for r in races])
+        return {}, None
+
+    valid_ids = {r.id for r in races}
+    chapters = {
+        c["race_id"]: c["beat"]
+        for c in data.get("chapters", [])
+        if c.get("race_id") in valid_ids
+    }
+    return chapters, data.get("driver_of_the_session")
+
+
+def generate_session_article(race_ids):
+    """
+    Generate and save a SESSION Article covering 2-5 consecutive races run in
+    one sitting. Replaces any existing session article ending on the same race.
+    """
+    races = _load_session_races(race_ids)
+    season = races[0].season
+    first, last = races[0], races[-1]
+
+    per_race, per_driver = _session_stats(races)
+    swing = _session_swing(season, races)
+    standings_before = _get_standings(season, race_filter=_before_session_q(first))
+    standings_after = _get_standings(season, race_filter=_through_session_q(last))
+    constructors_after = _get_constructor_standings(season, last.round)
+    human_names = _get_human_driver_names(season)
+    collision_note = _get_name_collision_note(season)
+    total_rounds = _round_count(season)
+
+    flags = _tracked_flags(*races)
+    flags_block = f"\n- Awards recorded across this session: {', '.join(flags)}" if flags else ""
+    collision_block = f"\n{collision_note}" if collision_note else ""
+    prior_titles_block = _fmt_prior_titles(_session_prior_titles(season, races))
+    headline_rule = HEADLINE_ECHO_RULE if prior_titles_block else ""
+    round_span = (
+        f"Round {first.round}" if first.round == last.round
+        else f"Rounds {first.round}–{last.round}"
+    )
+
+    prompt = f"""Write a session report for a CGR League race session — {len(races)} races run \
+back to back in a single sitting.
+
+SESSION: Season {season.id} — {round_span} of {total_rounds}, {len(races)} races in order:
+{chr(10).join(f"  {i}. {_race_label(r)}" for i, r in enumerate(races, 1))}
+{_fmt_session_notes(races)}
+FULL RESULTS, RACE BY RACE IN RUNNING ORDER:
+{_fmt_session_races(races)}
+
+POINTS WON ACROSS THE SESSION (this session only — the day's own scoreboard, \
+NOT the championship):
+{_fmt_session_points(per_driver)}
+
+DRIVER CHAMPIONSHIP STANDINGS GOING INTO THE SESSION:
+{_fmt_standings(standings_before)}
+
+DRIVER CHAMPIONSHIP STANDINGS COMING OUT OF THE SESSION:
+{_fmt_standings(standings_after)}
+
+WHAT THE SESSION DID TO THE CHAMPIONSHIP (points and positions either side):
+{_fmt_session_swing(swing)}
+
+CONSTRUCTOR CHAMPIONSHIP STANDINGS AFTER THE SESSION:
+{_fmt_constructor_standings(constructors_after)}
+{_fmt_lineups(season)}{prior_titles_block}
+IMPORTANT RULES:
+- Every race in this session ALREADY HAS ITS OWN RECAP ARTICLE. This is the layer above them. \
+Do NOT re-narrate the races one at a time — a reader has seen the individual reports. Write the \
+story of the DAY: the arc across all {len(races)} races, who built something and who lost it, \
+where the day turned, what carried over from one race into the next
+- The session points table above is the day's own scoreboard and the spine of this article — \
+lead your analysis off it. A driver can win the session on points without winning a single race \
+in it, and a race winner can still have had a poor day overall
+- A sprint pays a shorter points table than a Grand Prix (8 for a sprint win against 25). Never \
+compare a sprint result to a Grand Prix result as though the same points were on offer
+- You MUST write at least one dedicated, specific paragraph about EACH of these human drivers: \
+{', '.join(human_names)}, covering their session as a whole rather than one race
+- Reference EXACT finishing positions and points from the data above — do not invent or approximate
+- Use the championship movement block for the title picture: name the concrete points gaps and \
+how they moved across the day, and cover the constructors' battle in at least one sentence
+- AI drivers may be mentioned naturally by name when relevant{flags_block}
+{CORE_RULES}{_session_grid_rule(races)}
+- Any RACE NOTES above take priority over anything you might infer from the results, and each \
+note applies ONLY to the race it is labelled with{collision_block}
+- Vary your opening — do not lead with "Round X" or the first race's winner; open on the shape \
+of the day, the championship stakes, or the storyline that ran through it
+{TITLE_VARIETY_RULE}{headline_rule}
+- Length: 700–1000 words, paragraphs separated by \\n\\n. This is a longer read than a \
+single race recap — {len(races)} races is more ground than one, so do not stop at recap length"""
+
+    data = _call_model(prompt, ARTICLE_SCHEMA, max_tokens=7000)
+
+    chapters, dots = _generate_session_extras(races, per_race, per_driver, swing)
+    for entry in per_race:
+        entry["beat"] = chapters.get(entry["race_id"], "")
+
+    session_data = {
+        "race_count": len(races),
+        "round_span": round_span,
+        "races": per_race,
+        "session_points": per_driver,
+        "standings_swing": swing,
+        "driver_of_the_session": dots,
+    }
+
+    Article.objects.filter(race=last, type=Article.SESSION).delete()
+    article = Article.objects.create(
+        race=last,
+        type=Article.SESSION,
+        title=data["title"],
+        teaser=data["teaser"],
+        content=data["content"],
+        session_data=session_data,
+    )
+    article.session_races.set(races)
+    logger.info(
+        "Created SESSION article %d covering races %s", article.id, [r.id for r in races]
+    )
     return article
 
 
