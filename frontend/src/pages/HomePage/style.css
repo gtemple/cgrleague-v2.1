@@ -425,6 +425,20 @@
   flex: none;
 }
 
+/* Takes the active driver's dot slot: a reserve holds a seat but isn't a
+   regular starter, and the card otherwise reads as a driver having a bad year. */
+.human-reserve {
+  flex: none;
+  padding: 2px 6px;
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-chip);
+  font-family: var(--cgr-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--cgr-text-muted-2);
+}
+
 .human-team {
   font-family: var(--cgr-font-mono);
   font-size: 10px;

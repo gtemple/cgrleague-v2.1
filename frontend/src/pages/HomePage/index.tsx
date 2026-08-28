@@ -343,7 +343,9 @@ export const HomePage = () => {
                         <div className="human-card-name-block">
                           <div className="human-name-row">
                             <span className="human-name">{h.driver.display_name}</span>
-                            <span className="human-dot" />
+                            {h.is_reserve
+                              ? <span className="human-reserve">RESERVE</span>
+                              : <span className="human-dot" />}
                           </div>
                           <div className="human-team">{(h.team?.display_name ?? h.team?.name ?? "").toUpperCase()}</div>
                         </div>

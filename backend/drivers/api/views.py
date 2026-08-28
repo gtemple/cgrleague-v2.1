@@ -505,6 +505,7 @@ class DriversHomepageView(APIView):
                     } if team else None,
                     "last_finish": last_results.get(ds.driver_id),
                     "form": recent_form.get(ds.id, []),
+                    "is_reserve": ds.is_reserve,
                 })
 
         # ── All-time leaders (human only) ─────────────────────────────────

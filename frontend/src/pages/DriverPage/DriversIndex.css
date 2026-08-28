@@ -185,6 +185,17 @@
   background: var(--cgr-red);
 }
 
+.dix-human-reserve {
+  padding: 2px 6px;
+  border: 1px solid var(--cgr-border-card);
+  border-radius: var(--cgr-radius-chip);
+  font-family: var(--cgr-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--cgr-text-muted-2);
+}
+
 .dix-human-name {
   font-family: var(--cgr-font-display);
   font-weight: 700;

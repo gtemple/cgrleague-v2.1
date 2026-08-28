@@ -9,7 +9,7 @@ import "./DriversIndex.css";
 // ─── Human spotlight card ─────────────────────────────────────────────────────
 
 function HumanCard({ entry }: { entry: HumanSpotlightEntry }) {
-  const { driver, position, points, wins, team, last_finish } = entry;
+  const { driver, position, points, wins, team, last_finish, is_reserve } = entry;
   const avatarUrl = driver.profile_image ? displayImage(driver.profile_image, "driver") : null;
   const flagUrl = driver.country_of_representation
     ? displayImage(driver.country_of_representation, "flags")
@@ -34,7 +34,9 @@ function HumanCard({ entry }: { entry: HumanSpotlightEntry }) {
             <div>
               <div className="dix-human-nat-row">
                 {flagUrl && <img loading="lazy" className="dix-human-flag" src={flagUrl} alt="" />}
-                <span className="dix-human-dot" />
+                {is_reserve
+                  ? <span className="dix-human-reserve">RESERVE</span>
+                  : <span className="dix-human-dot" />}
               </div>
               <div className="dix-human-name">{driver.display_name}</div>
               <div className="dix-human-team">{(team?.display_name ?? team?.name ?? "").toUpperCase()}</div>

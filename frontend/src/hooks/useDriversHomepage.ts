@@ -25,6 +25,7 @@ export interface HumanSpotlightEntry {
   team: TeamLite | null;
   last_finish: number | null;
   form: (number | "DNF")[];
+  is_reserve: boolean;
 }
 
 export interface LeaderEntry {
