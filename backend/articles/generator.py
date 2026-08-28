@@ -80,12 +80,12 @@ ANALYST_SYSTEM = (
 # what the model is allowed to claim lands in one place.
 
 DATA_DISCIPLINE_RULE = (
-    "- STICK TO THE DATA ABOVE. You are given finishing positions, grid slots, points, status, "
+    "- STICK TO THE DATA ABOVE. You are given finishing positions, points, status, "
     "awards and standings — nothing else. You do NOT know lap numbers, lap times, gaps, corner "
     "names, tyre strategies, pit stops, overtake counts, or why any driver gained or lost places. "
     "Never write a sentence containing a fact of that kind: no \"on lap 41\", no \"at Turn 4\", no "
     "\"14 overtakes\", no \"a bold move around the outside\", no \"a strategy error\". Describe what "
-    "the results show (grid slot, finish, points, awards, standings movement) and let the notes "
+    "the results show (finish, points, awards, standings movement) and let the notes "
     "supply anything else. If you do not know why something happened, say what happened and move on"
 )
 
@@ -222,10 +222,24 @@ def _name(driver):
     return f"{driver.first_name} {driver.last_name}".strip()
 
 
+def _season_seats(season, **filters):
+    """
+    The seats a prompt is allowed to talk about. A reserve who never drove is on
+    the books but was never on the grid, and naming one invites the model to
+    write them a race they did not start. Mirrors the exclusion the public
+    season views apply.
+    """
+    return (
+        DriverSeason.objects
+        .filter(season=season, **filters)
+        .annotate(n_results=Count("results"))
+        .exclude(is_reserve=True, n_results=0)
+    )
+
+
 def _get_standings(season, up_to_round):
     qs = (
-        DriverSeason.objects
-        .filter(season=season)
+        _season_seats(season)
         .select_related("driver", "team_season__team")
         .annotate(
             base_points=Coalesce(
@@ -291,8 +305,7 @@ def _get_driver_track_history(season, track, cutoff_race=None):
     """
     from django.db.models import Q as _Q
     season_drivers = list(
-        DriverSeason.objects
-        .filter(season=season, driver__human=True)
+        _season_seats(season, driver__human=True)
         .select_related("driver")
     )
     driver_ids = [ds.driver_id for ds in season_drivers]
@@ -324,8 +337,7 @@ def _get_driver_track_history(season, track, cutoff_race=None):
 
 def _get_human_driver_names(season):
     ds_list = (
-        DriverSeason.objects
-        .filter(season=season, driver__human=True)
+        _season_seats(season, driver__human=True)
         .select_related("driver")
     )
     return [_name(ds.driver) for ds in ds_list]
@@ -341,8 +353,7 @@ def _get_name_collision_note(season):
     """
     from collections import defaultdict
     ds_list = (
-        DriverSeason.objects
-        .filter(season=season)
+        _season_seats(season)
         .select_related("driver")
     )
     by_last = defaultdict(list)
@@ -432,14 +443,37 @@ def _fmt_lineups(season):
     from collections import defaultdict
     by_team = defaultdict(list)
     for ds in (
-        DriverSeason.objects
-        .filter(season=season)
+        _season_seats(season)
         .select_related("driver", "team_season__team")
         .order_by("driver__last_name")
     ):
         by_team[ds.team_season.display_name or ds.team_season.team.team_name].append(_name(ds.driver))
     lines = "\n".join(f"  - {team}: {' & '.join(names)}" for team, names in sorted(by_team.items()))
     return f"\nTEAM LINE-UPS THIS SEASON (use this for any 'teammate' reference):\n{lines}\n"
+
+
+def _has_grid(race):
+    return RaceResult.objects.filter(race=race, grid_position__isnull=False).exists()
+
+
+def _grid_rule(race):
+    """
+    Grid slots are only recorded from S7 on, and not for every race even then.
+    When they are missing _fmt_results drops the column, but silence is not
+    enough — the model fills the gap in, inventing a start for every driver it
+    writes about. It has to be told the data does not exist.
+    """
+    if _has_grid(race):
+        return (
+            "\n- Grid slots are given in the results above. Use those exact numbers for "
+            "anything about where a driver started or how many places they gained"
+        )
+    return (
+        "\n- STARTING POSITIONS WERE NOT RECORDED for this race. You do not know where "
+        "anyone started. Never write where a driver started, how many places they gained "
+        "or lost, or any \"from Nth on the grid\" phrasing. The pole award is the only "
+        "thing you know about the grid, and it tells you nothing about anyone else"
+    )
 
 
 def _tracked_flags(race):
@@ -530,8 +564,7 @@ def _get_recent_form(season, up_to_round, last_n=5):
     for the human drivers, through up_to_round. Momentum going into the next race."""
     from django.db.models import F as _F
     ds_list = (
-        DriverSeason.objects
-        .filter(season=season, driver__human=True)
+        _season_seats(season, driver__human=True)
         .select_related("driver")
     )
     out = {}
@@ -615,6 +648,14 @@ def _generate_rivalry_callout(race):
     Second-pass prompt: extract the single best on-track battle from the race.
     Returns a plain-text description string, or "" on failure.
     """
+    grid_rule = _grid_rule(race)
+    has_grid = _has_grid(race)
+    started_clause = "where they started, " if has_grid else ""
+    detail_example = (
+        "Finished two places and four points apart after starting alongside each other"
+        if has_grid else
+        "Finished two places and four points apart"
+    )
     prompt = f"""Based on these race results from a CGR League race at {race.track.name} \
 (Season {race.season_id}, Round {race.round}), identify the single most compelling \
 storyline between two specific drivers.
@@ -622,14 +663,13 @@ storyline between two specific drivers.
 RACE RESULTS:
 {_fmt_results(race)}
 {_fmt_lineups(race.season)}
-Write exactly 2–3 punchy sentences on what the results show about these two: where they \
-started, where they finished, what separated them, and what it means. Use the drivers' \
-real names.
+Write exactly 2–3 punchy sentences on what the results show about these two: {started_clause}where \
+they finished, what separated them, and what it means. Use the drivers' real names.
 
-{CORE_RULES}
+{CORE_RULES}{grid_rule}
 - You are describing a RESULT, not a wheel-to-wheel duel. You have no lap-by-lap record, so \
-do not narrate passes, defences, or contact. "Finished two places and four points apart after \
-starting alongside each other" is the level of detail available to you
+do not narrate passes, defences, or contact. "{detail_example}" is the level of detail \
+available to you
 
 Identify the two drivers and write the description."""
     try:
@@ -669,6 +709,7 @@ def generate_recap(race):
     lineups_block = _fmt_lineups(season)
     flags_block = f"\n- Highlight key moments: {', '.join(flags)}" if flags else ""
     headline_rule = HEADLINE_ECHO_RULE if prior_titles_block else ""
+    grid_rule = _grid_rule(race)
 
     prompt = f"""Write a race recap article for the following CGR League race.
 
@@ -698,7 +739,7 @@ include at least one sentence on the constructor battle. Where the before/after 
 a lead growing, shrinking, or a position swap, describe that shift concretely (e.g. the exact \
 points gap and how it moved) rather than in vague terms
 - Frame the stakes against the season length ({total_rounds} rounds total) where it matters{flags_block}
-{CORE_RULES}
+{CORE_RULES}{grid_rule}
 - Any RACE NOTES provided above take priority over anything you might infer from the results — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not lead with the winner's name or "Round X" every time; sometimes \
@@ -763,6 +804,7 @@ def generate_preview(next_race, after_race=None):
     is_opener = after_race is None
 
     total_rounds = _round_count(season)
+    grid_rule = _grid_rule(after_race) if after_race else ""
     track_winners = _get_track_winners(track, exclude_race=next_race, cutoff_race=next_race)
     driver_track_history = _get_driver_track_history(season, track, cutoff_race=next_race)
     human_names = _get_human_driver_names(season)
@@ -823,7 +865,7 @@ IMPORTANT RULES:
 {', '.join(human_names)}
 {stakes_rules}
 - AI drivers may be mentioned naturally by name when relevant
-{CORE_RULES}
+{CORE_RULES}{grid_rule}
 - Any RACE NOTES provided above take priority over anything you might infer from the data — \
 treat them as ground truth from the league admin{collision_block}
 - Vary your opening — do not lead with "Round X" or the track name every time; sometimes open \
@@ -1363,7 +1405,7 @@ def generate_power_rankings(race):
         raise ValueError("No completed races found up to this point")
 
     driver_seasons = list(
-        DriverSeason.objects.filter(season=season)
+        _season_seats(season)
         .select_related("driver", "team_season__team")
     )
 
