@@ -110,7 +110,15 @@ HEADLINE_ECHO_RULE = (
 )
 
 # Rules every article-shaped prompt wants. Joined with newlines at the call site.
-CORE_RULES = "\n".join((DATA_DISCIPLINE_RULE, NO_PAST_WIN_INFERENCE_RULE, STANDINGS_MOVEMENT_RULE))
+TEAM_FINISH_RULE = (
+    "- A hyphenated finish string means the exact positions a team's own drivers took, in order. "
+    "Only write \"1-2\" if that team won the race. Ferrari finishing second and fourth is a "
+    "\"2-4\", never a \"1-2-4\" — check who actually won before describing anyone's day that way"
+)
+
+CORE_RULES = "\n".join((
+    DATA_DISCIPLINE_RULE, NO_PAST_WIN_INFERENCE_RULE, STANDINGS_MOVEMENT_RULE, TEAM_FINISH_RULE,
+))
 
 # ─── structured-output schemas ────────────────────────────────────────────────
 # Response shape is enforced by output_config, so no JSON parsing fallbacks are
@@ -826,6 +834,7 @@ def generate_preview(next_race, after_race=None):
 
     total_rounds = _round_count(season)
     rounds_after = total_rounds - next_race.round
+    rounds_after_incl = rounds_after + 1
     grid_rule = _grid_rule(after_race) if after_race else ""
     track_winners = _get_track_winners(track, exclude_race=next_race, cutoff_race=next_race)
     driver_track_history = _get_driver_track_history(season, track, cutoff_race=next_race)
@@ -873,7 +882,7 @@ def generate_preview(next_race, after_race=None):
 
 UPCOMING RACE: Season {season.id} — Round {next_race.round} of {total_rounds} {kind} at {track.name} \
 ({track.city}, {track.country})
-Rounds still to run after this one: {rounds_after}
+Rounds remaining after this race: {rounds_after} (counting this one, {rounds_after_incl} left)
 Track length: {track.distance}m
 {notes_block}
 {state_block}
